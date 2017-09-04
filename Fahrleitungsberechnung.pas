@@ -248,7 +248,7 @@ begin
   DrahtFarbe.a:=0;
   if (length(PunkteA)>1) and (length(PunkteB)>1) then
   begin
-    //Fahrdraht zunächst nur berechnen
+    //Fahrdraht berechnen als Vektor von FA nach FB
     pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
     pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
@@ -270,6 +270,8 @@ begin
       //oberer Kettenwerkpunkt
       D3DXVec3Scale(v, vTragseil, (a-0.5)/i);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+//  TODO: Durchhang des Tragseils scharfschalten
       //Punkt absenken
 //      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
 //      D3DXVec3Scale(vNeu, v, 0.75/Durchhang+Durchhang*Sqr((a-0.5)/(i)-0.5));
@@ -317,7 +319,8 @@ begin
     //Dateien eintragen
     setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
-    //wir nehmen den Mittelwert der Winkel an den beiden Ankerpunkten als Winkel unseres Isolators
+    //wir nehmen den Mittelwert der Winkel an den beiden Ankerpunkten als Winkel unseres Isolators.
+    //TODO: Algorithmus entwickeln, der korrekte Ergebnisse unabhängig von der Ausrichtung der Ausleger ermittelt
     D3DXVec3Add(pktU.PunktTransformiert.Winkel, pktFA.PunktTransformiert.Winkel, pktFB.PunktTransformiert.Winkel);
     D3DXVec3Scale(pktU.PunktTransformiert.Winkel, pktU.PunktTransformiert.Winkel, 0.5);
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
@@ -365,6 +368,7 @@ begin
   setlength(ErgebnisArrayDateien, 0);
 
   //wenn wir mehrere Sorten Fahrdrähte verlegen können, wird hier entschieden was wir machen
+  //TODO: Derzeit muss noch das Radspannwerk immer an A liegen.
   if (Typ1=0) and (Typ2=1) then KettenwerkAusfaedelungMitIsolator;
   
   Result.iDraht:=length(ErgebnisArray);
