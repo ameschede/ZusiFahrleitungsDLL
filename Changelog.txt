@@ -1,0 +1,8 @@
+1.0.0.2 (4.9.2017)
+- Erste veröffentlichte Version
+
+1.0.0.5 (11.9.2017)
+- Die Baurichtung (A oder B) ist jetzt egal
+- Tragseile werden mit Durchhang berechnet
+- Verbesserter Algorithmus zur Lagebestimmung von Isolatoren
+- Experimentell: Drahtstärke konfigurierbar, Bau von Fahrdrähten ohne Y-Beiseil

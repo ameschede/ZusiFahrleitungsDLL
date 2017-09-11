@@ -2,11 +2,7 @@
 
 Fahrleitungs-DLL für Zusi 3, basierend auf dem bei Zusi 3 mitgelieferten Beispiel-Quelltext von Carsten Hölscher.
 
-Derzeit kann das Ding Abspannungen für Streckentrennungen erzeugen, die zwei zusätzliche Isolatoren in der Nähe der Ausfädelungs-Ausleger haben. Im Moment gelten dabei folgende Einschränkungen:
-
-- Das Radspannwerk muss immer Anbaupunkt A sein, die Ausfädelung immer Anbaupunkt B. Sonst baut die DLL nichts.
-- Der Durchhang des Tragseils ist in der aktuellen Version deaktiviert, weil ich es noch nicht hinbekommen habe auf ein durchhängendes Tragseil einen Isolator passend aufzufädeln.
-- Bei bestimmten Konstellationen der beteiligten Ankerpunkte zueinander werden die Isolatoren um 90 ° gedreht platziert. Das kann im Nachgang dann von Hand korrigiert werden. Hier ist ein smarterer Algorithmus zur Bestimmung der Winkel fällig.
+Derzeit kann das Ding Abspannungen für Streckentrennungen erzeugen, die zwei zusätzliche Isolatoren in der Nähe der Ausfädelungs-Ausleger haben. Alle sonstigen Funktionen der DLL sind als experimentell zu sehen.
 
 Programmiersprache ist Delphi 7. Nicht weil ich gerne mit Antiquitäten handele, sondern weil der Beispiel-Quelltext in dieser Sprache vorlag und ich nicht erst ein Portierungs-Projekt starten wollte, und Delphi 7 auch heute noch recht problemlos kostenlos zu bekommen ist. Außerdem ist die DLL damit ohne Klimmzüge zu den Eigenarten des in Delphi 7 geschriebenen Zusi 3 kompatibel.
 

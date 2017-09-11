@@ -14,6 +14,7 @@ type
     SpeedButtonIsolator: TSpeedButton;
     LabeledEditIsolator: TLabeledEdit;
     Label1: TLabel;
+    RadioGroupDrahtstaerke: TRadioGroup;
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }
