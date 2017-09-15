@@ -76,9 +76,11 @@ begin
               if reg.ValueExists('DrahtStaerke') then
               begin
                 Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
-                if Drahtkennzahl = 0 then Drahtstaerke := 0.015;  // Zusis Standard-Drahtstärke
-                if Drahtkennzahl = 1 then Drahtstaerke := 0.0074;   // Draht Ri 150
-                if Drahtkennzahl = 2 then Drahtstaerke := 0.006;  // Draht Ri 100
+                case Drahtkennzahl of
+                0: Drahtstaerke := 0.015;  // Zusis Standard-Drahtstärke
+                1: Drahtstaerke := 0.0074;   // Draht Ri 150
+                2: Drahtstaerke := 0.006;  // Draht Ri 100
+                end;
               end;
             end;
   finally
@@ -131,9 +133,12 @@ end;
 function BauartTyp(i:Longint):PChar; stdcall;
 // Wird vom Editor so oft aufgerufen, wie wir als Result in der init-function übergeben haben. Enumeriert die Bauart-Typen, die diese DLL kennt 
 begin
-  if i=0 then Result:='Abschluß mit Isolatoren';
-  if i=1 then Result:='Ausfädelung mit Isolatoren';
-  if i=2 then Result:='Ohne Y-Beiseil'
+  case i of
+  0: Result:='Abschluß mit Isolatoren';
+  1: Result:='Ausfädelung mit Isolatoren';
+  2: Result:='Ohne Y-Beiseil'
+  else Result := 'Ohne Y-Beiseil'
+  end;
 end;
 
 
