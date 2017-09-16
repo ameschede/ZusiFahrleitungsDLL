@@ -57,11 +57,9 @@ uses Classes;
 var ErgebnisArray:array of TLinie;
     ErgebnisArrayDateien:array of TVerknuepfung;
     PunkteA, PunkteB, PunkteTemp: array of TAnkerpunkt;
-    KruemmungAktuell:single;
-    RechtsAktuell:Boolean;
     DateiIsolator:string;
-    Drahtstaerke:single;
-    Drahtkennzahl:integer;
+    Drahtstaerke,Ersthaengerabstand,MaxHaengerabstand:single;
+    Drahtkennzahl, Haengerkennzahl:integer;
 
 
 procedure RegistryLesen;
@@ -80,6 +78,14 @@ begin
                 0: Drahtstaerke := 0.015;  // Zusis Standard-Drahtstärke
                 1: Drahtstaerke := 0.0074;   // Draht Ri 150
                 2: Drahtstaerke := 0.006;  // Draht Ri 100
+                end;
+              end;
+              if reg.ValueExists('Haengerteilung') then
+              begin
+                Haengerkennzahl:=reg.ReadInteger('Haengerteilung');
+                case Haengerkennzahl of
+                0:  begin Ersthaengerabstand:= 2.5; MaxHaengerabstand := 12.50 end;
+                1:  begin Ersthaengerabstand:= 5.0; MaxHaengerabstand := 11.67 end;
                 end;
               end;
             end;
@@ -108,6 +114,7 @@ begin
             begin
               reg.WriteString('DateiIsolator', DateiIsolator);
               reg.WriteInteger('Drahtstaerke',Drahtkennzahl);
+              reg.WriteInteger('Haengerteilung',Haengerkennzahl);
             end;
           end;
         end;
@@ -127,6 +134,10 @@ begin
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
   Drahtkennzahl:=0;
+  Haengerkennzahl:=0;
+  Drahtstaerke:=0.015;
+  Ersthaengerabstand:=2.5;
+  MaxHaengerabstand:=12.5;
   RegistryLesen;
 end;
 
@@ -300,7 +311,7 @@ begin
      TODO: Vorbildgerechte Hängerteilungen.
      Re 330: 1. Hänger 5,0 m vom Stützpunkt; sonst  9,17 m
      Re 250: wie Re 330
-     Re 200: 1. Hänger 2,5 m vom Stützpunkt; 2. Hänger 6,0 m vom Stützpunkt; sonst 11,50 m 
+     Re 200: 1. Hänger 2,5 m vom Stützpunkt; 2. Hänger 6,0 m vom Stützpunkt; sonst 11,50 m
      Re 160: 1. Hänger 2,5 m vom Stützpunkt; sonst 12,50 m
      Re 100: 1. Hänger 5,0 m vom Stützpunkt; sonst 11,67 m
      Re 75 : wie Re 100
@@ -337,7 +348,7 @@ begin
     end;
 
 
-    // Tragseil
+    // Tragseil-Abschnitte zwischen den Hängern
     for a:=1 to length(ErgebnisArray)-1 do
     begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -347,7 +358,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
       v:=ErgebnisArray[a].Punkt2;
     end;
-    // "Halbe Endfelder"
+    // Tragseil-Abschnitte vom Ausleger zum ersten bzw. letzten Hänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[0].Punkt2;
@@ -397,6 +408,111 @@ begin
   end
 end;
 
+procedure KettenwerkStandardAufAusfaedelungMitIsolator;
+var pktFA, pktFB, pktTA, pktTB, pktU, pktO, pktOErsterHaenger, pktOLetzterHaenger:TAnkerpunkt;
+    Abstand, Durchhang:single;
+    vFahrdraht, vTragseil, v, vNeu:TD3DVector;
+    i, a:integer;
+    DrahtFarbe:TD3DColorValue;
+begin
+  DrahtFarbe.r:=0.99;
+  DrahtFarbe.g:=0.99;
+  DrahtFarbe.b:=0.99;
+  DrahtFarbe.a:=0;
+  if (length(PunkteA)>1) and (length(PunkteB)>1) then
+  begin
+    //Fahrdraht berechnen als Vektor von FA nach FB
+    pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
+    pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht);
+    D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
+    Abstand:=D3DXVec3Length(vFahrdraht);
+    {
+     TODO: Vorbildgerechte Hängerteilungen.
+     Re 330: 1. Hänger 5,0 m vom Stützpunkt; sonst  9,17 m
+     Re 250: wie Re 330
+     Re 200: 1. Hänger 2,5 m vom Stützpunkt; 2. Hänger 6,0 m vom Stützpunkt; sonst 11,50 m
+     Re 160: 1. Hänger 2,5 m vom Stützpunkt; sonst 12,50 m
+     Re 100: 1. Hänger 5,0 m vom Stützpunkt; sonst 11,67 m
+     Re 75 : wie Re 100
+    }
+    i:=round(Abstand/12.5+0.5);
+
+    //Tragseil Endpunkte
+    pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+    pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil);
+    D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
+    Durchhang:=Abstand/55;   // größere Zahl = weniger Durchhang
+    for a:=1 to i do
+    begin
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      //unterer Kettenwerkpunkt
+      D3DXVec3Scale(v, vFahrdraht, (a-0.5)/i);
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      //oberer Kettenwerkpunkt
+      D3DXVec3Scale(v, vTragseil, (a-0.5)/i);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, 0.75/Durchhang+Durchhang*Sqr((a-0.5)/(i)-0.5));
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+      if a = 1 then pktOErsterHaenger.PunktTransformiert.Punkt := pktO.PunktTransformiert.Punkt;
+      if a = i then pktOLetzterHaenger.PunktTransformiert.Punkt := pktO.PunktTransformiert.Punkt;
+
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
+
+
+    // Tragseil-Abschnitte zwischen den Hängern
+    for a:=1 to length(ErgebnisArray)-1 do
+    begin
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErgebnisArray[a-1].Punkt2;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[a].Punkt2;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+      v:=ErgebnisArray[a].Punkt2;
+    end;
+    // Tragseil-Abschnitte vom Ausleger zum ersten bzw. letzten Hänger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTA.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[0].Punkt2;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTB.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=v;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Fahrdraht eintragen
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Isolator an der Ausfädelung unten
+    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+    LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+    //Isolator an der Ausfädelung oben
+    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+    LageIsolator(pktTB.PunktTransformiert.Punkt, pktOLetzterHaenger.PunktTransformiert.Punkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+  end
+end;
+
 procedure KettenwerkOhneYSeil;
 var pktFA, pktFB, pktTA, pktTB, pktU, pktO:TAnkerpunkt;
     Abstand, Durchhang:single;
@@ -419,19 +535,40 @@ begin
      TODO: Vorbildgerechte Hängerteilungen.
      Re 330: 1. Hänger 5,0 m vom Stützpunkt; sonst  9,17 m
      Re 250: wie Re 330
-     Re 200: 1. Hänger 2,5 m vom Stützpunkt; 2. Hänger 6,0 m vom Stützpunkt; sonst 11,50 m 
+     Re 200: 1. Hänger 2,5 m vom Stützpunkt; 2. Hänger 6,0 m vom Stützpunkt; sonst 11,50 m
      Re 160: 1. Hänger 2,5 m vom Stützpunkt; sonst 12,50 m
      Re 100: 1. Hänger 5,0 m vom Stützpunkt; sonst 11,67 m
      Re 75 : wie Re 100
     }
-    i:=round(Abstand/12.5+0.5); //die +0,5 stellt provisorisch ggfs. den Mindestabstand am Stützpunkt sicher. Die genauen Standorte des ersten Hängers aus dem Kommentar oben lassen sich so nicht einhalten.
+    i:=(round((Abstand-2*Ersthaengerabstand)/MaxHaengerabstand+0.5)+2); //die +0,5 stellt sicher, dass im Zweifel ein Hänger mehr eingebaut wird, um den Maximalabstand nicht zu überschreiten. Außerdem +2 für den ersten und letzten Hänger
 
     //Tragseil Endpunkte
     pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
     pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
     Durchhang:=Abstand/35;   // größere Zahl = weniger Durchhang
-    for a:=1 to i do
+
+    //Erster Hänger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    //unterer Kettenwerkpunkt
+    D3DXVec3Scale(v, vFahrdraht, (Ersthaengerabstand/Abstand));
+    D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+    //oberer Kettenwerkpunkt
+    D3DXVec3Scale(v, vTragseil, (Ersthaengerabstand/Abstand));
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+    //Punkt absenken
+    D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+    D3DXVec3Scale(vNeu, v, 1/Durchhang+Durchhang*Sqr((1-0.5)/(i)-0.5));
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    for a:=2 to (i-1) do
     begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       //unterer Kettenwerkpunkt
@@ -453,8 +590,28 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
+    //Letzter Hänger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    //unterer Kettenwerkpunkt
+    D3DXVec3Scale(v, vFahrdraht, (Abstand - Ersthaengerabstand)/Abstand);
+    D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
-    // Tragseil
+    //oberer Kettenwerkpunkt
+    D3DXVec3Scale(v, vTragseil, (Abstand - Ersthaengerabstand)/Abstand);
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+    //Punkt absenken
+    D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+    D3DXVec3Scale(vNeu, v, 1/Durchhang+Durchhang*Sqr((i-0.5)/(i)-0.5));
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+
+    // Tragseil-Abschnitte zwischen den Hängern
     for a:=1 to length(ErgebnisArray)-1 do
     begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -464,7 +621,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
       v:=ErgebnisArray[a].Punkt2;
     end;
-    // "Halbe Endfelder"
+    // Tragseil-Abschnitte vom Ausleger zum ersten bzw. letzten Hänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[0].Punkt2;
@@ -505,6 +662,16 @@ begin
     PunkteB:=PunkteTemp;
     KettenwerkAusfaedelungMitIsolator;
   end;
+
+  if (Typ1=2) and (Typ2=1) then KettenwerkStandardAufAusfaedelungMitIsolator;
+  if (Typ1=1) and (Typ2=2) then
+  begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
+    PunkteTemp:=PunkteA;
+    PunkteA:=PunkteB;
+    PunkteB:=PunkteTemp;
+    KettenwerkStandardAufAusfaedelungMitIsolator;
+  end;
+
   if (Typ1=2) and (Typ2=2) then KettenwerkOhneYSeil;
 
   Result.iDraht:=length(ErgebnisArray);
@@ -591,6 +758,7 @@ begin
   Formular:=TFormFahrleitungConfig.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
   Formular.RadioGroupDrahtstaerke.ItemIndex := Drahtkennzahl;
+  Formular.RadioGroupHaengerteilung.ItemIndex := Haengerkennzahl;
 
   Formular.ShowModal;
 
@@ -598,6 +766,7 @@ begin
   begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
     Drahtkennzahl:=Formular.RadioGroupDrahtstaerke.ItemIndex;
+    Haengerkennzahl:=Formular.RadioGroupHaengerteilung.ItemIndex;
     RegistrySchreiben;
   end;
 
