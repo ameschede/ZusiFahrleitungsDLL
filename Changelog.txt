@@ -1,11 +1,11 @@
-1.0.0.2 (4.9.2017)
-- Erste veröffentlichte Version
+ï»¿1.0.0.2 (4.9.2017)
+- Erste verÃ¶ffentlichte Version
 
 1.0.0.5 (11.9.2017)
 - Die Baurichtung (A oder B) ist jetzt egal
 - Tragseile werden mit Durchhang berechnet
 - Verbesserter Algorithmus zur Lagebestimmung von Isolatoren
-- Experimentell: Drahtstärke konfigurierbar, Bau von Fahrdrähten ohne Y-Beiseil
+- Experimentell: DrahtstÃ¤rke konfigurierbar, Bau von FahrdrÃ¤hten ohne Y-Beiseil
 
 1.0.0.7 (20.11.2018)
-- Die DLL nutzt jetzt FastMM4, um kompatibel mit dem 3D-Editor 3.1.7.2 und höher zu sein
+- Die DLL nutzt jetzt FastMM4, um kompatibel mit dem 3D-Editor 3.1.7.2 und hÃ¶her zu sein
