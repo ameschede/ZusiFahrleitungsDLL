@@ -20,6 +20,7 @@ uses
   d3dx9 in 'd3dx9.pas',
   DXFile in 'DXFile.pas';
 
+{$SetPEFlags $20}
 {$R *.res}
 
 begin

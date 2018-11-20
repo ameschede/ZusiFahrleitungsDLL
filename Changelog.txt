@@ -6,3 +6,6 @@
 - Tragseile werden mit Durchhang berechnet
 - Verbesserter Algorithmus zur Lagebestimmung von Isolatoren
 - Experimentell: Drahtstärke konfigurierbar, Bau von Fahrdrähten ohne Y-Beiseil
+
+1.0.0.7 (20.11.2018)
+- Die DLL nutzt jetzt FastMM4, um kompatibel mit dem 3D-Editor 3.1.7.2 und höher zu sein
