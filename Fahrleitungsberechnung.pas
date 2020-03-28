@@ -768,6 +768,7 @@ begin
     Drahtkennzahl:=Formular.RadioGroupDrahtstaerke.ItemIndex;
     Haengerkennzahl:=Formular.RadioGroupHaengerteilung.ItemIndex;
     RegistrySchreiben;
+    RegistryLesen;
   end;
 
   Application.Handle:=0;
