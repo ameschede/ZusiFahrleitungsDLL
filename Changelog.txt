@@ -20,3 +20,8 @@ Re 160 Erweiterte Funktionen
 
 Ezs 1007
 - Erste Veröffentlichung. Kann tragseillose Fahrleitung nach Ezs 1007 an Einzelstützpunkten erzeugen, und die zugehörigen Abspannungen
+
+
+1.0.0.9 (6.4.2020)
+Ezs 1007
+- Fahrdrähte mit verkürzten Tragseilen (an Quertragwerken) sind möglich

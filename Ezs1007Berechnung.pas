@@ -119,7 +119,7 @@ end;
 function Init:Longword; stdcall;
 // Rückgabe: Anzahl der Bauarttypen
 begin
-  Result:=2;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=3;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
@@ -134,6 +134,7 @@ begin
   case i of
   0: Result:='Ezs 1007 am Ausleger';
   1: Result:='Abschluß mit Isolator';
+  2: Result:='Ezs 1007 am QTW';
   else Result := 'Ezs 1007 am Ausleger'
   end;
 end;
@@ -263,7 +264,9 @@ begin
     xyzphi.z:=Winkelz+Pi/2;
 end;
 
-procedure Ezs1007AmAuslegerAufAbschlussMitIsolator;
+
+
+procedure Ezs1007Fahrdraht(pTragseillaengeA,pTragseillaengeB: single; pAbschluss: bool);
 var pktFA, pktFB, pktTA, pktTB, pktU :TAnkerpunkt;
     vFahrdraht, v, vNorm:TD3DVector;
     DrahtFarbe:TD3DColorValue;
@@ -276,79 +279,23 @@ begin
   begin
     //Fahrdraht berechnen als Vektor von FA nach FB
     pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
-    pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
+    if pAbschluss = false then
+      pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht)
+    else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
 
     //Tragseil Endpunkte
     pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
-    pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
-
-
-    //Tragseil am Ausleger A
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    //unterer Kettenwerkpunkt
-    D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, 5);    //Tragseil von 5 m Länge am Ausleger A
-    D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-{
-    //Stützrohrhänger Ausleger A
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-}
-
-    //Fahrdraht eintragen
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-
-    //Isolator an der Ausfädelung unten
-    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-
-  end
-end;
-
-procedure Ezs1007AmAusleger;
-var pktFA, pktFB, pktTA, pktTB, pktU :TAnkerpunkt;
-    vFahrdraht, vTragseil, v, vNorm:TD3DVector;
-    DrahtFarbe:TD3DColorValue;
-begin
-  DrahtFarbe.r:=0.99;
-  DrahtFarbe.g:=0.99;
-  DrahtFarbe.b:=0.99;
-  DrahtFarbe.a:=0;
-  if (length(PunkteA)>1) and (length(PunkteB)>1) then
-  begin
-    //Fahrdraht berechnen als Vektor von FA nach FB
-    pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
-    pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
-    D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
-
-    //Tragseil Endpunkte
-    pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
-    pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
-    D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
-
+    if pAbschluss = false then
+      pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil)
+    else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
 
     //Tragseil am Ausleger A
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
     //unterer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, 5);    //Tragseil von 5 m Länge am Ausleger A
+    D3DXVec3Scale(v, vNorm, pTragseillaengeA);    //Tragseil von x Meter Länge am Ausleger A
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
@@ -368,16 +315,20 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 }
+
+  if pAbschluss = false then
+  begin
     //Tragseil am Ausleger B
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
     //unterer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, -5);    //Tragseil von 5 m Länge am Ausleger B
+    D3DXVec3Scale(v, vNorm, -(pTragseillaengeB));    //Tragseil von x Meter Länge am Ausleger B
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt, v);
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTB.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+  end;
 
 
     //Fahrdraht eintragen
@@ -386,6 +337,16 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+  if pAbschluss = true then
+  begin
+    //Isolator an der Ausfädelung
+    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+    LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+   end;
 
   end
 end;
@@ -401,16 +362,29 @@ begin
 
   //wenn wir mehrere Sorten Fahrdrähte verlegen können, wird hier entschieden was wir machen
   //Das Radspannwerk muss immer an A liegen. Ggfs. wird es deshalb passend hingedreht.
-  if (Typ1=0) and (Typ2=1) then Ezs1007AmAuslegerAufAbschlussMitIsolator;
+  if (Typ1=0) and (Typ2=1) then Ezs1007Fahrdraht(5,5,true);
   if (Typ1=1) and (Typ2=0) then
   begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
     PunkteTemp:=PunkteA;
     PunkteA:=PunkteB;
     PunkteB:=PunkteTemp;
-    Ezs1007AmAuslegerAufAbschlussMitIsolator;
+    Ezs1007Fahrdraht(5,5,true);
   end;
 
-  if (Typ1=0) and (Typ2=0) then Ezs1007AmAusleger;
+  //Kombinationen aus QTW und Abschluss
+  if (Typ1=2) and (Typ2=1) then Ezs1007Fahrdraht(1,5,true);
+  if (Typ1=1) and (Typ2=2) then
+  begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
+    PunkteTemp:=PunkteA;
+    PunkteA:=PunkteB;
+    PunkteB:=PunkteTemp;
+    Ezs1007Fahrdraht(1,5,true);
+  end;
+
+  if (Typ1=0) and (Typ2=0) then Ezs1007Fahrdraht(5,5,false);     //beide am Ausleger
+  if (Typ1=2) and (Typ2=2) then Ezs1007Fahrdraht(1,1,false);     //beide am QTW
+  if (Typ1=2) and (Typ2=0) then Ezs1007Fahrdraht(1,5,false);     //A am QTW, B am Ausleger
+  if (Typ1=0) and (Typ2=2) then Ezs1007Fahrdraht(5,1,false);     //A am Ausleger, B am QTW
 
   Result.iDraht:=length(ErgebnisArray);
   Result.iDatei:=length(ErgebnisArrayDateien);
