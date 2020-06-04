@@ -299,8 +299,7 @@ begin
     pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
-    Durchhang:=Abstand/35;   // größere Zahl = weniger Durchhang
-    
+
     {
      Vorbildgerechte Hängerteilung Re 200:
      Stützpunkt K: 1. Hänger 2,5 m vom Stützpunkt; 2. Hänger 6,0 m vom Stützpunkt; sonst maximal 11,50 m
@@ -316,6 +315,12 @@ begin
     pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
+{    //Systemhöhen bestimmen
+    D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
+    SystemhoeheA:=D3DXVec3Length(v);
+    D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
+    SystemhoeheB:=D3DXVec3Length(v);
+}
 
     //Normalhänger
     for a:=1 to i do
@@ -327,12 +332,13 @@ begin
 
       //oberer Kettenwerkpunkt
       D3DXVec3Normalize(vNorm, vTragseil);
-      D3DXVec3Scale(v, vNorm, (6 + (a * Haengerabstand)));
+      D3DXVec3Scale(v, vNorm, 6 + (a * Haengerabstand));
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
 
       //Punkt absenken
+      Durchhang := (0.00076 * sqr(6 + (a * Haengerabstand) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-      D3DXVec3Scale(vNeu, v, 0.75/Durchhang+Durchhang*Sqr((a-0.5)/(i)-0.5));
+      D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -453,8 +459,9 @@ begin
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
 
     //Punkt absenken
+    Durchhang := (0.00076 * sqr(9 - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.85); //Hänger auf 85% Höhe zwischen Fahrdraht und Tragseil
+    D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilEndepunkt := pktO.PunktTransformiert.Punkt;
     //Array[5]
@@ -565,7 +572,8 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.85); //Hänger auf 85% Höhe zwischen Fahrdraht und Tragseil
+    Durchhang := (0.00076 * sqr(9 - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
+    D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilEndepunkt := pktO.PunktTransformiert.Punkt;
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
