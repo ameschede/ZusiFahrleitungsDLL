@@ -18,7 +18,7 @@ procedure NeuerPunkt(A:Boolean; Punkt:TAnkerpunkt); stdcall;
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
 function Berechnen(Typ1, Typ2:Longint):TErgebnis; stdcall;
 procedure Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
-procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
+procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Abstand,Richtung: single);
 function ErgebnisDraht(i:Longword):TLinie; stdcall;
 function ErgebnisDateien(i:Longword):TVerknuepfung; stdcall;
 function dllVersion:PChar; stdcall;
@@ -121,7 +121,7 @@ end;
 function Init:Longword; stdcall;
 // Rückgabe: Anzahl der Bauarttypen
 begin
-  Result:=2;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=4;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
@@ -136,7 +136,9 @@ function BauartTyp(i:Longint):PChar; stdcall;
 begin
   case i of
   0: Result:='18m Y-Beiseil (K)';
-  1: Result:='14m Y-Beiseil (L)'
+  1: Result:='14m Y-Beiseil (L)';
+  2: Result:='Festpunktabspannung';
+  3: Result:='Festpunktabspannung mit Isolator'
   else Result := '18m Y-Beiseil (K)'
   end;
 end;
@@ -232,7 +234,13 @@ function PunktSuchen(A:Boolean; i:integer; ATyp:TAnkerTyp):TAnkerpunkt;
 // sucht den i. Punkt vom Typ ATyp
 var b:integer;
     gefunden:Boolean;
+    LeerAnker:TAnkerpunkt;
 begin
+  //Result-Variable zumindest so weit initialisieren, dass sie ggfs. von AnkerIstLeer erkannt werden kann
+  LeerAnker.PunktTransformiert.Punkt.x :=0;
+  LeerAnker.PunktTransformiert.Punkt.y :=0;
+  LeerAnker.PunktTransformiert.Punkt.z :=0;
+  Result := LeerAnker;
   b:=0;
   gefunden:=false;
   if A then
@@ -260,6 +268,15 @@ begin
     end;
   end;
 end;
+
+function AnkerIstLeer(pAnker:TAnkerpunkt):Boolean;
+begin;
+  if (pAnker.PunktTransformiert.Punkt.x = 0) and (pAnker.PunktTransformiert.Punkt.y = 0) and (pAnker.PunktTransformiert.Punkt.z = 0) then
+    Result := true
+  else
+    Result := false;
+end;
+
 
 procedure LageIsolator(Pkt1, Pkt2:TD3DVector; l:single; var xyz, xyzphi:TD3DVector);
   // berechnt die Position eines Isolators auf dem Draht
@@ -376,8 +393,8 @@ begin
     //Y-Seile
     if Ersthaengerabstand = 6 then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
     if Letzthaengerabstand = 6 then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if Ersthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if Letzthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if Ersthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Abstand,1);
+    if Letzthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Abstand,-1);
 
 
 
@@ -465,11 +482,14 @@ begin
 
     //Anbindung Y-Seil an den Ausleger, unter Nutzung des für Array[3] berechneten Punkts
     //Array[4]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    if not AnkerIstLeer(pktY) then
+    begin
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
 
     //Tragseil zwischen Ende Y-Seil und Ausleger
     //unterer Kettenwerkpunkt (nur virtuell, für Berechnungszwecke)
@@ -512,9 +532,9 @@ begin
 
 end;
 
-procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung:single);
+procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Abstand,Richtung:single);
 var pktU, pktO:TAnkerpunkt;
-    v, vNorm, vNeu, YSeilErsthaengerpunkt,YseilZweithaengerpunkt,YSeilEndepunkt: TD3DVector;
+    v, vNorm, vNeu, YSeilErsthaengerpunkt,YSeilEndepunkt: TD3DVector;
     Durchhang:single;
 begin
     //Erster Hänger
@@ -594,6 +614,38 @@ begin
 
 end;
 
+procedure Festpunktabspannung;
+var pktDA, pktDB:TAnkerpunkt;
+    vDraht:TD3DVector;
+begin
+  DrahtFarbe.r:=0.99;
+  DrahtFarbe.g:=0.99;
+  DrahtFarbe.b:=0.99;
+  DrahtFarbe.a:=0;
+  if (length(PunkteA)>1) and (length(PunkteB)>1) then
+  begin
+    //Draht berechnen als Vektor von DA nach DB
+    pktDA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+    pktDB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAnbaupunktAnker);
+    D3DXVec3Subtract(vDraht, pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt);
+
+    //Fahrdraht eintragen
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktDA.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktDB.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=0.045; //Bronzeseil 50/7, abweichend von der Standard-Drahtstärke der DLL
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Isolator auf dem Festpunktseil
+    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+    LageIsolator(pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt, 2, pktDA.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Winkel);
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktDA.PunktTransformiert.Punkt;
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktDA.PunktTransformiert.Winkel;
+    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+  end
+end;
+
 function Berechnen(Typ1, Typ2:Longint):TErgebnis; stdcall;
 // Der Benutzer hat auf 'Ausführen' geklickt.
 // Rückgabe: Anzahl der Linien
@@ -609,6 +661,14 @@ begin
   if (Typ1=1) and (Typ2=1) then KettenwerkMitYSeil(2.5,2.5);  //beide Y-Seile Typ 14m
   if (Typ1=0) and (Typ2=1) then KettenwerkMitYSeil(6,2.5);      //Y-Seil 18m + 14m
   if (Typ1=1) and (Typ2=0) then KettenwerkMitYSeil(2.5,6);      //Y-Seil 14m + 18m
+  if (Typ1=2) and (Typ2=3) then Festpunktabspannung;
+  if (Typ1=3) and (Typ2=2) then
+  begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
+    PunkteTemp:=PunkteA;
+    PunkteA:=PunkteB;
+    PunkteB:=PunkteTemp;
+    Festpunktabspannung;
+  end;
 
   Result.iDraht:=length(ErgebnisArray);
   Result.iDatei:=length(ErgebnisArrayDateien);
