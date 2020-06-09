@@ -121,7 +121,7 @@ end;
 function Init:Longword; stdcall;
 // Rückgabe: Anzahl der Bauarttypen
 begin
-  Result:=4;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=6;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
@@ -138,7 +138,9 @@ begin
   0: Result:='18m Y-Beiseil (K)';
   1: Result:='14m Y-Beiseil (L)';
   2: Result:='Festpunktabspannung';
-  3: Result:='Festpunktabspannung mit Isolator'
+  3: Result:='Festpunktabspannung mit Isolator';
+  4: Result:='Festpunkt mit 18m Y-Beiseil (K)';
+  5: Result:='Festpunkt mit 14m Y-Beiseil (L)'
   else Result := '18m Y-Beiseil (K)'
   end;
 end;
@@ -295,9 +297,9 @@ begin
     xyzphi.z:=Winkelz+Pi/2;
 end;
 
-procedure KettenwerkMitYSeil(Ersthaengerabstand,Letzthaengerabstand:single);
+procedure KettenwerkMitYSeil(Ersthaengerabstand,Letzthaengerabstand:single;zSeil:boolean);
 var pktFA, pktFB, pktTA, pktTB, pktYA, pktYB, pktU, pktO:TAnkerpunkt;
-    Abstand, Durchhang, LaengeNormalhaengerbereich, Haengerabstand:single;
+    Abstand, Durchhang, LaengeNormalhaengerbereich, Haengerabstand, AbstandFT:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
     i, a:integer;
 
@@ -334,12 +336,6 @@ begin
     pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
-{    //Systemhöhen bestimmen
-    D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
-    SystemhoeheA:=D3DXVec3Length(v);
-    D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
-    SystemhoeheB:=D3DXVec3Length(v);
-}
 
     //Normalhänger
     for a:=1 to i do
@@ -396,7 +392,40 @@ begin
     if Ersthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Abstand,1);
     if Letzthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Abstand,-1);
 
+    //z-Seil
+    if zSeil then
+    begin
+      //unterer vorläufiger z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + 0.5));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
+      //oberer z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + ((i/2) * Haengerabstand) + 0.5); //z-Seil 0,5 m hinter dem mittleren Hänger anordnen
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      Durchhang := (0.00076 * sqr(Ersthaengerabstand + ((i/2) * Haengerabstand + 0.5) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+      //Abstand zwischen Fahrdraht und Tragseil ermitteln
+      D3DXVec3Subtract(v, pktU.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt);
+      AbstandFT:=D3DXVec3Length(v);
+
+      //endgültiger unterer z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + 0.5 + (sqrt(sqr(5*AbstandFT)-sqr(AbstandFT))))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
 
     //Fahrdraht eintragen
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -405,7 +434,7 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-  end
+  end;
 end;
 
 procedure Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung:single);
@@ -655,12 +684,10 @@ begin
   setlength(ErgebnisArrayDateien, 0);
 
   //wenn wir mehrere Sorten Fahrdrähte verlegen können, wird hier entschieden was wir machen
-
-
-  if (Typ1=0) and (Typ2=0) then KettenwerkMitYSeil(6,6);      //beide Y-Seile Typ 18m
-  if (Typ1=1) and (Typ2=1) then KettenwerkMitYSeil(2.5,2.5);  //beide Y-Seile Typ 14m
-  if (Typ1=0) and (Typ2=1) then KettenwerkMitYSeil(6,2.5);      //Y-Seil 18m + 14m
-  if (Typ1=1) and (Typ2=0) then KettenwerkMitYSeil(2.5,6);      //Y-Seil 14m + 18m
+  if (Typ1=0) and (Typ2=0) then KettenwerkMitYSeil(6,6,false);      //beide Y-Seile Typ 18m
+  if (Typ1=1) and (Typ2=1) then KettenwerkMitYSeil(2.5,2.5,false);  //beide Y-Seile Typ 14m
+  if (Typ1=0) and (Typ2=1) then KettenwerkMitYSeil(6,2.5,false);      //Y-Seil 18m + 14m
+  if (Typ1=1) and (Typ2=0) then KettenwerkMitYSeil(2.5,6,false);      //Y-Seil 14m + 18m
   if (Typ1=2) and (Typ2=3) then Festpunktabspannung;
   if (Typ1=3) and (Typ2=2) then
   begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
@@ -668,6 +695,38 @@ begin
     PunkteA:=PunkteB;
     PunkteB:=PunkteTemp;
     Festpunktabspannung;
+  end;
+  if (Typ1=4) and (Typ2=0) then KettenwerkMitYSeil(6,6,true);      //beide Y-Seile Typ 18m, z-Seil an A
+  if (Typ1=0) and (Typ2=4) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    PunkteTemp:=PunkteA;
+    PunkteA:=PunkteB;
+    PunkteB:=PunkteTemp;
+    KettenwerkMitYSeil(6,6,true)
+  end;
+  if (Typ1=4) and (Typ2=1) then KettenwerkMitYSeil(6,2.5,true);      //Y-Seil 18m + 14m, z-Seil an A
+  if (Typ1=1) and (Typ2=4) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    PunkteTemp:=PunkteA;
+    PunkteA:=PunkteB;
+    PunkteB:=PunkteTemp;
+    KettenwerkMitYSeil(6,2.5,true)
+  end;
+  if (Typ1=5) and (Typ2=0) then KettenwerkMitYSeil(2.5,6,true);      //Y-Seil 14m + 18m, z-Seil an A
+  if (Typ1=0) and (Typ2=5) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    PunkteTemp:=PunkteA;
+    PunkteA:=PunkteB;
+    PunkteB:=PunkteTemp;
+    KettenwerkMitYSeil(2.5,6,true)
+  end;
+  if (Typ1=5) and (Typ2=1) then KettenwerkMitYSeil(2.5,2.5,true);      //beide Y-Seile Typ 14m, z-Seil an A
+  if (Typ1=1) and (Typ2=5) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    PunkteTemp:=PunkteA;
+    PunkteA:=PunkteB;
+    PunkteB:=PunkteTemp;
+    KettenwerkMitYSeil(2.5,2.5,true)
   end;
 
   Result.iDraht:=length(ErgebnisArray);
