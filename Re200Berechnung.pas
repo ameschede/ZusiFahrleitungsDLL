@@ -325,7 +325,7 @@ begin
     {
      Vorbildgerechte Hängerteilung Re 200:
      Stützpunkt K: 1. Hänger 2,5 m vom Stützpunkt; 2. Hänger 6,0 m vom Stützpunkt;
-     Stützpunkt K: 1. Hänger 2,5 m vom Stützpunkt;
+     Stützpunkt L: 1. Hänger 2,5 m vom Stützpunkt;
      sonst maximal 11,50 m;
     }
     i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/11.5) - 1;
@@ -394,7 +394,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
-    
+
     //Y-Seile
     if Ersthaengerabstand = 6 then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
     if Letzthaengerabstand = 6 then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
@@ -410,28 +410,28 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
-    //z-Seil
+    //Z-Seil
     if zSeil then
     begin
       //unterer vorläufiger z-Seilpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + 1.1));
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
       //oberer z-Seilpunkt
       D3DXVec3Normalize(vNorm, vTragseil);
-      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + ((i/2) * Haengerabstand) + 1.1); //z-Seil 1,1 m hinter dem mittleren Hänger anordnen
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + ((i/2) * Haengerabstand + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
 
       //Punkt absenken
-      Durchhang := (0.00076 * sqr(Ersthaengerabstand + ((i/2) * Haengerabstand + 1.1) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0);
+      Durchhang := (0.00076 * sqr(Ersthaengerabstand + ((i/2) * Haengerabstand + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0); //TODO: Hier ergibt sich eine leichte Unexaktheit, da wir hier einen leicht anderen Durchhangwert ermitteln als beim Bau der nächstliegenden Normalhänger
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
       //endgültiger unterer z-Seilpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + 1.1 + (sqrt(sqr(5*AbstandFT)-sqr(AbstandFT))))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) + (sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -676,7 +676,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktDA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktDB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=0.045; //Bronzeseil 50/7, abweichend von der Standard-Drahtstärke der DLL
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=0.0045; //Bronzeseil 50/7, abweichend von der Standard-Drahtstärke der DLL
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator auf dem Festpunktseil
