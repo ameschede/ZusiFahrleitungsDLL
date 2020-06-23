@@ -301,7 +301,7 @@ end;
 
 procedure KettenwerkMitYSeil(Ersthaengerabstand,Letzthaengerabstand:single;zSeil:boolean);
 var pktFA, pktFB, pktTA, pktTB, pktYA, pktYB, pktU, pktO:TAnkerpunkt;
-    Abstand, Durchhang, LaengeNormalhaengerbereich, Haengerabstand, AbstandFT:single;
+    Abstand, Durchhang, LaengeNormalhaengerbereich, Haengerabstand, AbstandFT, DurchhangNahhaenger, DurchhangFernhaenger:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
     i, a:integer;
 
@@ -377,9 +377,15 @@ begin
       end;
       if (a = (i/2)) and zSeil then
       begin
-        //Abstand zwischen Fahrdraht und Tragseil für  spätere Verwendung ermitteln
+        //Abstand zwischen Fahrdraht und Tragseil sowie Durchhang für  spätere Verwendung speichern
         D3DXVec3Subtract(v, pktU.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt);
         AbstandFT:=D3DXVec3Length(v);
+        DurchhangNahhaenger := Durchhang;
+      end;
+      if (a = (i/2) + 1) and zSeil then
+      begin
+        //Durchhang für  spätere Verwendung speichern
+        DurchhangFernhaenger := Durchhang;
       end;
     end;
 
@@ -424,7 +430,8 @@ begin
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
 
       //Punkt absenken
-      Durchhang := (0.00076 * sqr(Ersthaengerabstand + ((i/2) * Haengerabstand + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0); //TODO: Hier ergibt sich eine leichte Unexaktheit, da wir hier einen leicht anderen Durchhangwert ermitteln als beim Bau der nächstliegenden Normalhänger
+      //Durchhang := (0.00076 * sqr(Ersthaengerabstand + ((i/2) * Haengerabstand + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0); //Bei dieser Rechenmethode ergibt sich eine leichte Unexaktheit, da wir hier einen etwas anderen Durchhangwert ermitteln als beim Bau der nächstliegenden Normalhänger
+      Durchhang := (0.67 * DurchhangNahhaenger + 0.33 * DurchhangFernhaenger); //gewichteter Durchschnitt des Durchhangs der beiden benachbarten Hänger
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
