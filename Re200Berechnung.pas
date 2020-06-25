@@ -321,6 +321,7 @@ begin
     else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
+    if (Abstand < 34) or (Abstand > 80) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 200 (34 bis 80 m)');
 
     {
      Vorbildgerechte Hängerteilung Re 200:
@@ -332,13 +333,19 @@ begin
     if odd(i) then i :=i+1; //ungerade Anzahl Normalhänger ist in Re 200 nicht zulässig. Deshalb im Zweifel einen Hänger mehr einbauen.
     LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
     Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/(i+1);
-    ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
+    //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
 
     //Tragseil Endpunkte
     pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
     if Letzthaengerabstand = 0 then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
     else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
+
+    //Systemhöhen-Prüfung
+    D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
+    if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen dieser DLL (minimal 1,30 m).');
+    D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
+    if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen dieser DLL (minimal 1,30 m).');
 
 
     //Normalhänger
@@ -476,7 +483,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.45); //Hänger auf halber Höhe zwischen Fahrdraht und Tragseil
+    D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -499,7 +506,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.55); //Hänger auf 55% Höhe zwischen Fahrdraht und Tragseil
+    D3DXVec3Scale(vNeu, v, 0.67); //Hänger auf 67% Höhe zwischen Fahrdraht und Tragseil  (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilZweithaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[1]
@@ -521,7 +528,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.45); //45% Höhe zwischen Fahrdraht und Tragseil
+    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -600,7 +607,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.45); //Hänger auf halber Höhe zwischen Fahrdraht und Tragseil
+    D3DXVec3Scale(vNeu, v, 0.47); //Hänger auf 47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -614,7 +621,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.45); //45% Höhe zwischen Fahrdraht und Tragseil
+    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
