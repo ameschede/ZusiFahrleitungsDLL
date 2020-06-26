@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, StdCtrls, Buttons, ExtCtrls, Registry;
+  Dialogs, Grids, StdCtrls, Buttons, ExtCtrls, Registry, ComCtrls;
 
 type
   TFormFahrleitungConfig = class(TForm)
@@ -13,9 +13,11 @@ type
     OpenDialogDatei: TOpenDialog;
     SpeedButtonIsolator: TSpeedButton;
     LabeledEditIsolator: TLabeledEdit;
-    Label1: TLabel;
     RadioGroupDrahtstaerke: TRadioGroup;
-    RadioGroupHaengerteilung: TRadioGroup;
+    TrackBarFestpunktisolator: TTrackBar;
+    LabelIsolatorposition: TLabel;
+    LabelAusleger: TLabel;
+    LabelAnkermast: TLabel;
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }

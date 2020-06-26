@@ -18,7 +18,7 @@ procedure NeuerPunkt(A:Boolean; Punkt:TAnkerpunkt); stdcall;
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
 function Berechnen(Typ1, Typ2:Longint):TErgebnis; stdcall;
 procedure Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
-procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Abstand,Richtung: single);
+procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
 function ErgebnisDraht(i:Longword):TLinie; stdcall;
 function ErgebnisDateien(i:Longword):TVerknuepfung; stdcall;
 function dllVersion:PChar; stdcall;
@@ -61,7 +61,7 @@ var ErgebnisArray:array of TLinie;
     PunkteA, PunkteB, PunkteTemp: array of TAnkerpunkt;
     DateiIsolator:string;
     Drahtstaerke:single;
-    Drahtkennzahl, Haengerkennzahl:integer;
+    Drahtkennzahl,Festpunktisolatorposition:integer;
     DrahtFarbe:TD3DColorValue;
 
 procedure RegistryLesen;
@@ -73,6 +73,7 @@ begin
             if reg.OpenKeyReadOnly('Software\Zusi3\lib\catenary\Re200') then
             begin
               if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
+              if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
               if reg.ValueExists('DrahtStaerke') then
               begin
                 Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
@@ -107,6 +108,7 @@ begin
             begin
               reg.WriteString('DateiIsolator', DateiIsolator);
               reg.WriteInteger('Drahtstaerke',Drahtkennzahl);
+              reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
             end;
           end;
         end;
@@ -126,7 +128,7 @@ begin
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
   Drahtkennzahl:=0;
-  Haengerkennzahl:=0;
+  Festpunktisolatorposition:=10;
   Drahtstaerke:=0.006;
   RegistryLesen;
 end;
@@ -142,7 +144,10 @@ begin
   4: Result:='Festpunkt mit 18m Y-Beiseil (K)';
   5: Result:='Festpunkt mit 14m Y-Beiseil (L)';
   6: Result:='Ausfädelung';
-  7: Result:='Abschluss mit Isolatoren'
+  7: Result:='Abschluss mit Isolatoren';
+  8: Result:='12m Y-Beiseil (Tunnel SH 11)';
+  9: Result:='Stützpunkt SH < 13';
+  10: Result:='Stützpunkt unter Bauwerk (SH 02)'
   else Result := '18m Y-Beiseil (K)'
   end;
 end;
@@ -411,8 +416,8 @@ begin
     //Y-Seile
     if Ersthaengerabstand = 6 then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
     if Letzthaengerabstand = 6 then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if Ersthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Abstand,1);
-    if Letzthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Abstand,-1);
+    if Ersthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if Letzthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
     if Letzthaengerabstand = 0 then
     begin
       //Verbindung zwischen letztem Normalhänger und Ausleger B
@@ -580,6 +585,16 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
+
+    if not AnkerIstLeer(pktY) then
+    begin
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
+
     //Tragseil zwischen Ende Y-Seil und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilEndepunkt;
@@ -589,7 +604,7 @@ begin
 
 end;
 
-procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Abstand,Richtung:single);
+procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung:single);
 var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu, YSeilErsthaengerpunkt,YSeilEndepunkt: TD3DVector;
     Durchhang:single;
@@ -607,7 +622,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.47); //Hänger auf 47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -629,6 +644,17 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Anbindung Y-Seil an den Ausleger, unter Nutzung des für Array[3] berechneten Punkts
+    //Array[4]
+    if not AnkerIstLeer(pktY) then
+    begin
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
 
     //Tragseil zwischen Ende Y-Seil und Ausleger
     //unterer Kettenwerkpunkt (nur virtuell, für Berechnungszwecke)
@@ -695,7 +721,7 @@ begin
 
     //Isolator auf dem Festpunktseil
     setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt, 2, pktDA.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Winkel);
+    LageIsolator(pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt, (Festpunktisolatorposition * D3DXVec3Length(vDraht))/100, pktDA.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Winkel);
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktDA.PunktTransformiert.Punkt;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktDA.PunktTransformiert.Winkel;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
@@ -1014,7 +1040,7 @@ begin
   Formular:=TFormFahrleitungConfig.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
   Formular.RadioGroupDrahtstaerke.ItemIndex := Drahtkennzahl;
-  Formular.RadioGroupHaengerteilung.ItemIndex := Haengerkennzahl;
+  Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
 
   Formular.ShowModal;
 
@@ -1022,7 +1048,7 @@ begin
   begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
     Drahtkennzahl:=Formular.RadioGroupDrahtstaerke.ItemIndex;
-    Haengerkennzahl:=Formular.RadioGroupHaengerteilung.ItemIndex;
+    Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
     RegistrySchreiben;
     RegistryLesen;
   end;
