@@ -147,7 +147,7 @@ begin
   7: Result:='Abschluss mit Isolatoren';
   8: Result:='12m Y-Beiseil (Tunnel SH 11)';
   9: Result:='Stützpunkt SH < 13';
-  10: Result:='Stützpunkt unter Bauwerk (SH 02)'
+  10: Result:='Stützpunkt unter Bauwerk (SH 03)'
   else Result := '18m Y-Beiseil (K)'
   end;
 end;
@@ -584,16 +584,6 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-
-    if not AnkerIstLeer(pktY) then
-    begin
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-    end;
 
     //Tragseil zwischen Ende Y-Seil und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
