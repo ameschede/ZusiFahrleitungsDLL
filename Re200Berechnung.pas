@@ -9,6 +9,10 @@ uses
   
   ZusiD3DTypenDll, FahrleitungsTypen, Re200ConfigForm;
 
+type
+
+  TEndstueck = (y18m, y14m, y12m, ausfaedel);
+
 function Init:Longword; stdcall;
 function BauartTyp(i:Longint):PChar; stdcall;
 function Fahrleitungstyp:TFahrleitungstyp; stdcall;
@@ -304,9 +308,9 @@ begin
     xyzphi.z:=Winkelz+Pi/2;
 end;
 
-procedure KettenwerkMitYSeil(Ersthaengerabstand,Letzthaengerabstand:single;zSeil:boolean);
+procedure KettenwerkMitYSeil(EndstueckA,EndstueckB:TEndstueck;zSeil:boolean);
 var pktFA, pktFB, pktTA, pktTB, pktYA, pktYB, pktU, pktO:TAnkerpunkt;
-    Abstand, Durchhang, LaengeNormalhaengerbereich, Haengerabstand, AbstandFT, DurchhangNahhaenger, DurchhangFernhaenger:single;
+    Abstand, Durchhang, LaengeNormalhaengerbereich, Ersthaengerabstand, Letzthaengerabstand, Haengerabstand, AbstandFT, DurchhangNahhaenger, DurchhangFernhaenger:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
     i, a:integer;
 
@@ -317,6 +321,13 @@ begin
   DrahtFarbe.a:=0;
   if (length(PunkteA)>1) and (length(PunkteB)>1) then
   begin
+    if EndstueckA = y18m then Ersthaengerabstand := 6;
+    if EndstueckB = y18m then Letzthaengerabstand := 6;
+    if EndstueckA = y14m then Ersthaengerabstand := 2.5;
+    if EndstueckB = y14m then Letzthaengerabstand := 2.5;
+    if EndstueckA = Ausfaedel then Ersthaengerabstand := 0;
+    if EndstueckB = Ausfaedel then Letzthaengerabstand := 0;
+
     pktYA:=PunktSuchen(true, 0, Ankertyp_FahrleitungHaengerseil);
     pktYB:=PunktSuchen(false, 0, Ankertyp_FahrleitungHaengerseil);
 
@@ -414,11 +425,11 @@ begin
 
 
     //Y-Seile
-    if Ersthaengerabstand = 6 then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if Letzthaengerabstand = 6 then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if Ersthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if Letzthaengerabstand = 2.5 then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if Letzthaengerabstand = 0 then
+    if EndstueckA = y18m then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if EndstueckB = y18m then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckA = y14m then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if EndstueckB = y14m then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckB = Ausfaedel then
     begin
       //Verbindung zwischen letztem Normalhänger und Ausleger B
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -877,10 +888,10 @@ begin
   setlength(ErgebnisArrayDateien, 0);
 
   //wenn wir mehrere Sorten Fahrdrähte verlegen können, wird hier entschieden was wir machen
-  if (Typ1=0) and (Typ2=0) then KettenwerkMitYSeil(6,6,false);      //beide Y-Seile Typ 18m
-  if (Typ1=1) and (Typ2=1) then KettenwerkMitYSeil(2.5,2.5,false);  //beide Y-Seile Typ 14m
-  if (Typ1=0) and (Typ2=1) then KettenwerkMitYSeil(6,2.5,false);      //Y-Seil 18m + 14m
-  if (Typ1=1) and (Typ2=0) then KettenwerkMitYSeil(2.5,6,false);      //Y-Seil 14m + 18m
+  if (Typ1=0) and (Typ2=0) then KettenwerkMitYSeil(y18m,y18m,false);      //beide Y-Seile Typ 18m
+  if (Typ1=1) and (Typ2=1) then KettenwerkMitYSeil(y14m,y14m,false);  //beide Y-Seile Typ 14m
+  if (Typ1=0) and (Typ2=1) then KettenwerkMitYSeil(y18m,y14m,false);      //Y-Seil 18m + 14m
+  if (Typ1=1) and (Typ2=0) then KettenwerkMitYSeil(y14m,y18m,false);      //Y-Seil 14m + 18m
   if (Typ1=2) and (Typ2=3) then Festpunktabspannung;
   if (Typ1=3) and (Typ2=2) then
   begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
@@ -889,37 +900,37 @@ begin
     PunkteB:=PunkteTemp;
     Festpunktabspannung;
   end;
-  if (Typ1=4) and (Typ2=0) then KettenwerkMitYSeil(6,6,true);      //beide Y-Seile Typ 18m, z-Seil an A
+  if (Typ1=4) and (Typ2=0) then KettenwerkMitYSeil(y18m,y18m,true);      //beide Y-Seile Typ 18m, z-Seil an A
   if (Typ1=0) and (Typ2=4) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
     PunkteTemp:=PunkteA;
     PunkteA:=PunkteB;
     PunkteB:=PunkteTemp;
-    KettenwerkMitYSeil(6,6,true)
+    KettenwerkMitYSeil(y18m,y18m,true)
   end;
-  if (Typ1=4) and (Typ2=1) then KettenwerkMitYSeil(6,2.5,true);      //Y-Seil 18m + 14m, z-Seil an A
+  if (Typ1=4) and (Typ2=1) then KettenwerkMitYSeil(y18m,y14m,true);      //Y-Seil 18m + 14m, z-Seil an A
   if (Typ1=1) and (Typ2=4) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
     PunkteTemp:=PunkteA;
     PunkteA:=PunkteB;
     PunkteB:=PunkteTemp;
-    KettenwerkMitYSeil(6,2.5,true)
+    KettenwerkMitYSeil(y18m,y14m,true)
   end;
-  if (Typ1=5) and (Typ2=0) then KettenwerkMitYSeil(2.5,6,true);      //Y-Seil 14m + 18m, z-Seil an A
+  if (Typ1=5) and (Typ2=0) then KettenwerkMitYSeil(y14m,y18m,true);      //Y-Seil 14m + 18m, z-Seil an A
   if (Typ1=0) and (Typ2=5) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
     PunkteTemp:=PunkteA;
     PunkteA:=PunkteB;
     PunkteB:=PunkteTemp;
-    KettenwerkMitYSeil(2.5,6,true)
+    KettenwerkMitYSeil(y14m,y18m,true)
   end;
-  if (Typ1=5) and (Typ2=1) then KettenwerkMitYSeil(2.5,2.5,true);      //beide Y-Seile Typ 14m, z-Seil an A
+  if (Typ1=5) and (Typ2=1) then KettenwerkMitYSeil(y14m,y14m,true);      //beide Y-Seile Typ 14m, z-Seil an A
   if (Typ1=1) and (Typ2=5) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
     PunkteTemp:=PunkteA;
     PunkteA:=PunkteB;
     PunkteB:=PunkteTemp;
-    KettenwerkMitYSeil(2.5,2.5,true)
+    KettenwerkMitYSeil(y14m,y14m,true)
   end;
   if (Typ1=6) and (Typ2=7) then KettenwerkAbschluss(0.5,22.8);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 22,8 m wegen 20 m hängerfreiem Seil, 0,8 m Isolatorlänge und 2,0 m Abstand Isolator zu Spannwerk
   if (Typ1=7) and (Typ2=6) then
@@ -929,21 +940,21 @@ begin
     PunkteB:=PunkteTemp;
     KettenwerkAbschluss(0.5,22.8);
   end;
-  if (Typ1=0) and (Typ2=6) then KettenwerkMitYSeil(6,0,false);  //Y-Seil 18m auf Ausfädelung
+  if (Typ1=0) and (Typ2=6) then KettenwerkMitYSeil(y18m,Ausfaedel,false);  //Y-Seil 18m auf Ausfädelung
   if (Typ1=6) and (Typ2=0) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
     PunkteTemp:=PunkteA;
     PunkteA:=PunkteB;
     PunkteB:=PunkteTemp;
-    KettenwerkMitYSeil(6,0,false)
+    KettenwerkMitYSeil(y18m,Ausfaedel,false)
   end;
-  if (Typ1=1) and (Typ2=6) then KettenwerkMitYSeil(2.5,0,false);  //Y-Seil 14m auf Ausfädelung
+  if (Typ1=1) and (Typ2=6) then KettenwerkMitYSeil(y14m,Ausfaedel,false);  //Y-Seil 14m auf Ausfädelung
   if (Typ1=6) and (Typ2=1) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
     PunkteTemp:=PunkteA;
     PunkteA:=PunkteB;
     PunkteB:=PunkteTemp;
-    KettenwerkMitYSeil(2.5,0,false)
+    KettenwerkMitYSeil(y14m,Ausfaedel,false)
   end;
 
   Result.iDraht:=length(ErgebnisArray);
