@@ -26,6 +26,7 @@ procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVec
 procedure Berechne_YSeil_12m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
 procedure Berechne_YSeil_24m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
 procedure Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY,pktSR:TAnkerpunkt; Abstand,Richtung: single);
+procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
 function ErgebnisDraht(i:Longword):TLinie; stdcall;
 function ErgebnisDateien(i:Longword):TVerknuepfung; stdcall;
 function dllVersion:PChar; stdcall;
@@ -131,7 +132,7 @@ end;
 function Init:Longword; stdcall;
 // Rückgabe: Anzahl der Bauarttypen
 begin
-  Result:=12;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=13;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
@@ -349,6 +350,7 @@ begin
     if EndstueckB = Ausfaedel then Letzthaengerabstand := 0;
     if EndstueckA = SH13 then Ersthaengerabstand := 5;
     if EndstueckB = SH13 then Letzthaengerabstand := 5;
+    //bei Endstücken SH03 sind die Hängerabstände von der Längsspannweite abhängig
 
     pktYA:=PunktSuchen(true, 0, Ankertyp_FahrleitungHaengerseil);
     pktYB:=PunktSuchen(false, 0, Ankertyp_FahrleitungHaengerseil);
@@ -366,14 +368,25 @@ begin
     else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
-    if (EndstueckA = y12m) or (EndstueckB = y12m) then
+
+    //bei SH03 ist Hängerabstand ein Viertel der Längsspannweite
+    if EndstueckA = SH03 then Ersthaengerabstand := D3DXVec3Length(vFahrdraht)/4;
+    if EndstueckB = SH03 then Letzthaengerabstand := D3DXVec3Length(vFahrdraht)/4;
+
+    //Spannweite auf Plausibilität prüfen
+    if (EndstueckA = SH03) or (EndstueckB = SH03) then
     begin
-      if (Abstand < 34) or (Abstand > 50.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten im Tunnel (max. 50 m)'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
-    end
-    else
-    begin
-      if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 200 (34 bis 80 m)'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+      if (Abstand > 25.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten unter Bauwerken (max. 25 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
     end;
+    if (EndstueckA = y12m) or (EndstueckB = y12m) then
+      begin
+        if (Abstand < 34) or (Abstand > 50.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten im Tunnel (max. 50 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+      end;
+    if not ((EndstueckA = SH03) or (EndstueckB = SH03) or (EndstueckA = y12m) or (EndstueckB = y12m)) then
+      begin
+        if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 200 (34 bis 80 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+      end;
+    
     {
      Vorbildgerechte Hängerteilung Re 200:
      Stützpunkt K: 1. Hänger 2,5 m vom Stützpunkt; 2. Hänger 6,0 m vom Stützpunkt;
@@ -393,15 +406,15 @@ begin
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
     //Systemhöhen-Prüfung
-    if not ((EndstueckA = SH13) or (EndstueckA = y12m)) then
+    if not ((EndstueckA = SH13) or (EndstueckA = y12m) or (EndstueckA = SH03)) then
     begin
       D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
-      if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen dieser DLL (minimal 1,30 m).');
+      if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
     end;
-    if not ((EndstueckB = SH13) or (EndstueckA = y12m)) then
+    if not ((EndstueckB = SH13) or (EndstueckB = y12m) or (EndstueckB = SH03)) then
     begin
       D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
-      if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen dieser DLL (minimal 1,30 m).');
+      if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
     end;
 
     //Normalhänger
@@ -475,6 +488,8 @@ begin
     if EndstueckB = y24m then Berechne_YSeil_24m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
     if EndstueckA = SH13 then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,pktSRA,Abstand,1);
     if EndstueckB = SH13 then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,Abstand,-1);
+    if EndstueckA = SH03 then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if EndstueckB = SH03 then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
     if EndstueckB = Ausfaedel then
     begin
       //Verbindung zwischen letztem Normalhänger und Ausleger B
@@ -945,6 +960,50 @@ begin
 
 end;
 
+procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung:single);
+var pktU, pktO:TAnkerpunkt;
+    v, vNorm, vNeu,Endstueckendepunkt: TD3DVector;
+    Durchhang:single;
+begin
+    //Erster Hänger
+    //unterer Kettenwerkpunkt
+    D3DXVec3Normalize(vNorm, vFahrdraht);
+    D3DXVec3Scale(v, vNorm, Richtung * Abstand / 4);    //erster Hänger in Abstand 1/4 Längsspannweite vom Ausleger
+    D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, v);
+
+    //oberer Kettenwerkpunkt
+    D3DXVec3Normalize(vNorm, vTragseil);
+    D3DXVec3Scale(v, vNorm, Richtung * Abstand / 4);
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktT.PunktTransformiert.Punkt, v);
+
+    //Punkt absenken
+    Durchhang := (0.00076 * sqr((Abstand/4) - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
+    D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+    D3DXVec3Scale(vNeu, v, Durchhang);
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+    EndstueckEndepunkt := pktO.PunktTransformiert.Punkt;
+    //Ersthänger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Tragseil zwischen Ersthänger und Ausleger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Tragseil zwischen Ersthänger und erstem Normalhänger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktT.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+end;
+
 procedure Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY,pktSR:TAnkerpunkt; Abstand,Richtung:single);
 var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu,Endstueckendepunkt: TD3DVector;
@@ -1021,8 +1080,6 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-
 end;
 
 
@@ -1265,6 +1322,7 @@ begin
   if (BautypA=y18m) and (BautypB=y18m) then KettenwerkMitYSeil(y18m,y18m,false);      //beide Y-Seile Typ 18m
   if (BautypA=y24m) and (BautypB=y24m) then KettenwerkMitYSeil(y24m,y24m,false);      //beide Y-Seile Typ 24m
   if (BautypA=SH13) and (BautypB=SH13) then KettenwerkMitYSeil(SH13,SH13,false);      //beide Ausleger niedrige Systemhöhe
+  if (BautypA=SH03) and (BautypB=SH03) then KettenwerkMitYSeil(SH03,SH03,false);      //beide Ausleger Stützpunkt unter Bauwerk
   if (BautypA=y18m) and (BautypB=y12m) then KettenwerkMitYSeil(y18m,y12m,false);      //Y-Seil 18m + 12m
   if (BautypA=y18m) and (BautypB=y14m) then KettenwerkMitYSeil(y18m,y14m,false);      //Y-Seil 18m + 14m
   if (BautypA=y18m) and (BautypB=y24m) then KettenwerkMitYSeil(y18m,y24m,false);      //Y-Seil 18m + 24m
@@ -1277,9 +1335,13 @@ begin
   if (BautypA=SH13) and (BautypB=y12m) then KettenwerkMitYSeil(SH13,y12m,false);      //Stützpunkt niedrige SH + Y-Seil 12m
   if (BautypA=SH13) and (BautypB=y14m) then KettenwerkMitYSeil(SH13,y14m,false);      //Stützpunkt niedrige SH + Y-Seil 14m
   if (BautypA=SH13) and (BautypB=y18m) then KettenwerkMitYSeil(SH13,y18m,false);      //Stützpunkt niedrige SH + Y-Seil 18m
+  if (BautypA=SH13) and (BautypB=SH03) then KettenwerkMitYSeil(SH13,SH03,false);      //Stützpunkt niedrige SH + Stützpunkt unter Bauwerk
   if (BautypA=y12m) and (BautypB=SH13) then KettenwerkMitYSeil(y12m,SH13,false);      //Y-Seil 12m + Stützpunkt niedrige SH
   if (BautypA=y14m) and (BautypB=SH13) then KettenwerkMitYSeil(y14m,SH13,false);      //Y-Seil 14m + Stützpunkt niedrige SH
   if (BautypA=y18m) and (BautypB=SH13) then KettenwerkMitYSeil(y18m,SH13,false);      //Y-Seil 18m + Stützpunkt niedrige SH
+  if (BautypA=y12m) and (BautypB=SH03) then KettenwerkMitYSeil(y12m,SH03,false);      //Y-Seil 12m + Stützpunkt unter Bauwerk
+  if (BautypA=y14m) and (BautypB=SH03) then KettenwerkMitYSeil(y14m,SH03,false);      //Y-Seil 14m + Stützpunkt unter Bauwerk
+  if (BautypA=y18m) and (BautypB=SH03) then KettenwerkMitYSeil(y18m,SH03,false);      //Y-Seil 18m + Stützpunkt unter Bauwerk
   if (BautypA=Festp) and (BautypB=FestpIso) then Festpunktabspannung;
   if (BautypA=FestpIso) and (BautypB=Festp) then
   begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
