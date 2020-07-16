@@ -68,7 +68,7 @@ var ErgebnisArray:array of TLinie;
     ErgebnisArrayDateien:array of TVerknuepfung;
     PunkteA, PunkteB, PunkteTemp: array of TAnkerpunkt;
     DateiIsolator:string;
-    Drahtstaerke:single;
+    Drahtstaerke,YKompFaktor:single;
     Drahtkennzahl,Festpunktisolatorposition:integer;
     DrahtFarbe:TD3DColorValue;
     BaufunktionAufgerufen:boolean;
@@ -83,6 +83,7 @@ begin
             begin
               if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
               if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
+              if reg.ValueExists('YKompFaktor') then YKompFaktor := reg.ReadFloat('YKompFaktor');
               if reg.ValueExists('DrahtStaerke') then
               begin
                 Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
@@ -117,6 +118,7 @@ begin
             begin
               reg.WriteString('DateiIsolator', DateiIsolator);
               reg.WriteInteger('Drahtstaerke',Drahtkennzahl);
+              reg.WriteFloat('YKompFaktor',YKompFaktor);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
             end;
           end;
@@ -139,6 +141,7 @@ begin
   Drahtkennzahl:=0;
   Festpunktisolatorposition:=10;
   Drahtstaerke:=0.006;
+  YKompFaktor := 1;
   RegistryLesen;
 end;
 
@@ -360,6 +363,7 @@ begin
     begin
       pktSRA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
       pktSRB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
+      if AnkerIstLeer(pktSRA) or AnkerIstLeer(pktSRB) then ShowMessage('Ein notwendiger Ankerpunkt des Typs Abspannung Tragseil ist nicht vorhanden.');
     end;
 
     //Fahrdraht berechnen als Vektor von FA nach FB
@@ -393,8 +397,10 @@ begin
      Stützpunkt L: 1. Hänger 2,5 m vom Stützpunkt;
      sonst maximal 11,50 m;
     }
+
     i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/11.5) - 1;
     if odd(i) then i :=i+1; //ungerade Anzahl Normalhänger ist in Re 200 nicht zulässig. Deshalb im Zweifel einen Hänger mehr einbauen.
+
     //LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
     Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/(i+1);
     //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
@@ -560,7 +566,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.53 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -583,7 +589,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.67); //Hänger auf 67% Höhe zwischen Fahrdraht und Tragseil  (lt. Ezs 2521)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.67 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.67); //Hänger auf 67% Höhe zwischen Fahrdraht und Tragseil  (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilZweithaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[1]
@@ -605,7 +611,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.47 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -684,7 +690,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.50); //Hänger auf 50% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 476)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.50 * YKompFaktor) else  D3DXVec3Scale(vNeu, v, 0.50); //Hänger auf 50% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 476)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -698,7 +704,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 476)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.47 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 476)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -777,7 +783,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.53 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -791,7 +797,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.47 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -871,7 +877,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.53 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -885,7 +891,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.47 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -1050,12 +1056,15 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //Seil am Ausleger zwischen Spitzenrohr und Y-Seil-Anbaupunkt
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktSR.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    //Seil am Ausleger zwischen Spitzenrohr und Y-Seil-Anbaupunkt (wird nur bei Auslegern in Altbauweise benötigt und soll dort den im 3D-Modell fehlenden Stützrohrhänger andeuten)
+    if not AnkerIstLeer(pktY) then
+    begin
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktSR.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
 
     //Beiseil am Stützpunkt
     //unterer Kettenwerkpunkt (nur als Rechengröße)
@@ -1342,6 +1351,8 @@ begin
   if (BautypA=y12m) and (BautypB=SH03) then KettenwerkMitYSeil(y12m,SH03,false);      //Y-Seil 12m + Stützpunkt unter Bauwerk
   if (BautypA=y14m) and (BautypB=SH03) then KettenwerkMitYSeil(y14m,SH03,false);      //Y-Seil 14m + Stützpunkt unter Bauwerk
   if (BautypA=y18m) and (BautypB=SH03) then KettenwerkMitYSeil(y18m,SH03,false);      //Y-Seil 18m + Stützpunkt unter Bauwerk
+  if (BautypA=SH03) and (BautypB=SH13) then KettenwerkMitYSeil(SH03,SH13,false);      //Stützpunkt unter Bauwerk +  Stützpunkt niedrige SH
+  if (BautypA=SH03) and (BautypB=y12m) then KettenwerkMitYSeil(SH03,y12m,false);      //Stützpunkt unter Bauwerk +  Y-Seil 12m
   if (BautypA=Festp) and (BautypB=FestpIso) then Festpunktabspannung;
   if (BautypA=FestpIso) and (BautypB=Festp) then
   begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
@@ -1490,6 +1501,7 @@ begin
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
   Formular.RadioGroupDrahtstaerke.ItemIndex := Drahtkennzahl;
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
+  if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
 
   Formular.ShowModal;
 
@@ -1498,6 +1510,7 @@ begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
     Drahtkennzahl:=Formular.RadioGroupDrahtstaerke.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
+    if Formular.CheckBoxYKompatibilitaet.Checked = true then YKompFaktor := 1.325 else YKompFaktor := 1;
     RegistrySchreiben;
     RegistryLesen;
   end;

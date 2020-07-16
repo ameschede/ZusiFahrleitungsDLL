@@ -18,6 +18,7 @@ type
     LabelIsolatorposition: TLabel;
     LabelAusleger: TLabel;
     LabelAnkermast: TLabel;
+    CheckBoxYKompatibilitaet: TCheckBox;
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }
