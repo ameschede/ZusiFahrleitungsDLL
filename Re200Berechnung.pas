@@ -363,12 +363,13 @@ begin
     begin
       pktSRA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
       pktSRB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
-      if AnkerIstLeer(pktSRA) or AnkerIstLeer(pktSRB) then ShowMessage('Ein notwendiger Ankerpunkt des Typs Abspannung Tragseil ist nicht vorhanden.');
+      if (AnkerIstLeer(pktSRA) and (EndstueckA = SH13)) or (AnkerIstLeer(pktSRB) and (EndstueckB = SH13)) then ShowMessage('Ein notwendiger Ankerpunkt des Typs Abspannung Tragseil ist nicht vorhanden.');
     end;
 
     //Fahrdraht berechnen als Vektor von FA nach FB
-    pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
-    if Letzthaengerabstand = 0 then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
+    if EndstueckA = Ausfaedel then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
+    else pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
+    if EndstueckB = Ausfaedel then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
     else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
@@ -406,8 +407,9 @@ begin
     //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
 
     //Tragseil Endpunkte
-    pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
-    if Letzthaengerabstand = 0 then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
+    if EndstueckA = Ausfaedel then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
+    else pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+    if EndstueckB = Ausfaedel then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
     else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
@@ -496,6 +498,15 @@ begin
     if EndstueckB = SH13 then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,Abstand,-1);
     if EndstueckA = SH03 then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
     if EndstueckB = SH03 then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckA = Ausfaedel then
+    begin
+      //Verbindung zwischen erstem Normalhänger und Ausleger A
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
     if EndstueckB = Ausfaedel then
     begin
       //Verbindung zwischen letztem Normalhänger und Ausleger B
@@ -1127,7 +1138,7 @@ end;
 
 procedure KettenwerkAbschluss(Ersthaengerabstand,Letzthaengerabstand:single);
 var pktFA, pktFB, pktTA, pktTB, pktU, pktO:TAnkerpunkt;
-    Abstand, Durchhang, LaengeNormalhaengerbereich, Haengerabstand:single;
+    Abstand, Durchhang, {LaengeNormalhaengerbereich,} Haengerabstand:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
     i, a:integer;
 
@@ -1147,9 +1158,9 @@ begin
 
     i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/11.5); //Anders als bei Normalkettenwerk soll hier der letzte Hänger von der Normalhänger-Schleife gebaut werden
     if odd(i) then i :=i+1; //ungerade Anzahl Normalhänger ist in Re 200 nicht zulässig. Deshalb im Zweifel einen Hänger mehr einbauen.
-    LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
+    //LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
     Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/i; //Anders als bei Normalkettenwerk soll hier der letzte Hänger von der Normalhänger-Schleife gebaut werden
-    ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
+    //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
 
     //Tragseil Endpunkte
     pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungAusfaedelungTragseil);
@@ -1395,24 +1406,15 @@ begin
     BaurichtungWechseln;
     KettenwerkAbschluss(0.5,22.8);
   end;
-  if (BautypA=y18m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y18m,Ausfaedel,false);  //Y-Seil 18m auf Ausfädelung
-  if (BautypA=Ausfaedel) and (BautypB=y18m) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y18m,Ausfaedel,false)
-  end;
+  if (BautypA=Ausfaedel) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(Ausfaedel,Ausfaedel,false);  //beide Ausleger Typ Ausfädelung
+  if (BautypA=y12m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y12m,Ausfaedel,false);  //Y-Seil 12m auf Ausfädelung
+  if (BautypA=Ausfaedel) and (BautypB=y12m) then KettenwerkMitYSeil(Ausfaedel,y12m,false);  //Ausfädelung auf Y-Seil 12m
   if (BautypA=y14m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y14m,Ausfaedel,false);  //Y-Seil 14m auf Ausfädelung
-  if (BautypA=Ausfaedel) and (BautypB=y14m) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y14m,Ausfaedel,false)
-  end;
+  if (BautypA=Ausfaedel) and (BautypB=y14m) then KettenwerkMitYSeil(Ausfaedel,y14m,false);  //Ausfädelung auf Y-Seil 14m
+  if (BautypA=y18m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y18m,Ausfaedel,false);  //Y-Seil 18m auf Ausfädelung
+  if (BautypA=Ausfaedel) and (BautypB=y18m) then KettenwerkMitYSeil(Ausfaedel,y18m,false);  //Ausfädelung auf Y-Seil 18m
   if (BautypA=y24m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y24m,Ausfaedel,false);  //Y-Seil 24m auf Ausfädelung
-  if (BautypA=Ausfaedel) and (BautypB=y24m) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y24m,Ausfaedel,false)
-  end;
+  if (BautypA=Ausfaedel) and (BautypB=y24m) then KettenwerkMitYSeil(Ausfaedel,y24m,false);  //Ausfädelung auf Y-Seil 24m
 
   if BaufunktionAufgerufen = false then ShowMessage('Die gewählte Bauart-Kombination ist nicht implementiert. Bei tatsächlichem Bedarf bitte beim Autor der DLL melden.');
 
