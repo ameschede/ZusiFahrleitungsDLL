@@ -811,7 +811,6 @@ procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVec
 var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu, YSeilErsthaengerpunkt,YSeilEndepunkt: TD3DVector;
     Durchhang:single;
-    mr:cardinal;
 begin
     //Erster Hänger
     //unterer Kettenwerkpunkt
@@ -860,11 +859,8 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
-    if QTWBaumodus > 0 then
-    begin
-      mr := MessageDlg('Zusätzlichen Hänger einbauen (liegt in Hauptfahrrichtung 1 m vor dem Quertragwerk)?',mtConfirmation,[mbYes,mbNo],0);
-      if mr = IDYES then
-      begin
+    if (QTWBaumodus > 0) and (Richtung = -1) then
+      begin //zusätzlicher Hänger in Hauptfahrtrichtung 1 Meter vor dem Querfeld
         //unterer Kettenwerkpunkt
         D3DXVec3Normalize(vNorm, vFahrdraht);
         D3DXVec3Scale(v, vNorm, Richtung * 1);    //1,0 m Abstand vom Ausleger
@@ -884,9 +880,8 @@ begin
         ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
         ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
         ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+        ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
      end;
-    end;
 
     //Tragseil zwischen Ende Y-Seil und Ausleger
     //unterer Kettenwerkpunkt (nur virtuell, für Berechnungszwecke)
@@ -943,7 +938,6 @@ procedure Berechne_YSeil_24m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVec
 var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu, YSeilErsthaengerpunkt,YSeilEndepunkt: TD3DVector;
     Durchhang:single;
-    mr:cardinal;
 begin
     //Erster Hänger
     //unterer Kettenwerkpunkt
@@ -981,8 +975,7 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    mr := MessageDlg('Zusätzlichen Hänger einbauen (liegt in Hauptfahrrichtung 1 m vor dem Quertragwerk)?',mtConfirmation,[mbYes,mbNo],0);
-    if mr = IDYES then
+    if (QTWBaumodus > 0) and (Richtung = -1) then
     begin
       //unterer Kettenwerkpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
@@ -1697,7 +1690,7 @@ begin
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
   if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
   if IsolatorenEinbau then Formular.CheckBoxIsolatorenEinbau.Checked := true;
-
+  
   Formular.ShowModal;
 
   if Formular.ModalResult=mrOK then

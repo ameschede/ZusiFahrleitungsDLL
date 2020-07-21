@@ -21,6 +21,7 @@ type
     CheckBoxYKompatibilitaet: TCheckBox;
     RadioGroupBaumodus: TRadioGroup;
     CheckBoxIsolatorenEinbau: TCheckBox;
+    LabelBauhinweisQuerfelder: TLabel;
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }
