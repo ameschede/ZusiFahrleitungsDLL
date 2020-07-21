@@ -19,6 +19,8 @@ type
     LabelAusleger: TLabel;
     LabelAnkermast: TLabel;
     CheckBoxYKompatibilitaet: TCheckBox;
+    RadioGroupBaumodus: TRadioGroup;
+    CheckBoxIsolatorenEinbau: TCheckBox;
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }

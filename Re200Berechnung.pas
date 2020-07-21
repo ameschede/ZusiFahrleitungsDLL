@@ -4,7 +4,7 @@ interface
 
 uses
   Direct3D9, d3dx9, 
-  
+
   sysutils, Controls, registry, windows, forms, Math, Dialogs,
   
   ZusiD3DTypenDll, FahrleitungsTypen, Re200ConfigForm;
@@ -69,9 +69,9 @@ var ErgebnisArray:array of TLinie;
     PunkteA, PunkteB, PunkteTemp: array of TAnkerpunkt;
     DateiIsolator:string;
     Drahtstaerke,YKompFaktor:single;
-    Drahtkennzahl,Festpunktisolatorposition:integer;
+    Drahtkennzahl,Festpunktisolatorposition,QTWBaumodus:integer;
     DrahtFarbe:TD3DColorValue;
-    BaufunktionAufgerufen:boolean;
+    BaufunktionAufgerufen,IsolatorenEinbau:boolean;
 
 procedure RegistryLesen;
 var reg: TRegistry;
@@ -83,7 +83,9 @@ begin
             begin
               if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
               if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
+              if reg.ValueExists('QTWBaumodus') then QTWBaumodus := reg.ReadInteger('QTWBaumodus');
               if reg.ValueExists('YKompFaktor') then YKompFaktor := reg.ReadFloat('YKompFaktor');
+              if reg.ValueExists('IsolatorenEinbau') then IsolatorenEinbau := reg.ReadBool('IsolatorenEinbau');
               if reg.ValueExists('DrahtStaerke') then
               begin
                 Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
@@ -120,6 +122,8 @@ begin
               reg.WriteInteger('Drahtstaerke',Drahtkennzahl);
               reg.WriteFloat('YKompFaktor',YKompFaktor);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
+              reg.WriteInteger('QTWBaumodus',QTWBaumodus);
+              reg.WriteBool('IsolatorenEinbau',IsolatorenEinbau);
             end;
           end;
         end;
@@ -142,6 +146,8 @@ begin
   Festpunktisolatorposition:=10;
   Drahtstaerke:=0.006;
   YKompFaktor := 1;
+  QTWBaumodus := 0;
+  IsolatorenEinbau := false;
   RegistryLesen;
 end;
 
@@ -206,6 +212,45 @@ begin
   end;
 end;
 
+function PunktSuchen(A:Boolean; i:integer; ATyp:TAnkerTyp):TAnkerpunkt;
+// sucht den i. Punkt vom Typ ATyp
+var b:integer;
+    gefunden:Boolean;
+    LeerAnker:TAnkerpunkt;
+begin
+  //Result-Variable zumindest so weit initialisieren, dass sie ggfs. von AnkerIstLeer erkannt werden kann
+  LeerAnker.PunktTransformiert.Punkt.x :=0;
+  LeerAnker.PunktTransformiert.Punkt.y :=0;
+  LeerAnker.PunktTransformiert.Punkt.z :=0;
+  Result := LeerAnker;
+  b:=0;
+  gefunden:=false;
+  if A then
+  begin
+    while (b<=length(PunkteA)-1) and (not gefunden) do
+    begin
+      if PunkteA[b].Ankertyp=ATyp then
+      begin
+        gefunden:=true;
+        Result:=PunkteA[b];
+      end;
+      inc(b);
+    end;
+  end
+  else
+  begin
+    while (b<=length(PunkteB)-1) and (not gefunden) do
+    begin
+      if PunkteB[b].Ankertyp=ATyp then
+      begin
+        gefunden:=true;
+        Result:=PunkteB[b];
+      end;
+      inc(b);
+    end;
+  end;
+end;
+
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
 // Wir versuchen, aus der vom Editor übergebenen Ankerkonfiguration einen Bauarttypen vorzuschlagen
   function Vorschlagen(Punkte:array of TAnkerpunkt):Longint	;
@@ -257,48 +302,8 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
   end;
 
 begin
-  if A then Result:=Vorschlagen(PunkteA)
-       else Result:=Vorschlagen(PunkteB);
-end;
-
-
-function PunktSuchen(A:Boolean; i:integer; ATyp:TAnkerTyp):TAnkerpunkt;
-// sucht den i. Punkt vom Typ ATyp
-var b:integer;
-    gefunden:Boolean;
-    LeerAnker:TAnkerpunkt;
-begin
-  //Result-Variable zumindest so weit initialisieren, dass sie ggfs. von AnkerIstLeer erkannt werden kann
-  LeerAnker.PunktTransformiert.Punkt.x :=0;
-  LeerAnker.PunktTransformiert.Punkt.y :=0;
-  LeerAnker.PunktTransformiert.Punkt.z :=0;
-  Result := LeerAnker;
-  b:=0;
-  gefunden:=false;
-  if A then
-  begin
-    while (b<=length(PunkteA)-1) and (not gefunden) do
-    begin
-      if PunkteA[b].Ankertyp=ATyp then
-      begin
-        gefunden:=true;
-        Result:=PunkteA[b];
-      end;
-      inc(b);
-    end;
-  end
-  else
-  begin
-    while (b<=length(PunkteB)-1) and (not gefunden) do
-    begin
-      if PunkteB[b].Ankertyp=ATyp then
-      begin
-        gefunden:=true;
-        Result:=PunkteB[b];
-      end;
-      inc(b);
-    end;
-  end;
+    if A then Result:=Vorschlagen(PunkteA)
+         else Result:=Vorschlagen(PunkteB);
 end;
 
 function AnkerIstLeer(pAnker:TAnkerpunkt):Boolean;
@@ -320,7 +325,7 @@ begin
     D3DXVec3Scale(h, vNorm, l);
     D3DXVec3Add(xyz, h, Pkt1);
 
-    Winkelz:=arctan2(Pkt2.y-Pkt1.y, Pkt2.x-Pkt1.x);                             
+    Winkelz:=arctan2(Pkt2.y-Pkt1.y, Pkt2.x-Pkt1.x);
     Winkelx:=arctan2(Pkt2.z-Pkt1.z, sqrt(sqr(Pkt2.x-Pkt1.x)+sqr(Pkt2.y-Pkt1.y)));
     xyzphi.x:=-Winkelx;
     xyzphi.y:=0;
@@ -391,6 +396,22 @@ begin
       begin
         if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 200 (34 bis 80 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
+
+    //Hinweise auf korrekte Y-Seile in Querfeldern
+    if QTWBaumodus = 1 then
+    begin
+        if (Abstand > 50) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 18 m Länge vorbildgerecht.')
+        else ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 14 m Länge vorbildgerecht.');
+    end;
+    if QTWBaumodus = 2 then
+    begin
+        if (Abstand > 66) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 24 m Länge vorbildgerecht.')
+        else
+        begin
+          if (Abstand < 50) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 14 m Länge vorbildgerecht.')
+          else ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 18 m Länge vorbildgerecht.')
+        end;
+    end;
     
     {
      Vorbildgerechte Hängerteilung Re 200:
@@ -666,6 +687,16 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
+    //Isolator ins Tragseil einbauen
+    if IsolatorenEinbau then
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
+
     //Verbindung zwischen Ende Y-Seil und Zweithänger
     //Array[6]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -780,6 +811,7 @@ procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVec
 var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu, YSeilErsthaengerpunkt,YSeilEndepunkt: TD3DVector;
     Durchhang:single;
+    mr:cardinal;
 begin
     //Erster Hänger
     //unterer Kettenwerkpunkt
@@ -828,6 +860,34 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
+    if QTWBaumodus > 0 then
+    begin
+      mr := MessageDlg('Zusätzlichen Hänger einbauen (liegt in Hauptfahrrichtung 1 m vor dem Quertragwerk)?',mtConfirmation,[mbYes,mbNo],0);
+      if mr = IDYES then
+      begin
+        //unterer Kettenwerkpunkt
+        D3DXVec3Normalize(vNorm, vFahrdraht);
+        D3DXVec3Scale(v, vNorm, Richtung * 1);    //1,0 m Abstand vom Ausleger
+        D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, v);
+
+        //oberer Kettenwerkpunkt
+        D3DXVec3Normalize(vNorm, vTragseil);
+        D3DXVec3Scale(v, vNorm, Richtung * 1);
+        D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktT.PunktTransformiert.Punkt, v);
+
+        //Punkt absenken
+        D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+        D3DXVec3Scale(vNeu, v, 0.48); //magische Zahl, empirisch ermittelt ;-)
+        D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+        setlength(ErgebnisArray, length(ErgebnisArray)+1);
+        ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+        ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+        ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+     end;
+    end;
+
     //Tragseil zwischen Ende Y-Seil und Ausleger
     //unterer Kettenwerkpunkt (nur virtuell, für Berechnungszwecke)
     D3DXVec3Normalize(vNorm, vFahrdraht);
@@ -851,6 +911,16 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Isolator ins Tragseil einbauen
+    if IsolatorenEinbau then
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
 
     //Verbindung zwischen Ende Y-Seil und Ersthänger
     //Array[6]
@@ -959,6 +1029,16 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Isolator ins Tragseil einbauen
+    if IsolatorenEinbau then
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
 
     //Verbindung zwischen Ende Y-Seil und Ersthänger
     //Array[6]
@@ -1134,6 +1214,117 @@ begin
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
 
   end
+end;
+
+procedure Kettenwerk_SH03; //Behandlung als Sonderfall, weil es hierbei keine Normalhänger gibt
+var pktFA, pktFB, pktTA, pktTB, pktU, pktO:TAnkerpunkt;
+    v,vNorm,vNeu,vFahrdraht,vTragseil,HaengerAPunkt: TD3DVector;
+    Abstand, Durchhang:single;
+begin
+  DrahtFarbe.r:=0.99;
+  DrahtFarbe.g:=0.99;
+  DrahtFarbe.b:=0.99;
+  DrahtFarbe.a:=0;
+  if (length(PunkteA)>1) and (length(PunkteB)>1) then
+  begin
+    BaufunktionAufgerufen := true;
+    //Fahrdraht berechnen als Vektor von FA nach FB
+    pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
+    pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
+    D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
+    Abstand:=D3DXVec3Length(vFahrdraht);
+
+    //Spannweite auf Plausibilität prüfen
+    if (Abstand > 25.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten unter Bauwerken (max. 25 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+
+    //Tragseil Endpunkte
+    pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+    pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
+    D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
+
+    //Systemhöhen-Prüfung
+    D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
+    if (D3DXVec3Length(v) > 0.3) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 0,30 m).');
+    D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
+    if (D3DXVec3Length(v) > 0.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 0,30 m).');
+
+    //Erster Hänger
+    //unterer Kettenwerkpunkt
+    D3DXVec3Normalize(vNorm, vFahrdraht);
+    D3DXVec3Scale(v, vNorm, Abstand / 4);    //Hänger in Abstand 1/4 Längsspannweite vom Ausleger
+    D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+    //oberer Kettenwerkpunkt
+    D3DXVec3Normalize(vNorm, vTragseil);
+    D3DXVec3Scale(v, vNorm, Abstand / 4);
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+    //Punkt absenken
+    Durchhang := (0.00076 * sqr((Abstand/4) - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
+    D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+    D3DXVec3Scale(vNeu, v, Durchhang);
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+    HaengerAPunkt := pktO.PunktTransformiert.Punkt;
+
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Tragseil zwischen Ersthänger und Ausleger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTA.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Zweiter Hänger
+    //unterer Kettenwerkpunkt
+    D3DXVec3Normalize(vNorm, vFahrdraht);
+    D3DXVec3Scale(v, vNorm, -1 * Abstand / 4);    //Hänger in Abstand 1/4 Längsspannweite vom Ausleger
+    D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt, v);
+
+    //oberer Kettenwerkpunkt
+    D3DXVec3Normalize(vNorm, vTragseil);
+    D3DXVec3Scale(v, vNorm, -1 * Abstand / 4);
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTB.PunktTransformiert.Punkt, v);
+
+    //Punkt absenken
+    Durchhang := (0.00076 * sqr((Abstand/4) - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
+    D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+    D3DXVec3Scale(vNeu, v, Durchhang);
+    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Tragseil zwischen Zweithaenger und Ausleger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTB.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Tragseil zwischen Ersthänger und Zweithänger
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=HaengerAPunkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Fahrdraht eintragen
+    setlength(ErgebnisArray, length(ErgebnisArray)+1);
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+  end;
+
 end;
 
 procedure KettenwerkAbschluss(Ersthaengerabstand,Letzthaengerabstand:single);
@@ -1342,7 +1533,7 @@ begin
   if (BautypA=y18m) and (BautypB=y18m) then KettenwerkMitYSeil(y18m,y18m,false);      //beide Y-Seile Typ 18m
   if (BautypA=y24m) and (BautypB=y24m) then KettenwerkMitYSeil(y24m,y24m,false);      //beide Y-Seile Typ 24m
   if (BautypA=SH13) and (BautypB=SH13) then KettenwerkMitYSeil(SH13,SH13,false);      //beide Ausleger niedrige Systemhöhe
-  if (BautypA=SH03) and (BautypB=SH03) then KettenwerkMitYSeil(SH03,SH03,false);      //beide Ausleger Stützpunkt unter Bauwerk
+  if (BautypA=SH03) and (BautypB=SH03) then Kettenwerk_SH03;                          //beide Ausleger Stützpunkt unter Bauwerk, Behandlung als Sonderfall da abweichende Hängerteilung
   if (BautypA=y18m) and (BautypB=y12m) then KettenwerkMitYSeil(y18m,y12m,false);      //Y-Seil 18m + 12m
   if (BautypA=y18m) and (BautypB=y14m) then KettenwerkMitYSeil(y18m,y14m,false);      //Y-Seil 18m + 14m
   if (BautypA=y18m) and (BautypB=y24m) then KettenwerkMitYSeil(y18m,y24m,false);      //Y-Seil 18m + 24m
@@ -1502,8 +1693,10 @@ begin
   Formular:=TFormFahrleitungConfig.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
   Formular.RadioGroupDrahtstaerke.ItemIndex := Drahtkennzahl;
+  Formular.RadioGroupBaumodus.ItemIndex := QTWBaumodus;
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
   if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
+  if IsolatorenEinbau then Formular.CheckBoxIsolatorenEinbau.Checked := true;
 
   Formular.ShowModal;
 
@@ -1511,8 +1704,10 @@ begin
   begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
     Drahtkennzahl:=Formular.RadioGroupDrahtstaerke.ItemIndex;
+    QTWBaumodus:=Formular.RadioGroupBaumodus.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
     if Formular.CheckBoxYKompatibilitaet.Checked = true then YKompFaktor := 1.325 else YKompFaktor := 1;
+    if Formular.CheckBoxIsolatorenEinbau.Checked = true then IsolatorenEinbau := true else IsolatorenEinbau := false;
     RegistrySchreiben;
     RegistryLesen;
   end;
