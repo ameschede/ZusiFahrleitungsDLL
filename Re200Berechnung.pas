@@ -358,7 +358,9 @@ begin
     if EndstueckB = Ausfaedel then Letzthaengerabstand := 0;
     if EndstueckA = SH13 then Ersthaengerabstand := 5;
     if EndstueckB = SH13 then Letzthaengerabstand := 5;
-    //bei Endstücken SH03 sind die Hängerabstände von der Längsspannweite abhängig
+    // Bei Kettenwerk zwischen zwei SH03-Auslegern gilt eigentlich Sonderregel für die Hängerabstände (1/4 der Längsspannweite). Dann landet man allerdings in der Funktion Kettenwerk_SH03. Folgende Festlegungen gelten somit nur für Übergangskettenwerke:
+    if EndstueckA = SH03 then Ersthaengerabstand := 5;
+    if EndstueckB = SH03 then Letzthaengerabstand := 5;
 
     pktYA:=PunktSuchen(true, 0, Ankertyp_FahrleitungHaengerseil);
     pktYB:=PunktSuchen(false, 0, Ankertyp_FahrleitungHaengerseil);
@@ -378,10 +380,6 @@ begin
     else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
-
-    //bei SH03 ist Hängerabstand ein Viertel der Längsspannweite
-    if EndstueckA = SH03 then Ersthaengerabstand := D3DXVec3Length(vFahrdraht)/4;
-    if EndstueckB = SH03 then Letzthaengerabstand := D3DXVec3Length(vFahrdraht)/4;
 
     //Spannweite auf Plausibilität prüfen
     if (EndstueckA = SH03) or (EndstueckB = SH03) then
@@ -873,7 +871,7 @@ begin
 
         //Punkt absenken
         D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-        D3DXVec3Scale(vNeu, v, 0.48); //magische Zahl, empirisch ermittelt ;-)
+        D3DXVec3Scale(vNeu, v, 0.495); //magische Zahl, empirisch ermittelt ;-)
         D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
         setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -975,7 +973,8 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    if (QTWBaumodus > 0) and (Richtung = -1) then
+    //1 Meter vor Ausleger B einen zusätzlichen Hänger einbauen
+    if Richtung = -1 then
     begin
       //unterer Kettenwerkpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
