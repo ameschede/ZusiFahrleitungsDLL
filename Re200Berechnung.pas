@@ -577,7 +577,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.53 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -600,7 +600,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.67 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.67); //Hänger auf 67% Höhe zwischen Fahrdraht und Tragseil  (lt. Ezs 2521)
+    D3DXVec3Scale(vNeu, v, 0.67); //Hänger auf 67% Höhe zwischen Fahrdraht und Tragseil  (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilZweithaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[1]
@@ -622,7 +622,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.47 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -794,7 +794,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.53 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -808,7 +808,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.47 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -888,7 +888,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.53 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    D3DXVec3Scale(vNeu, v, 0.53); //Hänger auf 53% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -902,7 +902,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.47 * YKompFaktor) else D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
+    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 2521)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
