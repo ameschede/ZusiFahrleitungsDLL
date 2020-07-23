@@ -11,7 +11,7 @@ uses
 
 type
 
-  TEndstueck = (y24m, y18m, y14m, y12m, y24mZ, y18mZ, y14mZ, y12mZ, ausfaedel, Festp, FestpIso, Abschluss, SH13, SH03);
+  TEndstueck = (y24m, y18m, y14m, y12m, y24mZ, y18mZ, y14mZ, y12mZ, ausfaedel, Festp, FestpIso, Abschluss, SH13, SH03, SH13Z, SH03Z);
 
 function Init:Longword; stdcall;
 function BauartTyp(i:Longint):PChar; stdcall;
@@ -69,9 +69,9 @@ var ErgebnisArray:array of TLinie;
     PunkteA, PunkteB, PunkteTemp: array of TAnkerpunkt;
     DateiIsolator:string;
     Drahtstaerke,YKompFaktor:single;
-    Drahtkennzahl,Festpunktisolatorposition,QTWBaumodus:integer;
+    Drahtkennzahl,Festpunktisolatorposition,QTWBaumodus,IsolatorBaumodus:integer;
     DrahtFarbe:TD3DColorValue;
-    BaufunktionAufgerufen,IsolatorenEinbau:boolean;
+    BaufunktionAufgerufen:boolean;
 
 procedure RegistryLesen;
 var reg: TRegistry;
@@ -85,7 +85,7 @@ begin
               if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
               if reg.ValueExists('QTWBaumodus') then QTWBaumodus := reg.ReadInteger('QTWBaumodus');
               if reg.ValueExists('YKompFaktor') then YKompFaktor := reg.ReadFloat('YKompFaktor');
-              if reg.ValueExists('IsolatorenEinbau') then IsolatorenEinbau := reg.ReadBool('IsolatorenEinbau');
+              if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
               if reg.ValueExists('DrahtStaerke') then
               begin
                 Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
@@ -123,7 +123,7 @@ begin
               reg.WriteFloat('YKompFaktor',YKompFaktor);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
               reg.WriteInteger('QTWBaumodus',QTWBaumodus);
-              reg.WriteBool('IsolatorenEinbau',IsolatorenEinbau);
+              reg.WriteInteger('IsolatorBaumodus',IsolatorBaumodus);
             end;
           end;
         end;
@@ -138,7 +138,7 @@ end;
 function Init:Longword; stdcall;
 // Rückgabe: Anzahl der Bauarttypen
 begin
-  Result:=13;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=16;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
@@ -147,7 +147,7 @@ begin
   Drahtstaerke:=0.006;
   YKompFaktor := 1;
   QTWBaumodus := 0;
-  IsolatorenEinbau := false;
+  IsolatorBaumodus := 0;
   RegistryLesen;
 end;
 
@@ -166,8 +166,11 @@ begin
   8: Result:='(QTW freie Strecke) 24m Y-Seil';
   9: Result:='(QTW fr. Strecke) Festpunkt mit 24m Y-Seil';
   10: Result:='(Tunnel SH 11) 12m Y-Seil';
-  11: Result:='Stützpunkt SH < 13';
-  12: Result:='(SH 03) Stützpunkt unter Bauwerk'
+  11: Result:='(Tunnel SH 11) Festpunkt mit 12m Y-Seil';
+  12: Result:='Stützpunkt SH < 13';
+  13: Result:='Festpunkt mit Stützpunkt SH < 13';
+  14: Result:='(SH 03) Stützpunkt unter Bauwerk';
+  15: Result:='(SH 03) Festpunkt mit Stützpunkt unter Bauwerk'
   else Result := '(K) 18m Y-Seil'
   end;
 end;
@@ -297,7 +300,7 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungFahrdraht then inc(iUnten3);
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungAbspannungMastpunktTragseil then inc(iOben3);
     end;
-    if (iUnten3=1) and (iOben3=1) then Result:=11;
+    if (iUnten3=1) and (iOben3=1) then Result:=12;
 
   end;
 
@@ -398,16 +401,16 @@ begin
     //Hinweise auf korrekte Y-Seile in Querfeldern
     if QTWBaumodus = 1 then
     begin
-        if (Abstand > 50) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 18 m Länge vorbildgerecht.')
-        else ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 14 m Länge vorbildgerecht.');
+        if (Abstand > 50) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite im Bahnhof sind Y-Seile von 18 m Länge vorbildgerecht.')
+        else ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite im Bahnhof sind Y-Seile von 14 m Länge vorbildgerecht.');
     end;
     if QTWBaumodus = 2 then
     begin
-        if (Abstand > 66) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 24 m Länge vorbildgerecht.')
+        if (Abstand > 66) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 24 m Länge vorbildgerecht.')
         else
         begin
-          if (Abstand < 50) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 14 m Länge vorbildgerecht.')
-          else ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite sind Y-Seile von 18 m Länge vorbildgerecht.')
+          if (Abstand < 50) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 14 m Länge vorbildgerecht.')
+          else ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 18 m Länge vorbildgerecht.')
         end;
     end;
     
@@ -525,6 +528,22 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+      //ggfs. Isolatoren für Streckentrennung einbauen
+      if IsolatorBaumodus = 3 then
+      begin
+        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+        LageIsolator(pktTA.PunktTransformiert.Punkt, ErstNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+        LageIsolator(pktFA.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+      end;
     end;
     if EndstueckB = Ausfaedel then
     begin
@@ -534,6 +553,22 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTB.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+      //ggfs. Isolatoren für Streckentrennung einbauen
+      if IsolatorBaumodus = 3 then
+      begin
+        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+        LageIsolator(pktTB.PunktTransformiert.Punkt, LetztNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+        LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+      end;
     end;
 
     //Z-Seil
@@ -686,7 +721,15 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator ins Tragseil einbauen
-    if IsolatorenEinbau then
+    if IsolatorBaumodus = 1 then
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0.6, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel); //geerdeter Ausleger - Isolator 0,6 m vom Stützpunkt entfernt
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
+    if IsolatorBaumodus = 2 then
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
       LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
@@ -787,6 +830,16 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Isolator ins Tragseil einbauen (dieses Y-Seil wird nicht in Quertragwerken verwendet)
+    if IsolatorBaumodus = 1 then
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0.6, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel); //geerdeter Ausleger - Isolator 0,6 m vom Stützpunkt entfernt
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
 
     //Verbindung zwischen Ende Y-Seil und Ersthänger
     //Array[6]
@@ -906,7 +959,15 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator ins Tragseil einbauen
-    if IsolatorenEinbau then
+    if IsolatorBaumodus = 1 then
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0.6, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel); //geerdeter Ausleger - Isolator 0,6 m vom Stützpunkt entfernt.
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
+    if IsolatorBaumodus = 2 then
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
       LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
@@ -1022,8 +1083,8 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //Isolator ins Tragseil einbauen
-    if IsolatorenEinbau then
+    //Isolator ins Tragseil einbauen (dieses Y-Seil wird nicht an geerdeten Auslegern verwendet)
+    if IsolatorBaumodus = 2 then
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
       LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
@@ -1208,10 +1269,10 @@ begin
   end
 end;
 
-procedure Kettenwerk_SH03; //Behandlung als Sonderfall, weil es hierbei keine Normalhänger gibt
+procedure Kettenwerk_SH03(zSeil:boolean); //Behandlung als Sonderfall, weil es hierbei keine Normalhänger gibt
 var pktFA, pktFB, pktTA, pktTB, pktU, pktO:TAnkerpunkt;
     v,vNorm,vNeu,vFahrdraht,vTragseil,HaengerAPunkt: TD3DVector;
-    Abstand, Durchhang:single;
+    Abstand, AbstandFT, Durchhang:single;
 begin
   DrahtFarbe.r:=0.99;
   DrahtFarbe.g:=0.99;
@@ -1257,6 +1318,8 @@ begin
     D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     HaengerAPunkt := pktO.PunktTransformiert.Punkt;
+    //Abstand Fahrdraht zu Tragseil für Verwendung im Z-Seil speichern
+    AbstandFT:=D3DXVec3Length(vNeu);
 
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
@@ -1307,6 +1370,36 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+    //Z-Seil
+    if zSeil then
+    begin
+      //unterer vorläufiger z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, ((Abstand / 4) + ((Abstand / 2) - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      //oberer z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, ((Abstand / 4) + ((Abstand / 2)  - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+      //endgültiger unterer z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, ((Abstand / 4) + ((Abstand / 2) - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) + (sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
 
     //Fahrdraht eintragen
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -1500,8 +1593,11 @@ begin
     8: BautypA := y24m;
     9: BautypA := y24mZ;
     10: BautypA := y12m;
-    11: BautypA := SH13;
-    12: BautypA := SH03
+    11: BautypA := y12mZ;
+    12: BautypA := SH13;
+    13: BautypA := SH13Z;
+    14: BautypA := SH03;
+    15: BautypA := SH03Z
   end;
     case Typ2 of
     0: BautypB := y18m;
@@ -1515,17 +1611,20 @@ begin
     8: BautypB := y24m;
     9: BautypB := y24mZ;
     10: BautypB := y12m;
-    11: BautypB := SH13;
-    12: BautypB := SH03
+    11: BautypB := y12mZ;
+    12: BautypB := SH13;
+    13: BautypB := SH13Z;
+    14: BautypB := SH03;
+    15: BautypB := SH03Z
   end;
 
-  //wenn wir mehrere Sorten Fahrdrähte verlegen können, wird hier entschieden was wir machen
+  //hier wird entschieden was wir machen
   if (BautypA=y12m) and (BautypB=y12m) then KettenwerkMitYSeil(y12m,y12m,false);      //beide Y-Seile Typ 12m
   if (BautypA=y14m) and (BautypB=y14m) then KettenwerkMitYSeil(y14m,y14m,false);      //beide Y-Seile Typ 14m
   if (BautypA=y18m) and (BautypB=y18m) then KettenwerkMitYSeil(y18m,y18m,false);      //beide Y-Seile Typ 18m
   if (BautypA=y24m) and (BautypB=y24m) then KettenwerkMitYSeil(y24m,y24m,false);      //beide Y-Seile Typ 24m
   if (BautypA=SH13) and (BautypB=SH13) then KettenwerkMitYSeil(SH13,SH13,false);      //beide Ausleger niedrige Systemhöhe
-  if (BautypA=SH03) and (BautypB=SH03) then Kettenwerk_SH03;                          //beide Ausleger Stützpunkt unter Bauwerk, Behandlung als Sonderfall da abweichende Hängerteilung
+  if (BautypA=SH03) and (BautypB=SH03) then Kettenwerk_SH03(false);                   //beide Ausleger Stützpunkt unter Bauwerk, Behandlung als Sonderfall da abweichende Hängerteilung
   if (BautypA=y18m) and (BautypB=y12m) then KettenwerkMitYSeil(y18m,y12m,false);      //Y-Seil 18m + 12m
   if (BautypA=y18m) and (BautypB=y14m) then KettenwerkMitYSeil(y18m,y14m,false);      //Y-Seil 18m + 14m
   if (BautypA=y18m) and (BautypB=y24m) then KettenwerkMitYSeil(y18m,y24m,false);      //Y-Seil 18m + 24m
@@ -1547,11 +1646,19 @@ begin
   if (BautypA=y18m) and (BautypB=SH03) then KettenwerkMitYSeil(y18m,SH03,false);      //Y-Seil 18m + Stützpunkt unter Bauwerk
   if (BautypA=SH03) and (BautypB=SH13) then KettenwerkMitYSeil(SH03,SH13,false);      //Stützpunkt unter Bauwerk +  Stützpunkt niedrige SH
   if (BautypA=SH03) and (BautypB=y12m) then KettenwerkMitYSeil(SH03,y12m,false);      //Stützpunkt unter Bauwerk +  Y-Seil 12m
+
   if (BautypA=Festp) and (BautypB=FestpIso) then Festpunktabspannung;
   if (BautypA=FestpIso) and (BautypB=Festp) then
   begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
     BaurichtungWechseln;
     Festpunktabspannung;
+  end;
+
+  if (BautypA=y24mZ) and (BautypB=y24m) then KettenwerkMitYSeil(y24m,y24m,true);      //beide Y-Seile Typ 24m, z-Seil an A
+  if (BautypA=y24m) and (BautypB=y24mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y24m,y24m,true)
   end;
   if (BautypA=y18mZ) and (BautypB=y18m) then KettenwerkMitYSeil(y18m,y18m,true);      //beide Y-Seile Typ 18m, z-Seil an A
   if (BautypA=y18m) and (BautypB=y18mZ) then
@@ -1559,11 +1666,72 @@ begin
     BaurichtungWechseln;
     KettenwerkMitYSeil(y18m,y18m,true)
   end;
+  if (BautypA=y14mZ) and (BautypB=y14m) then KettenwerkMitYSeil(y14m,y14m,true);      //beide Y-Seile Typ 14m, z-Seil an A
+  if (BautypA=y14m) and (BautypB=y14mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y14m,y14m,true)
+  end;
+  if (BautypA=y12mZ) and (BautypB=y12m) then KettenwerkMitYSeil(y12m,y12m,true);      //beide Y-Seile Typ 12m, z-Seil an A
+  if (BautypA=y12m) and (BautypB=y12mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y12m,y12m,true)
+  end;
+  if (BautypA=SH13Z) and (BautypB=SH13) then KettenwerkMitYSeil(SH13,SH13,true);      //beide Endstücke SH13, z-Seil an A
+  if (BautypA=SH13) and (BautypB=SH13Z) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(SH13,SH13,true)
+  end;
+  if (BautypA=SH03Z) and (BautypB=SH03) then Kettenwerk_SH03(true);                   //beide Endstücke SH03, z-Seil an A
+  if (BautypA=SH03) and (BautypB=SH03Z) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    Kettenwerk_SH03(true);
+  end;
+
+  if (BautypA=y24mZ) and (BautypB=y18m) then KettenwerkMitYSeil(y24m,y18m,true);      //Y-Seil 24m + 18m, z-Seil an A
+  if (BautypA=y18m) and (BautypB=y24mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y24m,y18m,true)
+  end;
+  if (BautypA=y24mZ) and (BautypB=y14m) then KettenwerkMitYSeil(y24m,y14m,true);      //Y-Seil 24m + 14m, z-Seil an A
+  if (BautypA=y14m) and (BautypB=y24mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y24m,y14m,true)
+  end;
+  if (BautypA=y24mZ) and (BautypB=y12m) then KettenwerkMitYSeil(y24m,y12m,true);      //Y-Seil 24m + 12m, z-Seil an A
+  if (BautypA=y12m) and (BautypB=y24mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y24m,y12m,true)
+  end;
+  if (BautypA=y18mZ) and (BautypB=y24m) then KettenwerkMitYSeil(y18m,y24m,true);      //Y-Seil 18m + 24m, z-Seil an A
+  if (BautypA=y24m) and (BautypB=y18mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y18m,y24m,true)
+  end;
   if (BautypA=y18mZ) and (BautypB=y14m) then KettenwerkMitYSeil(y18m,y14m,true);      //Y-Seil 18m + 14m, z-Seil an A
   if (BautypA=y14m) and (BautypB=y18mZ) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
     BaurichtungWechseln;
     KettenwerkMitYSeil(y18m,y14m,true)
+  end;
+  if (BautypA=y18mZ) and (BautypB=y12m) then KettenwerkMitYSeil(y18m,y12m,true);      //Y-Seil 18m + 12m, z-Seil an A
+  if (BautypA=y12m) and (BautypB=y18mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y18m,y12m,true)
+  end;
+  if (BautypA=y14mZ) and (BautypB=y24m) then KettenwerkMitYSeil(y14m,y24m,true);      //Y-Seil 14m + 24m, z-Seil an A
+  if (BautypA=y24m) and (BautypB=y14mZ) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkMitYSeil(y14m,y24m,true)
   end;
   if (BautypA=y14mZ) and (BautypB=y18m) then KettenwerkMitYSeil(y14m,y18m,true);      //Y-Seil 14m + 18m, z-Seil an A
   if (BautypA=y18m) and (BautypB=y14mZ) then
@@ -1571,18 +1739,13 @@ begin
     BaurichtungWechseln;
     KettenwerkMitYSeil(y14m,y18m,true)
   end;
-  if (BautypA=y14mZ) and (BautypB=y14m) then KettenwerkMitYSeil(y14m,y14m,true);      //beide Y-Seile Typ 14m, z-Seil an A
-  if (BautypA=y14m) and (BautypB=y14mZ) then
+  if (BautypA=y14mZ) and (BautypB=y12m) then KettenwerkMitYSeil(y14m,y12m,true);      //Y-Seil 14m + 12m, z-Seil an A
+  if (BautypA=y12m) and (BautypB=y14mZ) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
     BaurichtungWechseln;
-    KettenwerkMitYSeil(y14m,y14m,true)
+    KettenwerkMitYSeil(y14m,y12m,true)
   end;
-  if (BautypA=y24mZ) and (BautypB=y24m) then KettenwerkMitYSeil(y14m,y14m,true);      //beide Y-Seile Typ 24m, z-Seil an A
-  if (BautypA=y24m) and (BautypB=y24mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y24m,y24m,true)
-  end;
+
   if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss(0.5,22.8);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 22,8 m wegen 20 m hängerfreiem Seil, 0,8 m Isolatorlänge und 2,0 m Abstand Isolator zu Spannwerk
   if (BautypA=Abschluss) and (BautypB=Ausfaedel) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
@@ -1675,7 +1838,7 @@ end;
 function Gruppe:PChar; stdcall;
 // Teilt dem Editor die Objektgruppe mit, die er bei den verknüpften Dateien vermerken soll
 begin
-  Result:=Gruppefahrleitung;
+  Result:='Kettenwerk Re 200';
 end;
 
 procedure Config(AppHandle:HWND); stdcall;
@@ -1688,7 +1851,7 @@ begin
   Formular.RadioGroupBaumodus.ItemIndex := QTWBaumodus;
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
   if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
-  if IsolatorenEinbau then Formular.CheckBoxIsolatorenEinbau.Checked := true;
+  Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
   
   Formular.ShowModal;
 
@@ -1697,9 +1860,9 @@ begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
     Drahtkennzahl:=Formular.RadioGroupDrahtstaerke.ItemIndex;
     QTWBaumodus:=Formular.RadioGroupBaumodus.ItemIndex;
+    IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
     if Formular.CheckBoxYKompatibilitaet.Checked = true then YKompFaktor := 1.325 else YKompFaktor := 1;
-    if Formular.CheckBoxIsolatorenEinbau.Checked = true then IsolatorenEinbau := true else IsolatorenEinbau := false;
     RegistrySchreiben;
     RegistryLesen;
   end;
