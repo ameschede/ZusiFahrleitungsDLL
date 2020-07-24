@@ -379,14 +379,14 @@ begin
 
     //Isolator an der Ausfädelung unten
     setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
+    LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2.5, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel); //Streckentrennungs-Isolator 2,5 m vom Stützpunkt entfernt
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
 
     //Isolator an der Ausfädelung oben
     setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktTB.PunktTransformiert.Punkt, pktOLetzterHaenger.PunktTransformiert.Punkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
+    LageIsolator(pktTB.PunktTransformiert.Punkt, pktOLetzterHaenger.PunktTransformiert.Punkt, 2.5, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel); //Streckentrennungs-Isolator 2,5 m vom Stützpunkt entfernt
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
@@ -498,14 +498,14 @@ begin
 
     //Isolator an der Ausfädelung unten
     setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
+    LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2.5, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);  //Streckentrennungs-Isolator 2,5 m vom Stützpunkt entfernt
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
 
     //Isolator an der Ausfädelung oben
     setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktTB.PunktTransformiert.Punkt, pktOLetzterHaenger.PunktTransformiert.Punkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
+    LageIsolator(pktTB.PunktTransformiert.Punkt, pktOLetzterHaenger.PunktTransformiert.Punkt, 2.5, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel); //Streckentrennungs-Isolator 2,5 m vom Stützpunkt entfernt
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
