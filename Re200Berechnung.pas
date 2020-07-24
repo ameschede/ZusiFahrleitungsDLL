@@ -335,11 +335,12 @@ begin
     xyzphi.z:=Winkelz+Pi/2;
 end;
 
-procedure KettenwerkMitYSeil(EndstueckA,EndstueckB:TEndstueck;zSeil:boolean);
+procedure KettenwerkMitYSeil(EndstueckA,EndstueckB:TEndstueck);
 var pktFA, pktFB, pktTA, pktTB, pktYA, pktYB, pktSRA, pktSRB, pktU, pktO:TAnkerpunkt;
-    Abstand, Durchhang, {LaengeNormalhaengerbereich,} Ersthaengerabstand, Letzthaengerabstand, Haengerabstand, AbstandFT, DurchhangNahhaenger, DurchhangFernhaenger:single;
+    Abstand, Durchhang, {LaengeNormalhaengerbereich,} Ersthaengerabstand, Letzthaengerabstand, Haengerabstand, AbstandFT, DurchhangAHaenger, DurchhangBHaenger:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
     i, a:integer;
+    zSeilA,zSeilB:boolean;
 
 begin
   DrahtFarbe.r:=0.99;
@@ -349,21 +350,19 @@ begin
   if (length(PunkteA)>1) and (length(PunkteB)>1) then
   begin
     BaufunktionAufgerufen := true;
-    if EndstueckA = y18m then Ersthaengerabstand := 6;
-    if EndstueckB = y18m then Letzthaengerabstand := 6;
-    if EndstueckA = y14m then Ersthaengerabstand := 2.5;
-    if EndstueckB = y14m then Letzthaengerabstand := 2.5;
-    if EndstueckA = y12m then Ersthaengerabstand := 2.5;
-    if EndstueckB = y12m then Letzthaengerabstand := 2.5;
-    if EndstueckA = y24m then Ersthaengerabstand := 7;
-    if EndstueckB = y24m then Letzthaengerabstand := 7;
+    if EndstueckA in [y24m,y24mZ] then Ersthaengerabstand := 7;
+    if EndstueckB in [y24m,y24mZ] then Letzthaengerabstand := 7;
+    if EndstueckA in [y18m,y18mZ] then Ersthaengerabstand := 6;
+    if EndstueckB in [y18m,y18mZ] then Letzthaengerabstand := 6;
+    if EndstueckA in [y14m,y14mZ,y12m,y12mZ] then Ersthaengerabstand := 2.5;
+    if EndstueckB in [y14m,y14mZ,y12m,y12mZ] then Letzthaengerabstand := 2.5;
     if EndstueckA = Ausfaedel then Ersthaengerabstand := 0;
     if EndstueckB = Ausfaedel then Letzthaengerabstand := 0;
-    if EndstueckA = SH13 then Ersthaengerabstand := 5;
-    if EndstueckB = SH13 then Letzthaengerabstand := 5;
-    // Bei Kettenwerk zwischen zwei SH03-Auslegern gilt eigentlich Sonderregel für die Hängerabstände (1/4 der Längsspannweite). Dann landet man allerdings in der Funktion Kettenwerk_SH03. Folgende Festlegungen gelten somit nur für Übergangskettenwerke:
-    if EndstueckA = SH03 then Ersthaengerabstand := 5;
-    if EndstueckB = SH03 then Letzthaengerabstand := 5;
+    if EndstueckA in [SH03,SH13] then Ersthaengerabstand := 5; //Bei Kettenwerk zwischen zwei SH03-Auslegern gilt eigentlich Sonderregel für die Hängerabstände (1/4 der Längsspannweite). Dann landet man allerdings in der Funktion Kettenwerk_SH03. Die Festlegungen hier sind somit nur für Übergangskettenwerke relevant.
+    if EndstueckB in [SH03,SH13] then Letzthaengerabstand := 5;
+
+    if EndstueckA in [y24mZ,y18mZ,y14mZ,y12mZ,SH13Z,SH03Z] then zSeilA := true;
+    if EndstueckB in [y24mZ,y18mZ,y14mZ,y12mZ,SH13Z,SH03Z] then zSeilB := true;
 
     pktYA:=PunktSuchen(true, 0, Ankertyp_FahrleitungHaengerseil);
     pktYB:=PunktSuchen(false, 0, Ankertyp_FahrleitungHaengerseil);
@@ -481,17 +480,25 @@ begin
       //oberen Punkt des letzten Hängers für spätere Verwendung speichern
       LetztNormalhaengerpunkt := pktO.PunktTransformiert.Punkt;
       end;
-      if (a = (i/2)) and zSeil then
+      if (a = (i/2)) and (zSeilA or zSeilB) then
       begin
         //Abstand zwischen Fahrdraht und Tragseil sowie Durchhang für  spätere Verwendung speichern
+        if zSeilA then
+        begin
         D3DXVec3Subtract(v, pktU.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt);
         AbstandFT:=D3DXVec3Length(v);
-        DurchhangNahhaenger := Durchhang;
+        end;
+        DurchhangAHaenger := Durchhang;
       end;
-      if (a = (i/2) + 1) and zSeil then
+      if (a = (i/2) + 1) and (zSeilA or zSeilB) then
       begin
-        //Durchhang für  spätere Verwendung speichern
-        DurchhangFernhaenger := Durchhang;
+        //Abstand zwischen Fahrdraht und Tragseil sowie Durchhang für  spätere Verwendung speichern
+        if zSeilB then
+        begin
+        D3DXVec3Subtract(v, pktU.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt);
+        AbstandFT:=D3DXVec3Length(v);
+        end;
+        DurchhangBHaenger := Durchhang;
       end;
     end;
 
@@ -508,18 +515,18 @@ begin
 
 
     //Y-Seile und Endstücke
-    if EndstueckA = y12m then Berechne_YSeil_12m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if EndstueckB = y12m then Berechne_YSeil_12m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if EndstueckA = y14m then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if EndstueckB = y14m then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if EndstueckA = y18m then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if EndstueckB = y18m then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if EndstueckA = y24m then Berechne_YSeil_24m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if EndstueckB = y24m then Berechne_YSeil_24m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if EndstueckA = SH13 then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,pktSRA,Abstand,1);
-    if EndstueckB = SH13 then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,Abstand,-1);
-    if EndstueckA = SH03 then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if EndstueckB = SH03 then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckA in [y12m,y12mZ] then Berechne_YSeil_12m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if EndstueckB in [y12m,y12mZ] then Berechne_YSeil_12m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckA in [y14m,y14mZ] then Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if EndstueckB in [y14m,y14mZ] then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckA in [y18m,y18mZ] then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if EndstueckB in [y18m,y18mZ] then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckA in [y24m,y24mZ] then Berechne_YSeil_24m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if EndstueckB in [y24m,y24mZ] then Berechne_YSeil_24m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckA in [SH13,SH13Z] then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,pktSRA,Abstand,1);
+    if EndstueckB in [SH13,SH13Z] then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,Abstand,-1);
+    if EndstueckA in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
+    if EndstueckB in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
     if EndstueckA = Ausfaedel then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
@@ -572,7 +579,7 @@ begin
     end;
 
     //Z-Seil
-    if zSeil then
+    if zSeilA then
     begin
       //unterer vorläufiger z-Seilpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
@@ -586,7 +593,7 @@ begin
 
       //Punkt absenken
       //Durchhang := (0.00076 * sqr(Ersthaengerabstand + ((i/2) * Haengerabstand + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0); //Bei dieser Rechenmethode ergibt sich eine leichte Unexaktheit, da wir hier einen etwas anderen Durchhangwert ermitteln als beim Bau der nächstliegenden Normalhänger
-      Durchhang := (0.67 * DurchhangNahhaenger + 0.33 * DurchhangFernhaenger); //gewichteter Durchschnitt des Durchhangs der beiden benachbarten Hänger
+      Durchhang := (0.67 * DurchhangAHaenger + 0.33 * DurchhangBHaenger); //gewichteter Durchschnitt des Durchhangs der beiden benachbarten Hänger
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -594,6 +601,36 @@ begin
       //endgültiger unterer z-Seilpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
       D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) + (sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
+    if zSeilB then
+    begin
+      //unterer vorläufiger z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (((i/2)+1) * Haengerabstand) - (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      //oberer z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (((i/2)+1) * Haengerabstand) - (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      //Durchhang := (0.00076 * sqr(Ersthaengerabstand + ((i/2) * Haengerabstand + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0); //Bei dieser Rechenmethode ergibt sich eine leichte Unexaktheit, da wir hier einen etwas anderen Durchhangwert ermitteln als beim Bau der nächstliegenden Normalhänger
+      Durchhang := (0.33 * DurchhangAHaenger + 0.67 * DurchhangBHaenger); //gewichteter Durchschnitt des Durchhangs der beiden benachbarten Hänger
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+      //endgültiger unterer z-Seilpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2)+1) * Haengerabstand) - ((Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2 + sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -1618,151 +1655,37 @@ begin
     15: BautypB := SH03Z
   end;
 
-  //hier wird entschieden was wir machen
-  if (BautypA=y12m) and (BautypB=y12m) then KettenwerkMitYSeil(y12m,y12m,false);      //beide Y-Seile Typ 12m
-  if (BautypA=y14m) and (BautypB=y14m) then KettenwerkMitYSeil(y14m,y14m,false);      //beide Y-Seile Typ 14m
-  if (BautypA=y18m) and (BautypB=y18m) then KettenwerkMitYSeil(y18m,y18m,false);      //beide Y-Seile Typ 18m
-  if (BautypA=y24m) and (BautypB=y24m) then KettenwerkMitYSeil(y24m,y24m,false);      //beide Y-Seile Typ 24m
-  if (BautypA=SH13) and (BautypB=SH13) then KettenwerkMitYSeil(SH13,SH13,false);      //beide Ausleger niedrige Systemhöhe
-  if (BautypA=SH03) and (BautypB=SH03) then Kettenwerk_SH03(false);                   //beide Ausleger Stützpunkt unter Bauwerk, Behandlung als Sonderfall da abweichende Hängerteilung
-  if (BautypA=y18m) and (BautypB=y12m) then KettenwerkMitYSeil(y18m,y12m,false);      //Y-Seil 18m + 12m
-  if (BautypA=y18m) and (BautypB=y14m) then KettenwerkMitYSeil(y18m,y14m,false);      //Y-Seil 18m + 14m
-  if (BautypA=y18m) and (BautypB=y24m) then KettenwerkMitYSeil(y18m,y24m,false);      //Y-Seil 18m + 24m
-  if (BautypA=y14m) and (BautypB=y12m) then KettenwerkMitYSeil(y14m,y12m,false);      //Y-Seil 14m + 12m
-  if (BautypA=y14m) and (BautypB=y18m) then KettenwerkMitYSeil(y14m,y18m,false);      //Y-Seil 14m + 18m
-  if (BautypA=y14m) and (BautypB=y24m) then KettenwerkMitYSeil(y14m,y24m,false);      //Y-Seil 14m + 24m
-  if (BautypA=y24m) and (BautypB=y12m) then KettenwerkMitYSeil(y24m,y12m,false);      //Y-Seil 24m + 12m
-  if (BautypA=y24m) and (BautypB=y14m) then KettenwerkMitYSeil(y24m,y14m,false);      //Y-Seil 24m + 14m
-  if (BautypA=y24m) and (BautypB=y18m) then KettenwerkMitYSeil(y24m,y18m,false);      //Y-Seil 24m + 18m
-  if (BautypA=SH13) and (BautypB=y12m) then KettenwerkMitYSeil(SH13,y12m,false);      //Stützpunkt niedrige SH + Y-Seil 12m
-  if (BautypA=SH13) and (BautypB=y14m) then KettenwerkMitYSeil(SH13,y14m,false);      //Stützpunkt niedrige SH + Y-Seil 14m
-  if (BautypA=SH13) and (BautypB=y18m) then KettenwerkMitYSeil(SH13,y18m,false);      //Stützpunkt niedrige SH + Y-Seil 18m
-  if (BautypA=SH13) and (BautypB=SH03) then KettenwerkMitYSeil(SH13,SH03,false);      //Stützpunkt niedrige SH + Stützpunkt unter Bauwerk
-  if (BautypA=y12m) and (BautypB=SH13) then KettenwerkMitYSeil(y12m,SH13,false);      //Y-Seil 12m + Stützpunkt niedrige SH
-  if (BautypA=y14m) and (BautypB=SH13) then KettenwerkMitYSeil(y14m,SH13,false);      //Y-Seil 14m + Stützpunkt niedrige SH
-  if (BautypA=y18m) and (BautypB=SH13) then KettenwerkMitYSeil(y18m,SH13,false);      //Y-Seil 18m + Stützpunkt niedrige SH
-  if (BautypA=y12m) and (BautypB=SH03) then KettenwerkMitYSeil(y12m,SH03,false);      //Y-Seil 12m + Stützpunkt unter Bauwerk
-  if (BautypA=y14m) and (BautypB=SH03) then KettenwerkMitYSeil(y14m,SH03,false);      //Y-Seil 14m + Stützpunkt unter Bauwerk
-  if (BautypA=y18m) and (BautypB=SH03) then KettenwerkMitYSeil(y18m,SH03,false);      //Y-Seil 18m + Stützpunkt unter Bauwerk
-  if (BautypA=SH03) and (BautypB=SH13) then KettenwerkMitYSeil(SH03,SH13,false);      //Stützpunkt unter Bauwerk +  Stützpunkt niedrige SH
-  if (BautypA=SH03) and (BautypB=y12m) then KettenwerkMitYSeil(SH03,y12m,false);      //Stützpunkt unter Bauwerk +  Y-Seil 12m
-
+  //hier wird entschieden was wir machen. Zuerst die Sonderfälle:
+  if (BautypA=SH03) and (BautypB=SH03) then Kettenwerk_SH03(false); //beide Ausleger Stützpunkt unter Bauwerk, Behandlung als Sonderfall da abweichende Hängerteilung
+  if (BautypA=SH03Z) and (BautypB=SH03) then Kettenwerk_SH03(true); //beide Endstücke SH03, z-Seil an A
+  if (BautypA=SH03) and (BautypB=SH03Z) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
+    BaurichtungWechseln;
+    Kettenwerk_SH03(true);
+  end;
   if (BautypA=Festp) and (BautypB=FestpIso) then Festpunktabspannung;
   if (BautypA=FestpIso) and (BautypB=Festp) then
   begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
     BaurichtungWechseln;
     Festpunktabspannung;
   end;
-
-  if (BautypA=y24mZ) and (BautypB=y24m) then KettenwerkMitYSeil(y24m,y24m,true);      //beide Y-Seile Typ 24m, z-Seil an A
-  if (BautypA=y24m) and (BautypB=y24mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y24m,y24m,true)
-  end;
-  if (BautypA=y18mZ) and (BautypB=y18m) then KettenwerkMitYSeil(y18m,y18m,true);      //beide Y-Seile Typ 18m, z-Seil an A
-  if (BautypA=y18m) and (BautypB=y18mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y18m,y18m,true)
-  end;
-  if (BautypA=y14mZ) and (BautypB=y14m) then KettenwerkMitYSeil(y14m,y14m,true);      //beide Y-Seile Typ 14m, z-Seil an A
-  if (BautypA=y14m) and (BautypB=y14mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y14m,y14m,true)
-  end;
-  if (BautypA=y12mZ) and (BautypB=y12m) then KettenwerkMitYSeil(y12m,y12m,true);      //beide Y-Seile Typ 12m, z-Seil an A
-  if (BautypA=y12m) and (BautypB=y12mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y12m,y12m,true)
-  end;
-  if (BautypA=SH13Z) and (BautypB=SH13) then KettenwerkMitYSeil(SH13,SH13,true);      //beide Endstücke SH13, z-Seil an A
-  if (BautypA=SH13) and (BautypB=SH13Z) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(SH13,SH13,true)
-  end;
-  if (BautypA=SH03Z) and (BautypB=SH03) then Kettenwerk_SH03(true);                   //beide Endstücke SH03, z-Seil an A
-  if (BautypA=SH03) and (BautypB=SH03Z) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    Kettenwerk_SH03(true);
-  end;
-
-  if (BautypA=y24mZ) and (BautypB=y18m) then KettenwerkMitYSeil(y24m,y18m,true);      //Y-Seil 24m + 18m, z-Seil an A
-  if (BautypA=y18m) and (BautypB=y24mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y24m,y18m,true)
-  end;
-  if (BautypA=y24mZ) and (BautypB=y14m) then KettenwerkMitYSeil(y24m,y14m,true);      //Y-Seil 24m + 14m, z-Seil an A
-  if (BautypA=y14m) and (BautypB=y24mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y24m,y14m,true)
-  end;
-  if (BautypA=y24mZ) and (BautypB=y12m) then KettenwerkMitYSeil(y24m,y12m,true);      //Y-Seil 24m + 12m, z-Seil an A
-  if (BautypA=y12m) and (BautypB=y24mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y24m,y12m,true)
-  end;
-  if (BautypA=y18mZ) and (BautypB=y24m) then KettenwerkMitYSeil(y18m,y24m,true);      //Y-Seil 18m + 24m, z-Seil an A
-  if (BautypA=y24m) and (BautypB=y18mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y18m,y24m,true)
-  end;
-  if (BautypA=y18mZ) and (BautypB=y14m) then KettenwerkMitYSeil(y18m,y14m,true);      //Y-Seil 18m + 14m, z-Seil an A
-  if (BautypA=y14m) and (BautypB=y18mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y18m,y14m,true)
-  end;
-  if (BautypA=y18mZ) and (BautypB=y12m) then KettenwerkMitYSeil(y18m,y12m,true);      //Y-Seil 18m + 12m, z-Seil an A
-  if (BautypA=y12m) and (BautypB=y18mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y18m,y12m,true)
-  end;
-  if (BautypA=y14mZ) and (BautypB=y24m) then KettenwerkMitYSeil(y14m,y24m,true);      //Y-Seil 14m + 24m, z-Seil an A
-  if (BautypA=y24m) and (BautypB=y14mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y14m,y24m,true)
-  end;
-  if (BautypA=y14mZ) and (BautypB=y18m) then KettenwerkMitYSeil(y14m,y18m,true);      //Y-Seil 14m + 18m, z-Seil an A
-  if (BautypA=y18m) and (BautypB=y14mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y14m,y18m,true)
-  end;
-  if (BautypA=y14mZ) and (BautypB=y12m) then KettenwerkMitYSeil(y14m,y12m,true);      //Y-Seil 14m + 12m, z-Seil an A
-  if (BautypA=y12m) and (BautypB=y14mZ) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei z-Seil nicht seitenneutral ist
-    BaurichtungWechseln;
-    KettenwerkMitYSeil(y14m,y12m,true)
-  end;
-
   if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss(0.5,22.8);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 22,8 m wegen 20 m hängerfreiem Seil, 0,8 m Isolatorlänge und 2,0 m Abstand Isolator zu Spannwerk
   if (BautypA=Abschluss) and (BautypB=Ausfaedel) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
     BaurichtungWechseln;
     KettenwerkAbschluss(0.5,22.8);
   end;
-  if (BautypA=Ausfaedel) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(Ausfaedel,Ausfaedel,false);  //beide Ausleger Typ Ausfädelung
-  if (BautypA=y12m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y12m,Ausfaedel,false);  //Y-Seil 12m auf Ausfädelung
-  if (BautypA=Ausfaedel) and (BautypB=y12m) then KettenwerkMitYSeil(Ausfaedel,y12m,false);  //Ausfädelung auf Y-Seil 12m
-  if (BautypA=y14m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y14m,Ausfaedel,false);  //Y-Seil 14m auf Ausfädelung
-  if (BautypA=Ausfaedel) and (BautypB=y14m) then KettenwerkMitYSeil(Ausfaedel,y14m,false);  //Ausfädelung auf Y-Seil 14m
-  if (BautypA=y18m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y18m,Ausfaedel,false);  //Y-Seil 18m auf Ausfädelung
-  if (BautypA=Ausfaedel) and (BautypB=y18m) then KettenwerkMitYSeil(Ausfaedel,y18m,false);  //Ausfädelung auf Y-Seil 18m
-  if (BautypA=y24m) and (BautypB=Ausfaedel) then KettenwerkMitYSeil(y24m,Ausfaedel,false);  //Y-Seil 24m auf Ausfädelung
-  if (BautypA=Ausfaedel) and (BautypB=y24m) then KettenwerkMitYSeil(Ausfaedel,y24m,false);  //Ausfädelung auf Y-Seil 24m
 
-  if BaufunktionAufgerufen = false then ShowMessage('Die gewählte Bauart-Kombination ist nicht implementiert. Bei tatsächlichem Bedarf bitte beim Autor der DLL melden.');
+  //einige unsinnige Kombinationen abfangen
+  if (BautypA in [Festp,FestpIso]) and (BautypB in [y24m, y18m, y14m, y12m, y24mZ, y18mZ, y14mZ, y12mZ, ausfaedel, Abschluss, SH13, SH03, SH13Z, SH03Z]) then BaufunktionAufgerufen := true;
+  if (BautypA in [y24m, y18m, y14m, y12m, y24mZ, y18mZ, y14mZ, y12mZ, ausfaedel, Abschluss, SH13, SH03, SH13Z, SH03Z]) and (BautypB in [Festp,FestpIso]) then BaufunktionAufgerufen := true;
+  if (BautypA in [Abschluss]) and (BautypB in [y24m, y18m, y14m, y12m, y24mZ, y18mZ, y14mZ, y12mZ, Abschluss, SH13, SH03, SH13Z, SH03Z]) then BaufunktionAufgerufen := true;
+  if (BautypA in [y24m, y18m, y14m, y12m, y24mZ, y18mZ, y14mZ, y12mZ, Abschluss, SH13, SH03, SH13Z, SH03Z]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
+
+  //Der catch-all für alle sonstigen Kombinationen (hoffentlich nur sinnvolle);
+  if not BaufunktionAufgerufen then KettenwerkMitYSeil(BautypA,BautypB);
+
+  if not BaufunktionAufgerufen then ShowMessage('Die gewählte Bauart-Kombination ist nicht implementiert. Bei tatsächlichem Bedarf bitte beim Autor der DLL melden.');
 
   Result.iDraht:=length(ErgebnisArray);
   Result.iDatei:=length(ErgebnisArrayDateien);
