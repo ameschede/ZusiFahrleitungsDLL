@@ -1147,7 +1147,7 @@ begin
 
 end;
 
-procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung:single);
+procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung:single); //nur für Übergangskettenwerk
 var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu,Endstueckendepunkt: TD3DVector;
     Durchhang:single;
@@ -1155,16 +1155,16 @@ begin
     //Erster Hänger
     //unterer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, Richtung * Abstand / 4);    //erster Hänger in Abstand 1/4 Längsspannweite vom Ausleger
+    D3DXVec3Scale(v, vNorm, Richtung * 5);    //erster Hänger in 5,0 m Abstand zum Stützpunkt
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, v);
 
     //oberer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vTragseil);
-    D3DXVec3Scale(v, vNorm, Richtung * Abstand / 4);
+    D3DXVec3Scale(v, vNorm, Richtung * 5);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktT.PunktTransformiert.Punkt, v);
 
     //Punkt absenken
-    Durchhang := (0.00076 * sqr((Abstand/4) - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
+    Durchhang := (0.00076 * sqr(5 - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
     D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
