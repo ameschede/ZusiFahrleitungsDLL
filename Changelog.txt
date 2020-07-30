@@ -25,3 +25,7 @@ Ezs 1007
 1.0.0.9 (6.4.2020)
 Ezs 1007
 - Fahrdrähte mit verkürzten Tragseilen (an Quertragwerken) sind möglich
+
+1.0.1.0 (30.7.2020)
+Re 200
+- Erste Veröffentlichung der Re200.dll. Dokumentation unter https://zusiwiki.echoray.de/wiki/Dokumentation_der_Fahrleitungs-DLL_Re_200
