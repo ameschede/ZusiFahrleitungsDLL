@@ -13,6 +13,7 @@ library Re200;
 
 uses
   FastMM4,
+  OLADLLgemeinsameFkt in 'OLADLLgemeinsameFkt.pas',
   Re200Berechnung in 'Re200Berechnung.pas',
   Re200ConfigForm in 'Re200ConfigForm.pas' {FormFahrleitungConfig},
   FahrleitungsTypen in 'FahrleitungsTypen.pas',
