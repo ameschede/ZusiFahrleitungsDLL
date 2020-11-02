@@ -22,7 +22,7 @@ procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVec
 procedure Berechne_YSeil_12m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
 procedure Berechne_YSeil_24m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
 procedure Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY,pktSR:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung: single);
-procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
+procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Abstand,Richtung: single);
 function Bezeichnung:PChar; stdcall;
 function Gruppe:PChar; stdcall;
 procedure Config(AppHandle:HWND); stdcall;
@@ -150,8 +150,11 @@ end;
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
 // Wir versuchen, aus der vom Editor übergebenen Ankerkonfiguration einen Bauarttypen vorzuschlagen
   function Vorschlagen(Punkte:array of TAnkerpunkt):Longint	;
-  var iOben0, iUnten0, iOben1, iUnten1, iOben2, iUnten2, iOben3, iUnten3:integer;
+  var iOben0, iUnten0, iOben1, iUnten1, iOben2, iUnten2, iErst2, iOben3, iUnten3:integer;
       b:integer;
+      pktF, pktT, pktE : TAnkerpunkt;
+      vEntfernung1,vEntfernung2 : TD3DVector;
+      AbstandEF, AbstandET : single;
   begin
     Result:=-1;
     iOben0:=0;
@@ -182,10 +185,32 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
     //liegt ein Standard-Ausleger vor?
     for b:=0 to length(Punkte)-1 do
     begin
-      if Punkte[b].Ankertyp=Ankertyp_FahrleitungFahrdraht then inc(iUnten2);
-      if Punkte[b].Ankertyp=Ankertyp_FahrleitungTragseil then inc(iOben2);
+      if Punkte[b].Ankertyp=Ankertyp_Allgemein then
+        begin
+          inc(iErst2);
+          pktE := Punkte[b];
+        end;
+      if Punkte[b].Ankertyp=Ankertyp_FahrleitungFahrdraht then
+        begin
+          inc(iUnten2);
+          pktF := Punkte[b];
+        end;
+      if Punkte[b].Ankertyp=Ankertyp_FahrleitungTragseil then
+        begin
+          inc(iOben2);
+          pktT := Punkte[b];
+        end;
     end;
-    if (iUnten2=1) and (iOben2=1) then Result:=0;
+    if {(iErst2=1) and }(iUnten2=1) and (iOben2=1) then
+      //wir versuchen aus der Ankerpunktanordnung zu erraten, ob ein angelenkter oder umgelenkter Stützpunkt vorliegt. Das funktioniert allerdings nicht bei Bogen-Auslegern, weil diese aus Sicht der DLL absolut symmetrisch sind
+      begin
+        D3DXVec3Subtract(vEntfernung1, pktE.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
+        AbstandEF:=D3DXVec3Length(vEntfernung1);
+        D3DXVec3Subtract(vEntfernung2, pktE.PunktTransformiert.Punkt, pktT.PunktTransformiert.Punkt);
+        AbstandET:=D3DXVec3Length(vEntfernung2);
+        //showmessage(floattostr(AbstandEF-AbstandET));
+        if AbstandEF > AbstandET then Result:=1 else Result:= 0; //wenn der Abstand EF größer ist als Abstand ET, haben wir einen vermutlichen umgelenkten Stützpunkt erkannt
+      end;
 
     //liegt ein Stützpunkt mit niedriger Systemhöhe vor?
     for b:=0 to length(Punkte)-1 do
@@ -392,8 +417,8 @@ begin
     if EndstueckB in [SH13_5m] then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,5,Abstand,-1);
     if EndstueckA in [SH13_10m] then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,pktSRA,10,Abstand,1);
     if EndstueckB in [SH13_10m] then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,10,Abstand,-1);
-    if EndstueckA in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
-    if EndstueckB in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
+    if EndstueckA in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Abstand,1);
+    if EndstueckB in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Abstand,-1);
     if EndstueckA = Ausfaedel then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
@@ -1014,9 +1039,9 @@ begin
 
 end;
 
-procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung:single); //nur für Übergangskettenwerk
+procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Abstand,Richtung:single); //nur für Übergangskettenwerk
 var pktU, pktO:TAnkerpunkt;
-    v, vNorm, vNeu,Endstueckendepunkt: TD3DVector;
+    v, vNorm, vNeu: TD3DVector;
     Durchhang:single;
 begin
     //Erster Hänger
@@ -1035,7 +1060,6 @@ begin
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
     D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
-    EndstueckEndepunkt := pktO.PunktTransformiert.Punkt;
     //Ersthänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
