@@ -12,7 +12,9 @@ library RE160ErweiterteFunktionen;
   
 
 uses
-  FastMM4, Fahrleitungsberechnung in 'Fahrleitungsberechnung.pas',
+  FastMM4,
+  OLADLLgemeinsameFkt in 'OLADLLgemeinsameFkt.pas',
+  Fahrleitungsberechnung in 'Fahrleitungsberechnung.pas',
   FahrleitungConfigForm in 'FahrleitungConfigForm.pas' {FormFahrleitungConfig},
   FahrleitungsTypen in 'FahrleitungsTypen.pas',
   ZusiD3DTypenDll in 'ZusiD3DTypenDll.pas',

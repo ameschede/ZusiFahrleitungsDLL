@@ -32,7 +32,7 @@ implementation
 {$R *.dfm}
 
 procedure TFormFahrleitungConfig.Dateiauswahl(Edit:TLabeledEdit);
-var Arbeitsverzeichnis:string;
+var Arbeitsverzeichnis,VerzeichnisStickPrivat,VerzeichnisStickOffiziell,VerzeichnisSteamPrivat,VerzeichnisSteamOffiziell:string;
     reg:TRegistry;
 begin
   if OpenDialogDatei.Execute then
@@ -42,12 +42,20 @@ begin
       reg.RootKey:=HKEY_LOCAL_MACHINE;
       if reg.OpenKeyReadOnly('\SOFTWARE\Zusi3') then
       begin
-        Arbeitsverzeichnis:=reg.ReadString('DatenVerzeichnis');
+        if reg.ValueExists('DatenVerzeichnis') then VerzeichnisStickPrivat := reg.ReadString('DatenVerzeichnis');
+        if reg.ValueExists('DatenVerzeichnisOffiziell') then VerzeichnisStickOffiziell := reg.ReadString('DatenVerzeichnisOffiziell');
+        if reg.ValueExists('DatenVerzeichnisSteam') then VerzeichnisSteamPrivat := reg.ReadString('DatenVerzeichnisSteam');
+        if reg.ValueExists('DatenVerzeichnisOffiziellSteam') then VerzeichnisSteamOffiziell := reg.ReadString('DatenVerzeichnisOffiziellSteam');
       end
     except
       reg.Free;
     end;
-    Edit.Text:=ExtractRelativePath(Arbeitsverzeichnis, OpenDialogDatei.FileName);
+    //soweit möglich einen relativen Pfad herstellen
+    Arbeitsverzeichnis := stringReplace(OpenDialogDatei.FileName,VerzeichnisStickPrivat,'',[rfIgnoreCase]);
+    Arbeitsverzeichnis := stringReplace(Arbeitsverzeichnis,VerzeichnisStickOffiziell,'',[rfIgnoreCase]);
+    Arbeitsverzeichnis := stringReplace(Arbeitsverzeichnis,VerzeichnisSteamPrivat,'',[rfIgnoreCase]);
+    Arbeitsverzeichnis := stringReplace(Arbeitsverzeichnis,VerzeichnisSteamOffiziell,'',[rfIgnoreCase]);
+    Edit.Text:=Arbeitsverzeichnis;
   end;
 end;
 

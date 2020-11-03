@@ -29,3 +29,11 @@ Ezs 1007
 1.0.1.0 (30.7.2020)
 Re 200
 - Erste Veröffentlichung der Re200.dll. Dokumentation unter https://zusiwiki.echoray.de/wiki/Dokumentation_der_Fahrleitungs-DLL_Re_200
+
+
+1.0.1.1 (3.11.2020)
+Re 160 Erweiterte Funktionen, Ezs 1007
+- Angleichung an technischen Stand der DLL Re 200 (dadurch Unterstützung von privatem Datenverzeichnis und Steam-Version)
+
+Re 200
+- Die DLL versucht die korrekte Y-Seilbauform vorzuschlagen (abhängig von K- oder L-Stützpunkt). Das funktioniert allerdings nicht bei Bogen-Auslegern, da diese aus Sicht der DLL in ihrer Ankerpunkt-Anordnung absolut symmetrisch sind.

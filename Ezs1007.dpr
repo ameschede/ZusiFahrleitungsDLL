@@ -13,6 +13,7 @@ library Ezs1007;
 
 uses
   FastMM4,
+  OLADLLgemeinsameFkt in 'OLADLLgemeinsameFkt.pas',
   Ezs1007Berechnung in 'Ezs1007Berechnung.pas',
   Ezs1007ConfigForm in 'Ezs1007ConfigForm.pas' {FormEzs1007Config},
   FahrleitungsTypen in 'FahrleitungsTypen.pas',
