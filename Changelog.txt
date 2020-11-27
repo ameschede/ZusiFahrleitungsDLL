@@ -37,3 +37,9 @@ Re 160 Erweiterte Funktionen, Ezs 1007
 
 Re 200
 - Die DLL versucht die korrekte Y-Seilbauform vorzuschlagen (abhängig von K- oder L-Stützpunkt). Das funktioniert allerdings nicht bei Bogen-Auslegern, da diese aus Sicht der DLL in ihrer Ankerpunkt-Anordnung absolut symmetrisch sind.
+
+
+1.0.1.2 (27.11.2020)
+Re 200
+- Alle von der DLL erzeugten Hänger und Seile haben jetzt vorbildgerechte Durchmesser
+- Die Option zur Erzeugung von Kettenwerk in Zusis historischer extrastarker Drahtstärke wurde entfernt
