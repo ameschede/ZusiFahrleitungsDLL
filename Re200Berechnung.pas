@@ -41,7 +41,7 @@ implementation
 var
     DateiIsolator:string;
     StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeStuetzrohrhaenger,StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor:single;
-    Drahtkennzahl,Festpunktisolatorposition,QTWBaumodus,IsolatorBaumodus:integer;
+    Festpunktisolatorposition,QTWBaumodus,IsolatorBaumodus:integer;
     DrahtFarbe:TD3DColorValue;
     BaufunktionAufgerufen:boolean;
 
@@ -58,32 +58,6 @@ begin
               if reg.ValueExists('QTWBaumodus') then QTWBaumodus := reg.ReadInteger('QTWBaumodus');
               if reg.ValueExists('YKompFaktor') then YKompFaktor := reg.ReadFloat('YKompFaktor');
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
-              if reg.ValueExists('DrahtStaerke') then
-              begin
-                Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
-                if Drahtkennzahl = 0 then //realistische Drahtstärken
-                begin
-                  StaerkeFD := 0.006;
-                  StaerkeTS := 0.0045;
-                  StaerkeHaenger := 0.00225;
-                  StaerkeStuetzrohrhaenger := 0.0031;
-                  StaerkeYseil := 0.00315;
-                  StaerkeBeiseil := 0.0045;
-                  StaerkeAnkerseil := 0.0045;
-                  StaerkeZseil := 0.0045;
-                end
-                else //Zusis Legacy-Drahtstärke
-                begin
-                  StaerkeFD := 0.015;
-                  StaerkeTS := 0.015;
-                  StaerkeHaenger := 0.015;
-                  StaerkeStuetzrohrhaenger := 0.015;
-                  StaerkeYseil := 0.015;
-                  StaerkeBeiseil := 0.015;
-                  StaerkeAnkerseil := 0.015;
-                  StaerkeZseil := 0.015;
-                end;
-              end;
             end;
   finally
     reg.Free;
@@ -109,7 +83,6 @@ begin
             if reg.OpenKey('Re200', true) then
             begin
               reg.WriteString('DateiIsolator', DateiIsolator);
-              reg.WriteInteger('Drahtstaerke',Drahtkennzahl);
               reg.WriteFloat('YKompFaktor',YKompFaktor);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
               reg.WriteInteger('QTWBaumodus',QTWBaumodus);
@@ -132,7 +105,6 @@ begin
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
-  Drahtkennzahl:=0;
   Festpunktisolatorposition:=10;
   StaerkeFD := 0.006;
   StaerkeTS := 0.0045;
@@ -1618,7 +1590,6 @@ begin
   Application.Handle:=AppHandle;
   Formular:=TFormFahrleitungConfig.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
-  Formular.RadioGroupDrahtstaerke.ItemIndex := Drahtkennzahl;
   Formular.RadioGroupBaumodus.ItemIndex := QTWBaumodus;
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
   if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
@@ -1629,7 +1600,6 @@ begin
   if Formular.ModalResult=mrOK then
   begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
-    Drahtkennzahl:=Formular.RadioGroupDrahtstaerke.ItemIndex;
     QTWBaumodus:=Formular.RadioGroupBaumodus.ItemIndex;
     IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;

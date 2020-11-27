@@ -13,7 +13,6 @@ type
     OpenDialogDatei: TOpenDialog;
     SpeedButtonIsolator: TSpeedButton;
     LabeledEditIsolator: TLabeledEdit;
-    RadioGroupDrahtstaerke: TRadioGroup;
     TrackBarFestpunktisolator: TTrackBar;
     LabelIsolatorposition: TLabel;
     LabelAusleger: TLabel;
