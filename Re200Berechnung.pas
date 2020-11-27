@@ -40,7 +40,7 @@ implementation
 
 var
     DateiIsolator:string;
-    Drahtstaerke,YKompFaktor:single;
+    StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeStuetzrohrhaenger,StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor:single;
     Drahtkennzahl,Festpunktisolatorposition,QTWBaumodus,IsolatorBaumodus:integer;
     DrahtFarbe:TD3DColorValue;
     BaufunktionAufgerufen:boolean;
@@ -61,9 +61,27 @@ begin
               if reg.ValueExists('DrahtStaerke') then
               begin
                 Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
-                case Drahtkennzahl of
-                0: Drahtstaerke := 0.006;   // Draht Ri 100
-                1: Drahtstaerke := 0.015;   // Zusis Legacy-Drahtstärke
+                if Drahtkennzahl = 0 then //realistische Drahtstärken
+                begin
+                  StaerkeFD := 0.006;
+                  StaerkeTS := 0.0045;
+                  StaerkeHaenger := 0.00225;
+                  StaerkeStuetzrohrhaenger := 0.0031;
+                  StaerkeYseil := 0.00315;
+                  StaerkeBeiseil := 0.0045;
+                  StaerkeAnkerseil := 0.0045;
+                  StaerkeZseil := 0.0045;
+                end
+                else //Zusis Legacy-Drahtstärke
+                begin
+                  StaerkeFD := 0.015;
+                  StaerkeTS := 0.015;
+                  StaerkeHaenger := 0.015;
+                  StaerkeStuetzrohrhaenger := 0.015;
+                  StaerkeYseil := 0.015;
+                  StaerkeBeiseil := 0.015;
+                  StaerkeAnkerseil := 0.015;
+                  StaerkeZseil := 0.015;
                 end;
               end;
             end;
@@ -116,7 +134,14 @@ begin
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
   Drahtkennzahl:=0;
   Festpunktisolatorposition:=10;
-  Drahtstaerke:=0.006;
+  StaerkeFD := 0.006;
+  StaerkeTS := 0.0045;
+  StaerkeHaenger := 0.00225;
+  StaerkeStuetzrohrhaenger := 0.0031;
+  StaerkeYseil := 0.00315;
+  StaerkeBeiseil := 0.0045;
+  StaerkeAnkerseil := 0.0045;
+  StaerkeZseil := 0.0045;
   YKompFaktor := 1;
   QTWBaumodus := 0;
   IsolatorBaumodus := 0;
@@ -358,7 +383,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
       if a = 1 then
       begin
@@ -399,7 +424,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErgebnisArray[a-1].Punkt2;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[a].Punkt2;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
@@ -425,7 +450,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
       //ggfs. Isolatoren für Streckentrennung einbauen
@@ -450,7 +475,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=LetztNormalhaengerpunkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTB.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
       //ggfs. Isolatoren für Streckentrennung einbauen
@@ -498,7 +523,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeZseil;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
     if zSeilB then
@@ -528,7 +553,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeZseil;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
@@ -536,7 +561,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeFD;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
   end;
@@ -567,7 +592,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Zweiter Hänger
@@ -590,7 +615,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Verbindung im Y-Seil zwischen Erst- und Zweithänger
@@ -598,7 +623,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=YSeilZweithaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Verbindung im Y-Seil zwischen Ersthänger und Nullpunkt am Ausleger
@@ -611,7 +636,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Anbindung Y-Seil an den Ausleger, unter Nutzung des für Array[3] berechneten Punkts
@@ -621,7 +646,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
@@ -646,7 +671,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator ins Tragseil einbauen
@@ -672,14 +697,14 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilZweithaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ende Y-Seil und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilEndepunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
 end;
@@ -709,7 +734,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Verbindung im Y-Seil zwischen Ersthänger und Nullpunkt am Ausleger
@@ -722,7 +747,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Anbindung Y-Seil an den Ausleger, unter Nutzung des für Array[3] berechneten Punkts
@@ -732,7 +757,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
@@ -757,7 +782,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator ins Tragseil einbauen (dieses Y-Seil wird nicht in Quertragwerken verwendet)
@@ -775,14 +800,14 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ende Y-Seil und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilEndepunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
 end;
@@ -812,7 +837,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Verbindung im Y-Seil zwischen Ersthänger und Nullpunkt am Ausleger
@@ -825,7 +850,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Anbindung Y-Seil an den Ausleger, unter Nutzung des für Array[3] berechneten Punkts
@@ -835,7 +860,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
@@ -859,7 +884,7 @@ begin
         setlength(ErgebnisArray, length(ErgebnisArray)+1);
         ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
         ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-        ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+        ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
         ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
      end;
 
@@ -884,7 +909,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator ins Tragseil einbauen
@@ -910,14 +935,14 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ende Y-Seil und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilEndepunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
 end;
@@ -947,7 +972,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Verbindung im Y-Seil zwischen Ersthänger und Nullpunkt am Ausleger
@@ -960,7 +985,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //1 Meter vor Ausleger B einen zusätzlichen Hänger einbauen
@@ -984,7 +1009,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
@@ -1009,7 +1034,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator ins Tragseil einbauen (dieses Y-Seil wird nicht an geerdeten Auslegern verwendet)
@@ -1027,14 +1052,14 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ende Y-Seil und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilEndepunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
 end;
@@ -1064,21 +1089,21 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ersthänger und Ausleger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ersthänger und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktT.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 end;
 
@@ -1111,21 +1136,21 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ersthänger und Ausleger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ersthänger und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Seil am Ausleger zwischen Spitzenrohr und Y-Seil-Anbaupunkt (wird nur bei Auslegern in Altbauweise benötigt und soll dort den im 3D-Modell fehlenden Stützrohrhänger andeuten)
@@ -1134,7 +1159,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktSR.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeStuetzrohrhaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
@@ -1159,7 +1184,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktSR.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeBeiseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 end;
 
@@ -1252,14 +1277,14 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ersthänger und Ausleger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Zweiter Hänger
@@ -1282,21 +1307,21 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Zweithaenger und Ausleger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTB.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Tragseil zwischen Ersthänger und Zweithänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=HaengerAPunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Z-Seil
@@ -1325,7 +1350,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeZseil;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
@@ -1333,7 +1358,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeFD;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
   end;
@@ -1394,7 +1419,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
       if a = 1 then
       begin
@@ -1415,7 +1440,7 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErgebnisArray[a-1].Punkt2;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[a].Punkt2;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
       //v:=ErgebnisArray[a].Punkt2;
     end;
@@ -1424,7 +1449,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTB.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator am Spannwerk oben
@@ -1462,21 +1487,21 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Verbindung zwischen erstem Hänger und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Verbindung zwischen erstem Hänger und Ausleger A
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
 
@@ -1484,7 +1509,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeFD;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
   end;
