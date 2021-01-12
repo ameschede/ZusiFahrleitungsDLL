@@ -1169,7 +1169,7 @@ begin
   DrahtFarbe.g:=0.99;
   DrahtFarbe.b:=0.99;
   DrahtFarbe.a:=0;
-  if (length(PunkteA)>1) and (length(PunkteB)>1) then
+  if (length(PunkteA)>1) and (length(PunkteB)>0) then
   begin
     BaufunktionAufgerufen := true;
     //Draht berechnen als Vektor von DA nach DB

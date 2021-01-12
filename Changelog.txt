@@ -43,3 +43,8 @@ Re 200
 Re 200
 - Alle von der DLL erzeugten Hänger und Seile haben jetzt vorbildgerechte Durchmesser
 - Die Option zur Erzeugung von Kettenwerk in Zusis historischer extrastarker Drahtstärke wurde entfernt
+
+
+1.0.1.3 (12.1.2021)
+Re 200
+- Mit bestimmten Bauteilen scheiterte der Bau einer Festpunktabspannung
