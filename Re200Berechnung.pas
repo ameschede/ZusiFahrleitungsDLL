@@ -263,7 +263,11 @@ begin
     begin
       pktSRA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
       pktSRB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
-      if (AnkerIstLeer(pktSRA) and (EndstueckA in [SH13_5m,SH13_10m])) or (AnkerIstLeer(pktSRB) and (EndstueckB in [SH13_5m,SH13_10m])) then ShowMessage('Ein notwendiger Ankerpunkt des Typs Abspannung Tragseil ist nicht vorhanden.');
+      if (AnkerIstLeer(pktSRA) and (EndstueckA in [SH13_5m,SH13_10m])) or (AnkerIstLeer(pktSRB) and (EndstueckB in [SH13_5m,SH13_10m])) then
+      begin
+        ShowMessage('Ein notwendiger Ankerpunkt des Typs Abspannung Tragseil ist nicht vorhanden.');
+        exit; //Abbruch, weil ansonsten entartete Fahrdrähte entstehen
+      end;
     end;
 
     //Fahrdraht berechnen als Vektor von FA nach FB
@@ -1074,7 +1078,7 @@ begin
     //Tragseil zwischen Ersthänger und erstem Normalhänger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktT.PunktTransformiert.Punkt;
+    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 end;
