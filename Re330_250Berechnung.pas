@@ -11,7 +11,7 @@ uses
 
 type
 
-  TEndstueck = (y18m, y14m, y18mZ, y14mZ, ausfaedel, Festp, FestpIso, Abschluss);
+  TEndstueck = (y18m, y14m, y18mZ, y14mZ, r700, r700Z, ausfaedel, Festp, FestpIso, Abschluss);
 
 function Init:Longword; stdcall;
 function BauartTyp(i:Longint):PChar; stdcall;
@@ -37,9 +37,9 @@ implementation
 var
     DateiIsolator:string;
     StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeStuetzrohrhaenger,StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor:single;
-    Festpunktisolatorposition,QTWBaumodus,IsolatorBaumodus:integer;
+    Festpunktisolatorposition,IsolatorBaumodus:integer;
     DrahtFarbe:TD3DColorValue;
-    BaufunktionAufgerufen:boolean;
+    BaufunktionAufgerufen,Re250:boolean;
 
 procedure RegistryLesen;
 var reg: TRegistry;
@@ -51,6 +51,7 @@ begin
             begin
               if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
               if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
+              if reg.ValueExists('ModusRe250') then Re250 := reg.ReadBool('ModusRe250');
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
             end;
   finally
@@ -78,6 +79,7 @@ begin
             begin
               reg.WriteString('DateiIsolator', DateiIsolator);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
+              reg.WriteBool('ModusRe250',Re250);
               reg.WriteInteger('IsolatorBaumodus',IsolatorBaumodus);
             end;
           end;
@@ -93,7 +95,7 @@ end;
 function Init:Longword; stdcall;
 // Rückgabe: Anzahl der Bauarttypen
 begin
-  Result:=8;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=10;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Ebs\Isolatoren\Stabisolatoren\Stabisolator_1998_Ekl.lod.ls3';
@@ -106,6 +108,7 @@ begin
   StaerkeBeiseil := 0.007;      //TODO: Bei Re 250 anders
   StaerkeAnkerseil := 0.007;    //TODO: Bei Re 250 anders
   StaerkeZseil := 0.00525;      //TODO: Bei Re 250 anders
+  Re250 := false;
   IsolatorBaumodus := 0;
   RegistryLesen;
 end;
@@ -115,15 +118,20 @@ function BauartTyp(i:Longint):PChar; stdcall;
 begin
   case i of
   0: Result:='55-65m, 18m Y-Seil';
-  1: Result:='40-55m, 14m Y-Seil';
+  1: Result:='44-55m, 14m Y-Seil';
   2: Result:='Festpunktabspannung';
   3: Result:='Festpunktabspannung mit Isolator';
-  4: Result:='(K) Festpunkt mit 18m Y-Seil';
-  5: Result:='(L) Festpunkt mit 14m Y-Seil';
+  4: Result:='Festpunkt mit 18m Y-Seil';
+  5: Result:='Festpunkt mit 14m Y-Seil';
   6: Result:='Ausfädelung';
   7: Result:='Abschluss mit Isolatoren';
-  else Result := '40-55m, 14m Y-Seil'
+  8: Result:='36-44m, ohne Y-Seil';
+  9: Result:='Festpunkt ohne Y-Seil';
+  else Result := '55-65m, 18m Y-Seil'
   end;
+  //abweichende Texte im Modus Re 250:
+  if Re250 and (i = 1) then Result:= '40-55m, 14m Y-Seil';
+  if Re250 and (i = 8) then Result:='r < 700 m, ohne Y-Seil';
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
@@ -191,13 +199,6 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
         if AbstandEF > AbstandET then Result:=1 else Result:= 0; //wenn der Abstand EF größer ist als Abstand ET, haben wir einen vermutlichen umgelenkten Stützpunkt erkannt
       end;
 
-    //liegt ein Stützpunkt mit niedriger Systemhöhe vor?
-    for b:=0 to length(Punkte)-1 do
-    begin
-      if Punkte[b].Ankertyp=Ankertyp_FahrleitungFahrdraht then inc(iUnten3);
-      if Punkte[b].Ankertyp=Ankertyp_FahrleitungAbspannungMastpunktTragseil then inc(iOben3);
-    end;
-    if (iUnten3=1) and (iOben3=1) then Result:=12;
 
   end;
 
@@ -207,10 +208,10 @@ begin
 end;
 
 procedure KettenwerkMitYSeil(EndstueckA,EndstueckB:TEndstueck);
-var pktFA, pktFB, pktTA, pktTB, pktYA, pktYB, pktSRA, pktSRB, pktU, pktO:TAnkerpunkt;
+var pktFA, pktFB, pktTA, pktTB, pktYA, pktYB, pktU, pktO:TAnkerpunkt;
     Abstand, Durchhang, LaengeNormalhaengerbereich, Ersthaengerabstand, Letzthaengerabstand, Haengerabstand, AbstandFT, DurchhangAHaenger, DurchhangBHaenger:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
-    i, a:integer;
+    i, a, zSeilHaenger :integer;
     zSeilA,zSeilB:boolean;
 
 begin
@@ -227,11 +228,11 @@ begin
     if EndstueckB in [y18m,y18mZ] then Letzthaengerabstand := 5;
     if EndstueckA in [y14m,y14mZ] then Ersthaengerabstand := 4;   //TODO: Bei Re 250 reduziert sich der Ersthängerabstand des 14er Y-Seils unter bestimmten Umständen auf 2,5 m.
     if EndstueckB in [y14m,y14mZ] then Letzthaengerabstand := 4;
-    if EndstueckA = Ausfaedel then Ersthaengerabstand := 0;
-    if EndstueckB = Ausfaedel then Letzthaengerabstand := 0;
+    if EndstueckA in [r700,r700Z,Ausfaedel] then Ersthaengerabstand := 0;
+    if EndstueckB in [r700,r700Z,Ausfaedel] then Letzthaengerabstand := 0;
 
-    if EndstueckA in [y18mZ,y14mZ] then zSeilA := true;
-    if EndstueckB in [y18mZ,y14mZ] then zSeilB := true;
+    if EndstueckA in [y18mZ,y14mZ,r700Z] then zSeilA := true;
+    if EndstueckB in [y18mZ,y14mZ,r700Z] then zSeilB := true;
 
     pktYA:=PunktSuchen(true, 0, Ankertyp_FahrleitungHaengerseil);
     pktYB:=PunktSuchen(false, 0, Ankertyp_FahrleitungHaengerseil);
@@ -247,17 +248,31 @@ begin
 
     //Spannweite auf Plausibilität prüfen
     //TODO: Je nach Y-Seil sind unterschiedliche Spannweiten zulässig
-    if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 200 (34 bis 80 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+    if (Abstand < 35.5) or (Abstand > 65.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 330 (36 bis 65 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
 
-    //Anzahl der Hänger je nach Spannweite bestimmen
+
+    //Anzahl der Hänger je nach Spannweite festsetzen
+    if (Abstand > 29) and Re250 then i := 2;
     if Abstand > 36 then i := 3;
+    if (Abstand > 40) and Re250 then i := 4;
     if Abstand > 44 then i := 4;
     if Abstand > 58 then i := 5;
-    if (Abstand/(i+1)) > 10 then
+
+    //es kann in Einzelfällen sein, dass sich bei Anwendung der obigen Regeln Hängerabstände knapp über 10 m ergeben. Wenn man das verhindern wollen würde, würde das hier helfen. Andererseits ist beim Kettenwerk bis 44 m ein Hängerabstand von 11 m durchaus systemgemäß.
+    {if ((Abstand/(i+1)) > 10) then
     begin
       showmessage('Debug: Hängeranzahl wegen Verletzung Systemgrenze erhöht');
       i := i+1;
+    end;}
+
+    //falls ein Z-Seil gebraucht wird, dann ist es nach dem folgenden Hänger einzubauen:
+    case i of
+      2: zSeilHaenger := 1;
+      3: zSeilHaenger := 1;
+      4: zSeilHaenger := 2;
+      5: zSeilHaenger := 2;
     end;
+    if zSeilB and odd(i) then zSeilHaenger := zSeilHaenger + 1; //bei Z-Seil an B ist es bei ungerader Hängerzahl ein Feld weiter einzubauen
 
     LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
     Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/(i+1);
@@ -272,9 +287,9 @@ begin
 
     //Systemhöhen-Prüfung
     D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
-    if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
+    if (D3DXVec3Length(v) < 1.1) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 1,10 m).');
     D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
-    if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
+    if (D3DXVec3Length(v) < 1.1) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,10 m).');
 
     //Normalhänger
     for a:=1 to i do
@@ -310,7 +325,7 @@ begin
       //oberen Punkt des letzten Hängers für spätere Verwendung speichern
       LetztNormalhaengerpunkt := pktO.PunktTransformiert.Punkt;
       end;
-      if (a = (i/2)) and (zSeilA or zSeilB) then
+      if (a = zSeilHaenger) and (zSeilA or zSeilB) then
       begin
         //Abstand zwischen Fahrdraht und Tragseil sowie Durchhang für  spätere Verwendung speichern
         if zSeilA then
@@ -320,7 +335,7 @@ begin
         end;
         DurchhangAHaenger := Durchhang;
       end;
-      if (a = (i/2) + 1) and (zSeilA or zSeilB) then
+      if (a = (zSeilHaenger + 1)) and (zSeilA or zSeilB) then
       begin
         //Abstand zwischen Fahrdraht und Tragseil sowie Durchhang für  spätere Verwendung speichern
         if zSeilB then
@@ -349,7 +364,7 @@ begin
     if EndstueckB in [y14m,y14mZ] then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
     if EndstueckA in [y18m,y18mZ] then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
     if EndstueckB in [y18m,y18mZ] then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if EndstueckA = Ausfaedel then
+    if EndstueckA in [r700,r700Z,Ausfaedel] then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -359,7 +374,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
       //ggfs. Isolatoren für Streckentrennung einbauen
-      if IsolatorBaumodus = 3 then
+      if (IsolatorBaumodus = 1) and (EndstueckA = Ausfaedel) then
       begin
         setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktTA.PunktTransformiert.Punkt, ErstNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
@@ -374,7 +389,7 @@ begin
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
       end;
     end;
-    if EndstueckB = Ausfaedel then
+    if EndstueckB in [r700,r700Z,Ausfaedel] then
     begin
       //Verbindung zwischen letztem Normalhänger und Ausleger B
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -384,7 +399,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
       //ggfs. Isolatoren für Streckentrennung einbauen
-      if IsolatorBaumodus = 3 then
+      if (IsolatorBaumodus = 1) and (EndstueckB = Ausfaedel) then
       begin
         setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktTB.PunktTransformiert.Punkt, LetztNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
@@ -403,15 +418,14 @@ begin
     //Z-Seil
     if zSeilA then
     begin
-      showmessage('zSeilA');
       //unterer vorläufiger z-Seilpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (zSeilHaenger * Haengerabstand) + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
       //oberer z-Seilpunkt
       D3DXVec3Normalize(vNorm, vTragseil);
-      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + ((i/2) * Haengerabstand + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + (zSeilHaenger * Haengerabstand + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
 
       //Punkt absenken
@@ -423,7 +437,7 @@ begin
 
       //endgültiger unterer z-Seilpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2) * Haengerabstand) + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) + (sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (zSeilHaenger * Haengerabstand) + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) + (sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -434,14 +448,15 @@ begin
     end;
     if zSeilB then
     begin
+    //if odd(i) then i := i+1;
       //unterer vorläufiger z-Seilpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (((i/2)+1) * Haengerabstand) - (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((zSeilHaenger + 1) * Haengerabstand) - (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
       //oberer z-Seilpunkt
       D3DXVec3Normalize(vNorm, vTragseil);
-      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (((i/2)+1) * Haengerabstand) - (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((zSeilHaenger + 1) * Haengerabstand) - (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2));
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
 
       //Punkt absenken
@@ -453,7 +468,7 @@ begin
 
       //endgültiger unterer z-Seilpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + ((i/2)+1) * Haengerabstand) - ((Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2 + sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (zSeilHaenger + 1) * Haengerabstand) - ((Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2 + sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -550,24 +565,6 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //Isolator ins Tragseil einbauen
-    if IsolatorBaumodus = 1 then
-    begin
-      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0.6, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel); //geerdeter Ausleger - Isolator 0,6 m vom Stützpunkt entfernt.
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-    end;
-    if IsolatorBaumodus = 2 then
-    begin
-      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-    end;
-
     //Verbindung zwischen Ende Y-Seil und Ersthänger
     //Array[6]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -662,24 +659,6 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-    //Isolator ins Tragseil einbauen
-    if IsolatorBaumodus = 1 then
-    begin
-      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0.6, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel); //geerdeter Ausleger - Isolator 0,6 m vom Stützpunkt entfernt.
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-    end;
-    if IsolatorBaumodus = 2 then
-    begin
-      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-      LageIsolator(pktT.PunktTransformiert.Punkt, YSeilEndepunkt, 0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
-      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-    end;
 
     //Verbindung zwischen Ende Y-Seil und Ersthänger
     //Array[6]
@@ -875,6 +854,8 @@ begin
     5: BautypA := y14mZ;
     6: BautypA := Ausfaedel;
     7: BautypA := Abschluss;
+    8: BautypA := r700;
+    9: BautypA := r700Z;
   end;
     case Typ2 of
     0: BautypB := y18m;
@@ -885,6 +866,8 @@ begin
     5: BautypB := y14mZ;
     6: BautypB := Ausfaedel;
     7: BautypB := Abschluss;
+    8: BautypB := r700;
+    9: BautypB := r700Z;
   end;
 
   //hier wird entschieden was wir machen. Zuerst die Sonderfälle:
@@ -902,10 +885,10 @@ begin
   end;
 
   //einige unsinnige Kombinationen abfangen
-  if (BautypA in [Festp,FestpIso]) and (BautypB in [y18m, y14m, y18mZ, y14mZ, ausfaedel, Abschluss]) then BaufunktionAufgerufen := true;
-  if (BautypA in [y18m, y14m, y18mZ, y14mZ, ausfaedel, Abschluss]) and (BautypB in [Festp,FestpIso]) then BaufunktionAufgerufen := true;
-  if (BautypA in [Abschluss]) and (BautypB in [y18m, y14m, y18mZ, y14mZ, Abschluss]) then BaufunktionAufgerufen := true;
-  if (BautypA in [y18m, y14m, y18mZ, y14mZ, Abschluss]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
+  if (BautypA in [Festp,FestpIso]) and (BautypB in [y18m, y14m, y18mZ, y14mZ, r700, r700Z, ausfaedel, Abschluss]) then BaufunktionAufgerufen := true;
+  if (BautypA in [y18m, y14m, y18mZ, y14mZ, r700,r700Z, ausfaedel, Abschluss]) and (BautypB in [Festp,FestpIso]) then BaufunktionAufgerufen := true;
+  if (BautypA in [Abschluss]) and (BautypB in [y18m, y14m, y18mZ, y14mZ, r700, r700Z, Abschluss]) then BaufunktionAufgerufen := true;
+  if (BautypA in [y18m, y14m, y18mZ, y14mZ, r700, r700Z, Abschluss]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
 
   //Der catch-all für alle sonstigen Kombinationen (hoffentlich nur sinnvolle);
   if not BaufunktionAufgerufen then KettenwerkMitYSeil(BautypA,BautypB);
@@ -934,7 +917,8 @@ begin
   Application.Handle:=AppHandle;
   Formular:=TFormFahrleitungConfig.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
-  Formular.RadioGroupBaumodus.ItemIndex := QTWBaumodus;
+  if Re250 = false then Formular.RadioGroupBaumodus.ItemIndex := 0;
+  if Re250 = true then Formular.RadioGroupBaumodus.ItemIndex := 1;
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
   if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
   Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
@@ -944,7 +928,8 @@ begin
   if Formular.ModalResult=mrOK then
   begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
-    QTWBaumodus:=Formular.RadioGroupBaumodus.ItemIndex;
+    if Formular.RadioGroupBaumodus.ItemIndex = 0 then Re250 := false;
+    if Formular.RadioGroupBaumodus.ItemIndex = 1 then Re250 := true;
     IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
     if Formular.CheckBoxYKompatibilitaet.Checked = true then YKompFaktor := 1.325 else YKompFaktor := 1;
