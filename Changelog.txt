@@ -54,3 +54,7 @@ Re 200
 Re 200
 - Bei fehlenden Ankerpunkten wird der Bau entarteter Fahrdrähte besser verhindert
 - Tragseilberechnung bei Stützpunkt unter Bauwerk (SH03) korrigiert
+
+1.0.1.5 (7.3.2021)
+Re 330/250
+- Erste Veröffentlichung. Tauglich für nicht im Tunnel liegende Kettenwerke.

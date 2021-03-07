@@ -57,6 +57,13 @@ begin
   finally
     reg.Free;
   end;
+  if Re250 then
+  begin
+    StaerkeTS := 0.00525;
+    StaerkeBeiseil := 0.00525;
+    StaerkeAnkerseil := 0.00525;
+    StaerkeZseil := 0.0045;
+  end;
 end;
 
 
@@ -101,13 +108,13 @@ begin
   DateiIsolator:='Catenary\Deutschland\Ebs\Isolatoren\Stabisolatoren\Stabisolator_1998_Ekl.lod.ls3';
   Festpunktisolatorposition:=10;
   StaerkeFD := 0.0066;
-  StaerkeTS := 0.007;  //TODO: Bei Re 250 anders
+  StaerkeTS := 0.007;  //Bei Re 250 anders
   StaerkeHaenger := 0.00225;
   StaerkeStuetzrohrhaenger := 0.0031;
   StaerkeYseil := 0.00375;
-  StaerkeBeiseil := 0.007;      //TODO: Bei Re 250 anders
-  StaerkeAnkerseil := 0.007;    //TODO: Bei Re 250 anders
-  StaerkeZseil := 0.00525;      //TODO: Bei Re 250 anders
+  StaerkeBeiseil := 0.007;      //Bei Re 250 anders
+  StaerkeAnkerseil := 0.007;    //Bei Re 250 anders
+  StaerkeZseil := 0.00525;      //Bei Re 250 anders
   Re250 := false;
   IsolatorBaumodus := 0;
   RegistryLesen;
@@ -137,11 +144,9 @@ end;
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
 // Wir versuchen, aus der vom Editor übergebenen Ankerkonfiguration einen Bauarttypen vorzuschlagen
   function Vorschlagen(Punkte:array of TAnkerpunkt):Longint	;
-  var iOben0, iUnten0, iOben1, iUnten1, iOben2, iUnten2, iErst2, iOben3, iUnten3:integer;
+  var iOben0, iUnten0, iOben1, iUnten1, iOben2, iUnten2 :integer;
       b:integer;
-      pktF, pktT, pktE : TAnkerpunkt;
-      vEntfernung1,vEntfernung2 : TD3DVector;
-      AbstandEF, AbstandET : single;
+      pktF, pktT: TAnkerpunkt;
   begin
     Result:=-1;
     iOben0:=0;
@@ -150,8 +155,6 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
     iUnten1:=0;
     iOben2:=0;
     iUnten2:=0;
-    iOben3:=0;
-    iUnten3:=0;
 
     //liegt ein Spannpunkt vor?
     for b:=0 to length(Punkte)-1 do
@@ -172,11 +175,6 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
     //liegt ein Standard-Ausleger vor?
     for b:=0 to length(Punkte)-1 do
     begin
-      if Punkte[b].Ankertyp=Ankertyp_Allgemein then
-        begin
-          inc(iErst2);
-          pktE := Punkte[b];
-        end;
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungFahrdraht then
         begin
           inc(iUnten2);
@@ -188,18 +186,7 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
           pktT := Punkte[b];
         end;
     end;
-    if {(iErst2=1) and }(iUnten2=1) and (iOben2=1) then
-      //wir versuchen aus der Ankerpunktanordnung zu erraten, ob ein angelenkter oder umgelenkter Stützpunkt vorliegt. Das funktioniert allerdings nicht bei Bogen-Auslegern, weil diese aus Sicht der DLL absolut symmetrisch sind
-      begin
-        D3DXVec3Subtract(vEntfernung1, pktE.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-        AbstandEF:=D3DXVec3Length(vEntfernung1);
-        D3DXVec3Subtract(vEntfernung2, pktE.PunktTransformiert.Punkt, pktT.PunktTransformiert.Punkt);
-        AbstandET:=D3DXVec3Length(vEntfernung2);
-        //showmessage(floattostr(AbstandEF-AbstandET));
-        if AbstandEF > AbstandET then Result:=1 else Result:= 0; //wenn der Abstand EF größer ist als Abstand ET, haben wir einen vermutlichen umgelenkten Stützpunkt erkannt
-      end;
-
-
+    if (iUnten2=1) and (iOben2=1) then Result:= 0;
   end;
 
 begin
