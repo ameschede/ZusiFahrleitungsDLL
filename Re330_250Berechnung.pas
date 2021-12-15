@@ -37,7 +37,7 @@ implementation
 var
     DateiIsolator:string;
     StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeStuetzrohrhaenger,StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor:single;
-    Festpunktisolatorposition,IsolatorBaumodus:integer;
+    Festpunktisolatorposition,IsolatorBaumodus,Bauartvorschlag:integer;
     DrahtFarbe:TD3DColorValue;
     BaufunktionAufgerufen,Re250:boolean;
 
@@ -51,8 +51,10 @@ begin
             begin
               if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
               if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
+              if reg.ValueExists('YKompFaktor') then YKompFaktor := reg.ReadFloat('YKompFaktor');
               if reg.ValueExists('ModusRe250') then Re250 := reg.ReadBool('ModusRe250');
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
+              if reg.ValueExists('Bauartvorschlag') then Bauartvorschlag := reg.ReadInteger('Bauartvorschlag');
             end;
   finally
     reg.Free;
@@ -86,8 +88,10 @@ begin
             begin
               reg.WriteString('DateiIsolator', DateiIsolator);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
+              reg.WriteFloat('YKompFaktor',YKompFaktor);
               reg.WriteBool('ModusRe250',Re250);
               reg.WriteInteger('IsolatorBaumodus',IsolatorBaumodus);
+              reg.WriteInteger('Bauartvorschlag',Bauartvorschlag);
             end;
           end;
         end;
@@ -116,7 +120,9 @@ begin
   StaerkeAnkerseil := 0.007;    //Bei Re 250 anders
   StaerkeZseil := 0.00525;      //Bei Re 250 anders
   Re250 := false;
+  YKompFaktor := 1;
   IsolatorBaumodus := 0;
+  Bauartvorschlag := 0;
   RegistryLesen;
 end;
 
@@ -138,7 +144,7 @@ begin
   end;
   //abweichende Texte im Modus Re 250:
   if Re250 and (i = 1) then Result:= '40-55m, 14m Y-Seil';
-  if Re250 and (i = 8) then Result:='r < 700 m, ohne Y-Seil';
+  if Re250 and (i = 8) then Result:= '29-50m, ohne Y-Seil';
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
@@ -186,7 +192,14 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
           pktT := Punkte[b];
         end;
     end;
-    if (iUnten2=1) and (iOben2=1) then Result:= 0;
+    if (iUnten2=1) and (iOben2=1) then
+    begin
+      case Bauartvorschlag of
+      0: Result:= 0;
+      1: Result:= 1;
+      2: Result:= 8;
+      end;
+    end;
   end;
 
 begin
@@ -217,6 +230,8 @@ begin
     if EndstueckB in [y14m,y14mZ] then Letzthaengerabstand := 4;
     if EndstueckA in [r700,r700Z,Ausfaedel] then Ersthaengerabstand := 0;
     if EndstueckB in [r700,r700Z,Ausfaedel] then Letzthaengerabstand := 0;
+    if EndstueckA in [Abschluss] then Ersthaengerabstand := 22.8;
+    if EndstueckB in [Abschluss] then Letzthaengerabstand := 22.8;
 
     if EndstueckA in [y18mZ,y14mZ,r700Z] then zSeilA := true;
     if EndstueckB in [y18mZ,y14mZ,r700Z] then zSeilB := true;
@@ -224,19 +239,30 @@ begin
     pktYA:=PunktSuchen(true, 0, Ankertyp_FahrleitungHaengerseil);
     pktYB:=PunktSuchen(false, 0, Ankertyp_FahrleitungHaengerseil);
 
-
-    //Fahrdraht berechnen als Vektor von FA nach FB
+    //Feststellen welcher Ankertyp am Fahrdraht zu erwarten ist
     if EndstueckA = Ausfaedel then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
-    else pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
+      else
+      begin
+      if EndstueckA = Abschluss then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht)
+        else pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
+      end;
     if EndstueckB = Ausfaedel then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
-    else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
+      else
+      begin
+      if EndstueckB = Abschluss then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht)
+        else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
+      end;
+    //Fahrdraht berechnen als Vektor von FA nach FB
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
 
     //Spannweite auf Plausibilität prüfen
-    if (Abstand < 35.5) or (Abstand > 65.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 330 (36 bis 65 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
-    if (EndstueckA in [r700,r700Z]) and (Abstand > 44) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if (EndstueckB in [r700,r700Z]) and (Abstand > 44) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if not Re250 and ((Abstand < 35.5) or (Abstand > 65.5)) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 330 (36 bis 65 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+    if Re250 and ((Abstand < 28.5) or (Abstand > 65.5)) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 250 (29 bis 65 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+    if not Re250 and (EndstueckA in [r700,r700Z]) and (Abstand > 44) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if not Re250 and (EndstueckB in [r700,r700Z]) and (Abstand > 44) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if Re250 and (EndstueckA in [r700,r700Z]) and (Abstand > 50) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if Re250 and (EndstueckB in [r700,r700Z]) and (Abstand > 50) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
     if Re250 and (EndstueckA in [y14m,y14mZ]) and ((Abstand < 40) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
     if Re250 and (EndstueckB in [y14m,y14mZ]) and ((Abstand < 40) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
     if not Re250 and (EndstueckA in [y14m,y14mZ]) and ((Abstand < 44) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
@@ -273,18 +299,28 @@ begin
     //LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
     //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
 
-    //Tragseil Endpunkte
+    //Feststellen welcher Ankertyp am Tragseil zu erwarten ist
     if EndstueckA = Ausfaedel then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
-    else pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+      else
+      begin
+      if EndstueckA = Abschluss then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil)
+        else pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+      end;
     if EndstueckB = Ausfaedel then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
-    else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
+      else
+      begin
+      if EndstueckB = Abschluss then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil)
+        else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
+      end;
+
+    //Tragseil Endpunkte
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
-    //Systemhöhen-Prüfung
+    //Systemhöhen-Prüfung (mit 1 cm Toleranz aus praktischen Gründen)
     D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
-    if (D3DXVec3Length(v) < 1.1) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 1,10 m).');
+    if (D3DXVec3Length(v) < 1.09) and not (EndstueckA in [Abschluss]) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 1,10 m).');
     D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
-    if (D3DXVec3Length(v) < 1.1) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,10 m).');
+    if (D3DXVec3Length(v) < 1.09) and not (EndstueckB in [Abschluss]) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,10 m).');
 
     //Normalhänger
     for a:=1 to i do
@@ -359,7 +395,7 @@ begin
     if EndstueckB in [y14m,y14mZ] then Berechne_YSeil_14m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
     if EndstueckA in [y18m,y18mZ] then Berechne_YSeil_18m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
     if EndstueckB in [y18m,y18mZ] then Berechne_YSeil_18m(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,Abstand,-1);
-    if EndstueckA in [r700,r700Z,Ausfaedel] then
+    if EndstueckA in [r700,r700Z,Ausfaedel,Abschluss] then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -368,8 +404,8 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-      //ggfs. Isolatoren für Streckentrennung einbauen
-      if (IsolatorBaumodus = 1) and (EndstueckA = Ausfaedel) then
+      //ggfs. Isolatoren für Streckentrennung oder Spannwerk einbauen
+      if (EndstueckA in [Abschluss]) or ((IsolatorBaumodus = 1) and (EndstueckA = Ausfaedel)) then
       begin
         setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktTA.PunktTransformiert.Punkt, ErstNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
@@ -384,7 +420,7 @@ begin
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
       end;
     end;
-    if EndstueckB in [r700,r700Z,Ausfaedel] then
+    if EndstueckB in [r700,r700Z,Ausfaedel,Abschluss] then
     begin
       //Verbindung zwischen letztem Normalhänger und Ausleger B
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -393,8 +429,8 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-      //ggfs. Isolatoren für Streckentrennung einbauen
-      if (IsolatorBaumodus = 1) and (EndstueckB = Ausfaedel) then
+      //ggfs. Isolatoren für Streckentrennung oder Spannwerk einbauen
+      if (EndstueckB in [Abschluss]) or ((IsolatorBaumodus = 1) and (EndstueckB = Ausfaedel)) then
       begin
         setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktTB.PunktTransformiert.Punkt, LetztNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
@@ -501,7 +537,7 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.644); //Hänger auf 64,4% Höhe zwischen Fahrdraht und Tragseil
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.644 * YKompFaktor) else  D3DXVec3Scale(vNeu, v, 0.644); //Hänger auf 64,4% Höhe zwischen Fahrdraht und Tragseil
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
@@ -515,7 +551,7 @@ begin
     //oberer Kettenwerkpunkt
     //Punkt absenken
     D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.644); //64,4% Höhe zwischen Fahrdraht und Tragseil
+    if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.644 * YKompFaktor) else  D3DXVec3Scale(vNeu, v, 0.644); //64,4% Höhe zwischen Fahrdraht und Tragseil
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -872,7 +908,7 @@ begin
     BaurichtungWechseln;
     Festpunktabspannung;
   end;
-  if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss;      //Ausfädelung an A, Isolatoren an B;
+  if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss;      //Ausfädelung an A, Spannwerk an B - Sonderkettenwerk aufgrund der ansonsten unüblichen Position des Ersthängers
   if (BautypA=Abschluss) and (BautypB=Ausfaedel) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
     BaurichtungWechseln;
@@ -882,8 +918,7 @@ begin
   //einige unsinnige Kombinationen abfangen
   if (BautypA in [Festp,FestpIso]) and (BautypB in [y18m, y14m, y18mZ, y14mZ, r700, r700Z, ausfaedel, Abschluss]) then BaufunktionAufgerufen := true;
   if (BautypA in [y18m, y14m, y18mZ, y14mZ, r700,r700Z, ausfaedel, Abschluss]) and (BautypB in [Festp,FestpIso]) then BaufunktionAufgerufen := true;
-  if (BautypA in [Abschluss]) and (BautypB in [y18m, y14m, y18mZ, y14mZ, r700, r700Z, Abschluss]) then BaufunktionAufgerufen := true;
-  if (BautypA in [y18m, y14m, y18mZ, y14mZ, r700, r700Z, Abschluss]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
+  if (BautypA in [Abschluss]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
 
   //Der catch-all für alle sonstigen Kombinationen (hoffentlich nur sinnvolle);
   if not BaufunktionAufgerufen then KettenwerkMitYSeil(BautypA,BautypB);
@@ -917,7 +952,8 @@ begin
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
   if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
   Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
-  
+  Formular.RadioGroupBauartvorschlag.ItemIndex := Bauartvorschlag;
+
   Formular.ShowModal;
 
   if Formular.ModalResult=mrOK then
@@ -926,8 +962,9 @@ begin
     if Formular.RadioGroupBaumodus.ItemIndex = 0 then Re250 := false;
     if Formular.RadioGroupBaumodus.ItemIndex = 1 then Re250 := true;
     IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
+    Bauartvorschlag:=Formular.RadioGroupBauartvorschlag.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
-    if Formular.CheckBoxYKompatibilitaet.Checked = true then YKompFaktor := 1.325 else YKompFaktor := 1;
+    if Formular.CheckBoxYKompatibilitaet.Checked = true then YKompFaktor := 0.965 else YKompFaktor := 1;
     RegistrySchreiben;
     RegistryLesen;
   end;

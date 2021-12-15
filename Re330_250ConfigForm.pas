@@ -20,6 +20,7 @@ type
     CheckBoxYKompatibilitaet: TCheckBox;
     RadioGroupBaumodus: TRadioGroup;
     RadioGroupZusatzisolatoren: TRadioGroup;
+    RadioGroupBauartVorschlag: TRadioGroup;
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }

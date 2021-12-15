@@ -58,3 +58,11 @@ Re 200
 1.0.1.5 (7.3.2021)
 Re 330/250
 - Erste Veröffentlichung. Tauglich für nicht im Tunnel liegende Kettenwerke.
+
+1.0.1.6 (15.12.2021)
+Re 330/250
+- Etwas Toleranz bei Systemhöhenprüfung gewährt, um keine falschen Alarme auszulösen.
+- Kettenwerk direkt von Normalausleger auf Spannwerk ermöglicht.
+- Die bei Normalauslegern vorgeschlagene Kettenwerksbauart lässt sich im Einstellungsmenü vorwählen.
+- Y-Seil optional kompatibel zu Re250-DLL von Carsten Hölscher.
+- Bau von Kettenwerk im Tunnel wurde getestet und für gut befunden.
