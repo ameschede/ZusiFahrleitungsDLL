@@ -11,7 +11,7 @@ uses
 
 type
 
-  TEndstueck = (y12m, y12mZ, ausfaedel, Festp, FestpIso, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, Ny10m, Ny10mZ, y12mZqtw, Ny10mZqtw);
+  TEndstueck = (y12m, y12mZ, ausfaedel, Festp, FestpIso, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, Ny, NyZ, y12mZqtw, NyZqtw);
 
 function Init:Longword; stdcall;
 function BauartTyp(i:Longint):PChar; stdcall;
@@ -38,9 +38,9 @@ implementation
 var
     DateiIsolator:string;
     StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeStuetzrohrhaenger,StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor:single;
-    Festpunktisolatorposition,IsolatorBaumodus:integer;
+    Festpunktisolatorposition,IsolatorBaumodus,HaengerabstandOhneY:integer;
     DrahtFarbe:TD3DColorValue;
-    BaufunktionAufgerufen:boolean;
+    BaufunktionAufgerufen,BauvorschlagKeinY:boolean;
 
 procedure RegistryLesen;
 var reg: TRegistry;
@@ -54,6 +54,8 @@ begin
               if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
               if reg.ValueExists('YKompFaktor') then YKompFaktor := reg.ReadFloat('YKompFaktor');
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
+              if reg.ValueExists('BauvorschlagKeinY') then BauvorschlagKeinY := reg.ReadBool('BauvorschlagKeinY');
+              if reg.ValueExists('HaengerabstandOhneY') then HaengerabstandOhneY := reg.ReadInteger('HaengerabstandOhneY');
             end;
   finally
     reg.Free;
@@ -82,6 +84,8 @@ begin
               reg.WriteFloat('YKompFaktor',YKompFaktor);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
               reg.WriteInteger('IsolatorBaumodus',IsolatorBaumodus);
+              reg.WriteBool('BauvorschlagKeinY',BauvorschlagKeinY);
+              reg.WriteInteger('HaengerabstandOhneY',HaengerabstandOhneY);
             end;
           end;
         end;
@@ -111,6 +115,8 @@ begin
   StaerkeZseil := 0.0045;
   YKompFaktor := 1;
   IsolatorBaumodus := 0;
+  BauvorschlagKeinY := false;
+  HaengerabstandOhneY := 5;
   RegistryLesen;
 end;
 
@@ -128,8 +134,8 @@ begin
   7: Result:='(SH < 13) Radius unter 700 m';
   8: Result:='(SH 03) Stützpunkt unter Bauwerk';
   9: Result:='(SH 03) Festpunkt mit Stützpunkt unter Bauwerk';
-  10: Result:='ohne Y-Seil (Radius unter 700 m)';
-  11: Result:='Festpunkt ohne Y-Seil (Radius unter 700 m)';
+  10: Result:='ohne Y-Seil';
+  11: Result:='Festpunkt ohne Y-Seil';
   12: Result:='Festpunkt im QTW mit Y-Seil';
   13: Result:='Festpunkt im QTW ohne Y-Seil'
   else Result := '12m Y-Seil'
@@ -183,7 +189,12 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
           pktT := Punkte[b];
         end;
     end;
-    if (iUnten2=1) and (iOben2=1) then Result:= 0;
+    if (iUnten2=1) and (iOben2=1) then
+    begin
+      if BauvorschlagKeinY then Result := 10
+      else Result:= 0;
+    end;
+
 
     //liegt ein Stützpunkt mit niedriger Systemhöhe vor?
     for b:=0 to length(Punkte)-1 do
@@ -221,13 +232,15 @@ begin
     if EndstueckB in [y12m,y12mZ,y12mZqtw] then Letzthaengerabstand := 2.5;
     if EndstueckA = Ausfaedel then Ersthaengerabstand := 0;
     if EndstueckB = Ausfaedel then Letzthaengerabstand := 0;
-    if EndstueckA in [SH03,SH13_5m] then Ersthaengerabstand := 5; //Bei Kettenwerk zwischen zwei SH03-Auslegern gilt eigentlich Sonderregel für die Hängerabstände (1/4 der Längsspannweite). Dann landet man allerdings in der Funktion Kettenwerk_SH03. Die Festlegungen hier sind somit nur für Übergangskettenwerke relevant.
-    if EndstueckB in [SH03,SH13_5m] then Letzthaengerabstand := 5;
-    if EndstueckA in [SH13_10m, Ny10m, Ny10mZ, Ny10mZqtw] then Ersthaengerabstand := 10;
-    if EndstueckB in [SH13_10m, Ny10m, Ny10mZ, Ny10mZqtw] then Letzthaengerabstand := 10;
+    if EndstueckA in [SH03,SH13_5m, Ny, NyZ, NyZqtw] then Ersthaengerabstand := 5; //Bei Kettenwerk zwischen zwei SH03-Auslegern gilt eigentlich Sonderregel für die Hängerabstände (1/4 der Längsspannweite). Dann landet man allerdings in der Funktion Kettenwerk_SH03. Die Festlegungen hier sind somit nur für Übergangskettenwerke relevant.
+    if EndstueckB in [SH03,SH13_5m, Ny, NyZ, NyZqtw] then Letzthaengerabstand := 5;
+    if EndstueckA in [SH13_10m] then Ersthaengerabstand := 10;
+    if EndstueckB in [SH13_10m] then Letzthaengerabstand := 10;
+    if (EndstueckA in [Ny, NyZ, NyZqtw]) then Ersthaengerabstand := HaengerabstandOhneY;
+    if (EndstueckB in [Ny, NyZ, NyZqtw]) then Letzthaengerabstand := HaengerabstandOhneY;
 
-    if EndstueckA in [y12mZ,SH03Z,Ny10mZ,y12mZqtw, Ny10mZqtw] then zSeilA := true;
-    if EndstueckB in [y12mZ,SH03Z,Ny10mZ,y12mZqtw, Ny10mZqtw] then zSeilB := true;
+    if EndstueckA in [y12mZ,SH03Z,NyZ,y12mZqtw, NyZqtw] then zSeilA := true;
+    if EndstueckB in [y12mZ,SH03Z,NyZ,y12mZqtw, NyZqtw] then zSeilB := true;
 
     pktYA:=PunktSuchen(true, 0, Ankertyp_FahrleitungHaengerseil);
     pktYB:=PunktSuchen(false, 0, Ankertyp_FahrleitungHaengerseil);
@@ -245,11 +258,11 @@ begin
     end;
 
     //Bei Festpunkten am QTW den Anbaupunkt für die Zusatzhänger am Seitenhalter feststellen
-    if (EndstueckA in [y12mZqtw, Ny10mZqtw]) or (EndstueckB in [y12mZqtw, Ny10mZqtw]) then
+    if (EndstueckA in [y12mZqtw, NyZqtw]) or (EndstueckB in [y12mZqtw, NyZqtw]) then
     begin
       pktSRA:=PunktSuchen(true, 0, Ankertyp_Stuetzrohrhaenger);
       pktSRB:=PunktSuchen(false, 0, Ankertyp_Stuetzrohrhaenger);
-      if (AnkerIstLeer(pktSRA) and (EndstueckA in [y12mZqtw, Ny10mZqtw])) or (AnkerIstLeer(pktSRB) and (EndstueckB in [y12mZqtw, Ny10mZqtw])) then
+      if (AnkerIstLeer(pktSRA) and (EndstueckA in [y12mZqtw, NyZqtw])) or (AnkerIstLeer(pktSRB) and (EndstueckB in [y12mZqtw, NyZqtw])) then
       begin
         ShowMessage('Ein notwendiger Ankerpunkt des Typs Stützrohrhänger ist nicht vorhanden.');
         exit; //Abbruch, weil ansonsten entartete Fahrdrähte entstehen
@@ -269,7 +282,7 @@ begin
       begin
         //if (Abstand < 34) or (Abstand > 50.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten im Tunnel (max. 50 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
-    if not ((EndstueckA in [SH03,SH03Z,y12m,y12mZ,y12mZqtw,Ny10mZqtw]) or (EndstueckB in [SH03,SH03Z,y12m,y12mZ,y12mZqtw,Ny10mZqtw])) then
+    if not ((EndstueckA in [SH03,SH03Z,y12m,y12mZ,y12mZqtw,NyZqtw]) or (EndstueckB in [SH03,SH03Z,y12m,y12mZ,y12mZqtw,NyZqtw])) then
       begin
         if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 160 (34 bis 80 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
@@ -289,26 +302,30 @@ begin
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
     //Systemhöhen-Prüfung
-    if not (EndstueckA in [SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,Ny10mZqtw]) then
+    if not (EndstueckA in [SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,NyZqtw]) then
     begin
       D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
       if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
     end;
-    if not (EndstueckB in [SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,Ny10mZqtw]) then
+    if not (EndstueckB in [SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,NyZqtw]) then
     begin
       D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
       if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
     end;
 
-    //falls ein Z-Seil gebraucht wird, dann ist es nach dem folgenden Hänger einzubauen:
-    case i of
-      1: showmessage('Z-Seil kann von der DLL aufgrund zu geringer Längsspannweite nicht korrekt eingebaut werden. Bei tatsächlichem Bedarf bitte beim Autor der DLL melden.');
-      2: zSeilHaenger := 1;
-      3: zSeilHaenger := 1;
-      4: zSeilHaenger := 2;
-      5: zSeilHaenger := 2;
+    if (zSeilA or zSeilB) then
+    begin
+      //falls ein Z-Seil gebraucht wird, dann ist es nach dem folgenden Hänger einzubauen:
+      case i of
+        1: showmessage('Z-Seil kann von der DLL aufgrund zu geringer Längsspannweite nicht korrekt eingebaut werden. Bei tatsächlichem Bedarf bitte beim Autor der DLL melden.');
+        2: zSeilHaenger := 1;
+        3: zSeilHaenger := 1;
+        4: zSeilHaenger := 2;
+        5: zSeilHaenger := 3;
+        6: zSeilHaenger := 3;
+      end;
+      if zSeilB and odd(i) then zSeilHaenger := zSeilHaenger + 1; //bei Z-Seil an B ist es bei ungerader Hängerzahl ein Feld weiter einzubauen
     end;
-    if zSeilB and odd(i) then zSeilHaenger := zSeilHaenger + 1; //bei Z-Seil an B ist es bei ungerader Hängerzahl ein Feld weiter einzubauen
 
     //Normalhänger
     for a:=1 to i do
@@ -385,8 +402,8 @@ begin
     if EndstueckB in [SH13_5m] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,5,Abstand,-1,true);
     if EndstueckA in [SH13_10m] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,pktSRA,10,Abstand,1,true);
     if EndstueckB in [SH13_10m] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,10,Abstand,-1,true);
-    if EndstueckA in [Ny10m,Ny10mZ,Ny10mZqtw] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,pktSRA,10,Abstand,1,false);
-    if EndstueckB in [Ny10m,Ny10mZ,Ny10mZqtw] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,10,Abstand,-1,false);
+    if EndstueckA in [Ny,NyZ,NyZqtw] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,pktSRA,HaengerabstandOhneY,Abstand,1,false);
+    if EndstueckB in [Ny,NyZ,NyZqtw] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,HaengerabstandOhneY,Abstand,-1,false);
     if EndstueckA in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Abstand,1);
     if EndstueckB in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Abstand,-1);
     if EndstueckA = Ausfaedel then
@@ -503,7 +520,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
-    if EndstueckA in [y12mZqtw, Ny10mZqtw] then //Zusatzarbeiten bei Festpunkt im Querfeld
+    if EndstueckA in [y12mZqtw, NyZqtw] then //Zusatzarbeiten bei Festpunkt im Querfeld
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
       LageIsolator(pktTA.PunktTransformiert.Punkt, ErstNormalhaengerpunkt, 0, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
@@ -529,7 +546,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
-    if EndstueckB in [y12mZqtw, Ny10mZqtw] then //Zusatzarbeiten bei Festpunkt im Querfeld
+    if EndstueckB in [y12mZqtw, NyZqtw] then //Zusatzarbeiten bei Festpunkt im Querfeld
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
       LageIsolator(pktTB.PunktTransformiert.Punkt, LetztNormalhaengerpunkt, 0, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
@@ -757,6 +774,22 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
+    //ggfs. Isolatoren für Streckentrennung einbauen
+    if IsolatorBaumodus = 2 then
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, EndstueckEndepunkt, 2, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktF.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, 2, pktF.PunktTransformiert.Punkt, pktF.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktF.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktF.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
+
     if SH13 then  //Zusatzarbeiten bei Stützpunkten mit niedriger Systemhöhe
     begin
     //Seil am Ausleger zwischen Spitzenrohr und Y-Seil-Anbaupunkt (wird nur bei Auslegern in Altbauweise benötigt und soll dort den im 3D-Modell fehlenden Stützrohrhänger andeuten)
@@ -793,6 +826,7 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeBeiseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
+
 end;
 
 
@@ -972,7 +1006,7 @@ begin
 
 end;
 
-procedure KettenwerkAbschluss(Ersthaengerabstand,Letzthaengerabstand:single);
+procedure KettenwerkAbschluss(Ersthaengerabstand,Letzthaengerabstand:single;AnkommenderAnkertypF,AnkommenderAnkertypT:TAnkerTyp);
 var pktFA, pktFB, pktTA, pktTB, pktU, pktO:TAnkerpunkt;
     Abstand, Durchhang, {LaengeNormalhaengerbereich,} Haengerabstand:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
@@ -987,7 +1021,7 @@ begin
   begin
     BaufunktionAufgerufen := true;
     //Fahrdraht berechnen als Vektor von FA nach FB
-    pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungAusfaedelungFahrdraht);
+    pktFA:=PunktSuchen(true,  0, AnkommenderAnkertypF);
     pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
@@ -999,7 +1033,7 @@ begin
     //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
 
     //Tragseil Endpunkte
-    pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungAusfaedelungTragseil);
+    pktTA:=PunktSuchen(true,  0, AnkommenderAnkertypT);
     pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
@@ -1145,10 +1179,10 @@ begin
     7: BautypA := SH13_10m;
     8: BautypA := SH03;
     9: BautypA := SH03Z;
-    10: BautypA := Ny10m;
-    11: BautypA := Ny10mZ;
+    10: BautypA := Ny;
+    11: BautypA := NyZ;
     12: BautypA := y12mZqtw;
-    13: BautypA := Ny10mZqtw
+    13: BautypA := NyZqtw
   end;
     case Typ2 of
     0: BautypB := y12m;
@@ -1161,10 +1195,10 @@ begin
     7: BautypB := SH13_10m;
     8: BautypB := SH03;
     9: BautypB := SH03Z;
-    10: BautypB := Ny10m;
-    11: BautypB := Ny10mZ;
+    10: BautypB := Ny;
+    11: BautypB := NyZ;
     12: BautypB := y12mZqtw;
-    13: BautypB := Ny10mZqtw
+    13: BautypB := NyZqtw
   end;
 
   //hier wird entschieden was wir machen. Zuerst die Sonderfälle:
@@ -1181,18 +1215,24 @@ begin
     BaurichtungWechseln;
     Festpunktabspannung;
   end;
-  if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss(0.5,25.0);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
+  if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss(0.5,25.0,Ankertyp_FahrleitungAusfaedelungFahrdraht,Ankertyp_FahrleitungAusfaedelungTragseil);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
   if (BautypA=Abschluss) and (BautypB=Ausfaedel) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
     BaurichtungWechseln;
-    KettenwerkAbschluss(0.5,22.8);
+    KettenwerkAbschluss(0.5,25.0,Ankertyp_FahrleitungAusfaedelungFahrdraht,Ankertyp_FahrleitungAusfaedelungTragseil);
+  end;
+  if (BautypA in [SH13_5m, SH13_10m, SH03, SH03Z, Ny, NyZ, NyZqtw]) and (BautypB=Abschluss) then KettenwerkAbschluss(0.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
+  if (BautypA=Abschluss) and (BautypB in [SH13_5m, SH13_10m, SH03, SH03Z, Ny, NyZ, NyZqtw]) then
+  begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
+    BaurichtungWechseln;
+    KettenwerkAbschluss(0.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);
   end;
 
   //einige unsinnige Kombinationen abfangen
-  if (BautypA in [Festp,FestpIso]) and (BautypB in [y12m, y12mZ, ausfaedel, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, y12mZqtw, Ny10mZqtw]) then BaufunktionAufgerufen := true;
-  if (BautypA in [y12m, y12mZ, ausfaedel, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, y12mZqtw, Ny10mZqtw]) and (BautypB in [Festp,FestpIso]) then BaufunktionAufgerufen := true;
-  if (BautypA in [Abschluss]) and (BautypB in [y12m, y12mZ, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, y12mZqtw, Ny10mZqtw]) then BaufunktionAufgerufen := true;
-  if (BautypA in [y12m, y12mZ, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, y12mZqtw, Ny10mZqtw]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
+  if (BautypA in [Festp,FestpIso]) and (BautypB in [y12m, y12mZ, ausfaedel, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, y12mZqtw, NyZqtw]) then BaufunktionAufgerufen := true;
+  if (BautypA in [y12m, y12mZ, ausfaedel, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, y12mZqtw, NyZqtw]) and (BautypB in [Festp,FestpIso]) then BaufunktionAufgerufen := true;
+  if (BautypA in [Abschluss]) and (BautypB in [y12m, y12mZ, Abschluss, y12mZqtw]) then BaufunktionAufgerufen := true;
+  if (BautypA in [y12m, y12mZ, Abschluss, y12mZqtw]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
 
   //Der catch-all für alle sonstigen Kombinationen (hoffentlich nur sinnvolle);
   if not BaufunktionAufgerufen then Kettenwerk(BautypA,BautypB);
@@ -1224,7 +1264,9 @@ begin
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
   if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
   Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
-  
+  if BauVorschlagKeinY then Formular.CheckBoxVorschlagKeinY.Checked := true;
+  if HaengerabstandOhneY = 10 then Formular.RadioGroupOhneY.ItemIndex := 1 else Formular.RadioGroupOhneY.ItemIndex := 0;
+
   Formular.ShowModal;
 
   if Formular.ModalResult=mrOK then
@@ -1233,6 +1275,8 @@ begin
     IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
     if Formular.CheckBoxYKompatibilitaet.Checked = true then YKompFaktor := 1.325 else YKompFaktor := 1;
+    if Formular.CheckBoxVorschlagKeinY.Checked = true then BauvorschlagKeinY := true else BauvorschlagKeinY := false;
+    if Formular.RadioGroupOhneY.ItemIndex = 1 then HaengerabstandOhneY := 10 else HaengerabstandOhneY := 5;
     RegistrySchreiben;
     RegistryLesen;
   end;
