@@ -406,6 +406,7 @@ begin
     if EndstueckB in [Ny,NyZ,NyZqtw] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,HaengerabstandOhneY,Abstand,-1,false);
     if EndstueckA in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Abstand,1);
     if EndstueckB in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Abstand,-1);
+    //Sonderbehandlung für Ausfädelungs-Endstücke (weil es dort offenbar keinen festen Ersthängerabstand gibt):
     if EndstueckA = Ausfaedel then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
@@ -774,7 +775,7 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //ggfs. Isolatoren für Streckentrennung einbauen
+    //ggfs. Isolatoren für Streckentrennung einbauen. Streckentrennungen an Nicht-Ausfädelungsendstücken sind eigentlich nicht systemgemäß, aber zusitechnisch notwendig wenn die Trennung im Quertragwerk liegt.
     if IsolatorBaumodus = 2 then
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
