@@ -66,3 +66,13 @@ Re 330/250
 - Die bei Normalauslegern vorgeschlagene Kettenwerksbauart lässt sich im Einstellungsmenü vorwählen.
 - Y-Seil optional kompatibel zu Re250-DLL von Carsten Hölscher.
 - Bau von Kettenwerk im Tunnel wurde getestet und für gut befunden.
+
+1.0.1.7 (16.12.2021)
+Re 160
+- Erste Veröffentlichung
+
+Re 200
+- Bau des Kettenwerks "SH < 13" nur noch wenn Ausleger einen Tragseildrehklemmen-Ankerpunkt deklariert.
+
+Re 160 Erweiterte Funktionen
+- Diese DLL ist durch die Re160.dll abgelöst worden und wird nicht weiter gepflegt.
