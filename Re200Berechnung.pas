@@ -213,7 +213,7 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
     for b:=0 to length(Punkte)-1 do
     begin
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungFahrdraht then inc(iUnten3);
-      if Punkte[b].Ankertyp=Ankertyp_FahrleitungAbspannungMastpunktTragseil then inc(iOben3);
+      if Punkte[b].Ankertyp=Ankertyp_Tragseildrehklemme then inc(iOben3);
     end;
     if (iUnten3=1) and (iOben3=1) then Result:=12;
 
@@ -263,8 +263,8 @@ begin
     //Bei Stützpunkten mit niedriger Systemhöhe den Anbaupunkt am Spitzenrohr feststellen
     if (EndstueckA in [SH13_5m,SH13_10m]) or (EndstueckB in [SH13_5m,SH13_10m]) then
     begin
-      pktSRA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
-      pktSRB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
+      pktSRA:=PunktSuchen(true, 0, Ankertyp_Tragseildrehklemme);
+      pktSRB:=PunktSuchen(false, 0, Ankertyp_Tragseildrehklemme);
       if (AnkerIstLeer(pktSRA) and (EndstueckA in [SH13_5m,SH13_10m])) or (AnkerIstLeer(pktSRB) and (EndstueckB in [SH13_5m,SH13_10m])) then
       begin
         ShowMessage('Ein notwendiger Ankerpunkt des Typs Abspannung Tragseil ist nicht vorhanden.');
