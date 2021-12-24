@@ -238,6 +238,8 @@ begin
     if EndstueckB in [SH13_10m] then Letzthaengerabstand := 10;
     if (EndstueckA in [Ny, NyZ, NyZqtw]) then Ersthaengerabstand := HaengerabstandOhneY;
     if (EndstueckB in [Ny, NyZ, NyZqtw]) then Letzthaengerabstand := HaengerabstandOhneY;
+    if EndstueckA in [Abschluss] then Ersthaengerabstand := 22.8;
+    if EndstueckB in [Abschluss] then Letzthaengerabstand := 22.8;
 
     if EndstueckA in [y12mZ,SH03Z,NyZ,y12mZqtw, NyZqtw] then zSeilA := true;
     if EndstueckB in [y12mZ,SH03Z,NyZ,y12mZqtw, NyZqtw] then zSeilB := true;
@@ -269,11 +271,20 @@ begin
       end;
     end;
 
-    //Fahrdraht berechnen als Vektor von FA nach FB
+    //Feststellen welcher Ankertyp am Fahrdraht zu erwarten ist
     if EndstueckA = Ausfaedel then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
-    else pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
+      else
+      begin
+      if EndstueckA = Abschluss then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht)
+        else pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
+      end;
     if EndstueckB = Ausfaedel then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
-    else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
+      else
+      begin
+      if EndstueckB = Abschluss then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht)
+        else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
+      end;
+    //Fahrdraht berechnen als Vektor von FA nach FB
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
 
@@ -288,26 +299,35 @@ begin
       end;
 
     i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/12.5) - 1;    //max. Hängerabstand in der Bauart Re 160 ist 12,5 m
-    //if odd(i) then i :=i+1; //für Bauarten bei denen ungerade Hängerzahl unzulässig ist, im Zweifel einen Hänger mehr einbauen.
 
     //LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
     Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/(i+1);
     //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
 
-    //Tragseil Endpunkte
+    //Feststellen welcher Ankertyp am Tragseil zu erwarten ist
     if EndstueckA = Ausfaedel then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
-    else pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+      else
+      begin
+      if EndstueckA = Abschluss then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil)
+        else pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+      end;
     if EndstueckB = Ausfaedel then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
-    else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
+      else
+      begin
+      if EndstueckB = Abschluss then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil)
+        else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
+      end;
+
+    //Tragseil Endpunkte
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
     //Systemhöhen-Prüfung
-    if not (EndstueckA in [SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,NyZqtw]) then
+    if not (EndstueckA in [Abschluss,SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,NyZqtw]) then
     begin
       D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
       if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
     end;
-    if not (EndstueckB in [SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,NyZqtw]) then
+    if not (EndstueckB in [Abschluss,SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,NyZqtw]) then
     begin
       D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
       if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
@@ -383,7 +403,6 @@ begin
       end;
     end;
 
-
     // Tragseil-Abschnitte zwischen den Hängern
     for a:=1 to length(ErgebnisArray)-1 do
     begin
@@ -394,6 +413,45 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
+    //Falls es wegen sehr kurzer Spannweite keine Normalhänger gibt (nicht systemgemäß, kommt aber in der Realität vor) ist die Normalhängerschleife nicht durchgelaufen
+    //In diesem Fall muss ein Erst- und Letztnormalhaengerpunkt synthetisiert werden
+    if i = 0 then
+    begin
+      //unterer Kettenwerkpunkt Erstnormalhaenger
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm,Ersthaengerabstand);
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+      //oberer Kettenwerkpunkt Erstnormalhaenger
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+      //Punkt absenken
+      Durchhang := (0.00076 * sqr(Ersthaengerabstand - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+      ErstNormalhaengerpunkt:=pktO.PunktTransformiert.Punkt;
+      //unterer Kettenwerkpunkt Letztnormalhaenger
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm,(Abstand-Letzthaengerabstand));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+      //oberer Kettenwerkpunkt Letztnormalhaenger
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, (Abstand-Letzthaengerabstand));
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+      //Punkt absenken
+      Durchhang := (0.00076 * sqr((Abstand-Letzthaengerabstand) - (Abstand/2)) + 1.0) / (0.00076 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+      LetztNormalhaengerpunkt:=pktO.PunktTransformiert.Punkt;
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=LetztNormalhaengerpunkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
 
     //Y-Seile und Endstücke
     if EndstueckA in [y12m,y12mZ,y12mZqtw] then Berechne_YSeil_12m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,Abstand,1);
@@ -407,7 +465,7 @@ begin
     if EndstueckA in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Abstand,1);
     if EndstueckB in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Abstand,-1);
     //Sonderbehandlung für Ausfädelungs-Endstücke (weil es dort offenbar keinen festen Ersthängerabstand gibt):
-    if EndstueckA = Ausfaedel then
+    if EndstueckA in [Ausfaedel,Abschluss] then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -416,8 +474,8 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-      //ggfs. Isolatoren für Streckentrennung einbauen
-      if IsolatorBaumodus = 2 then
+      //ggfs. Isolatoren für Streckentrennung oder Spannwerk einbauen
+      if (EndstueckA in [Abschluss]) or ((IsolatorBaumodus = 2) and (EndstueckA = Ausfaedel)) then
       begin
         setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktTA.PunktTransformiert.Punkt, ErstNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
@@ -432,7 +490,7 @@ begin
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
       end;
     end;
-    if EndstueckB = Ausfaedel then
+    if EndstueckB in [Ausfaedel,Abschluss] then
     begin
       //Verbindung zwischen letztem Normalhänger und Ausleger B
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -441,8 +499,8 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-      //ggfs. Isolatoren für Streckentrennung einbauen
-      if IsolatorBaumodus = 2 then
+      //ggfs. Isolatoren für Streckentrennung oder Spannwerk einbauen
+      if (EndstueckB in [Abschluss]) or ((IsolatorBaumodus = 2) and (EndstueckB = Ausfaedel)) then
       begin
         setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktTB.PunktTransformiert.Punkt, LetztNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
@@ -660,7 +718,7 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //Isolator ins Tragseil einbauen (dieses Y-Seil wird nicht in Quertragwerken verwendet)
+    //bei geerdetem Ausleger Isolator ins Tragseil einbauen
     if IsolatorBaumodus = 1 then
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
@@ -788,6 +846,16 @@ begin
       LageIsolator(pktF.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, 2, pktF.PunktTransformiert.Punkt, pktF.PunktTransformiert.Winkel);
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktF.PunktTransformiert.Punkt;
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktF.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
+
+    //bei geerdetem Ausleger Isolator ins Tragseil einbauen
+    if IsolatorBaumodus = 1 then
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, EndstueckEndepunkt, 0.6, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel); //geerdeter Ausleger - Isolator 0,6 m vom Stützpunkt entfernt
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
     end;
 
@@ -1222,8 +1290,8 @@ begin
     BaurichtungWechseln;
     KettenwerkAbschluss(0.5,25.0,Ankertyp_FahrleitungAusfaedelungFahrdraht,Ankertyp_FahrleitungAusfaedelungTragseil);
   end;
-  if (BautypA in [SH13_5m, SH13_10m, SH03, SH03Z, Ny, NyZ, NyZqtw]) and (BautypB=Abschluss) then KettenwerkAbschluss(0.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
-  if (BautypA=Abschluss) and (BautypB in [SH13_5m, SH13_10m, SH03, SH03Z, Ny, NyZ, NyZqtw]) then
+  if (BautypA in [SH03, SH03Z, Ny, NyZ, NyZqtw]) and (BautypB=Abschluss) then KettenwerkAbschluss(0.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
+  if (BautypA=Abschluss) and (BautypB in [SH03, SH03Z, Ny, NyZ, NyZqtw]) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
     BaurichtungWechseln;
     KettenwerkAbschluss(0.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);

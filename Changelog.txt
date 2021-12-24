@@ -55,9 +55,11 @@ Re 200
 - Bei fehlenden Ankerpunkten wird der Bau entarteter Fahrdrähte besser verhindert
 - Tragseilberechnung bei Stützpunkt unter Bauwerk (SH03) korrigiert
 
+
 1.0.1.5 (7.3.2021)
 Re 330/250
 - Erste Veröffentlichung. Tauglich für nicht im Tunnel liegende Kettenwerke.
+
 
 1.0.1.6 (15.12.2021)
 Re 330/250
@@ -66,6 +68,7 @@ Re 330/250
 - Die bei Normalauslegern vorgeschlagene Kettenwerksbauart lässt sich im Einstellungsmenü vorwählen.
 - Y-Seil optional kompatibel zu Re250-DLL von Carsten Hölscher.
 - Bau von Kettenwerk im Tunnel wurde getestet und für gut befunden.
+
 
 1.0.1.7 (16.12.2021)
 Re 160
@@ -76,3 +79,10 @@ Re 200
 
 Re 160 Erweiterte Funktionen
 - Diese DLL ist durch die Re160.dll abgelöst worden und wird nicht weiter gepflegt.
+
+
+1.0.1.8 (24.12.2021)
+Re 160
+- Kettenwerk direkt von < SH 13 auf Spannwerk ermöglicht
+- Isolatoren für geerdete Ausleger auch ohne Y-Seil möglich
+- Korrektes Tragseil auch bei sehr kurzen Längsspannweiten
