@@ -17,7 +17,7 @@ function Init:Longword; stdcall;
 function BauartTyp(i:Longint):PChar; stdcall;
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
 function Berechnen(Typ1, Typ2:Longint):TErgebnis; stdcall;
-procedure Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung: single);
+procedure Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung: single;IsolatorEinbau:boolean);
 function Bezeichnung:PChar; stdcall;
 function Gruppe:PChar; stdcall;
 procedure Config(AppHandle:HWND); stdcall;
@@ -206,14 +206,10 @@ begin
   if (length(PunkteA)>1) and (length(PunkteB)>1) then
   begin
     BaufunktionAufgerufen := true;
-    if EndstueckA in [Normal] then Ersthaengerabstand := 4.5;
-    if EndstueckB in [Normal] then Letzthaengerabstand := 4.5;
-    if EndstueckA in [Ausfaedel] then Ersthaengerabstand := 0;
-    if EndstueckB in [Ausfaedel] then Letzthaengerabstand := 0;
-    if EndstueckA in [Abschluss] then Ersthaengerabstand := 25.0;
-    if EndstueckB in [Abschluss] then Letzthaengerabstand := 25.0;
-
-
+    if EndstueckA in [Normal,Ausfaedel] then Ersthaengerabstand := 4.5;
+    if EndstueckB in [Normal,Ausfaedel] then Letzthaengerabstand := 4.5;
+    if EndstueckA in [Abschluss] then Ersthaengerabstand := 22.8;
+    if EndstueckB in [Abschluss] then Letzthaengerabstand := 22.8;
 
     //Feststellen welcher Ankertyp am Fahrdraht zu erwarten ist
     if EndstueckA = Ausfaedel then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
@@ -241,6 +237,12 @@ begin
     i:=Math.Floor((Abstand - Ersthaengerabstand - Letzthaengerabstand)/13.5);    //max. Hängerabstand bei französischen Fahrleitungen ist 6,75 m; im Zweifel abrunden.
     Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
     //showmessage('Spannweite: '+ floattostr(Abstand) + '; Rest in Feldmitte: '+floattostr(Rest)+'; Anzahl Hänger vor Längenausgleich:' + inttostr(((i*2)+2)));
+    if Rest < 4.5 then
+    begin
+      i := i-1;
+      Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
+      //showmessage('Hängeranzahl wurde angepasst. Rest in Feldmitte jetzt '+floattostr(Rest));
+    end;
     if (Rest > 6.75) and (Rest < 9) then showmessage('Fehler: Das berechnete Kettenwerk ist unplausibel. Bitte beim DLL-Autor melden und die Spannweite nennen: '+ floattostr(Abstand));
 
     //Feststellen welcher Ankertyp am Tragseil zu erwarten ist
@@ -294,7 +296,7 @@ begin
     end;
 
     //Hänger in Feldmitte
-    if Rest > 9 then
+    if (Rest > 9) and (Rest < 13.5) then //es wird 1 zusätzlicher Hänger benötigt
     begin
       //unterer Kettenwerkpunkt
       D3DXVec3Normalize(vNorm, vFahrdraht);
@@ -308,6 +310,55 @@ begin
 
       //Punkt absenken
       Durchhang := (0.00055 * sqr(Ersthaengerabstand + (i * 6.75) + (Rest/2) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
+
+    if Rest > 13.5 then //es werden 2 zusätzliche Hänger benötigt
+    begin
+      //erster Hänger
+      //unterer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (i * 6.75)+(Rest/3)));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      //oberer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + (i * 6.75)+(Rest/3));
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      Durchhang := (0.00055 * sqr(Ersthaengerabstand + (i * 6.75) + (Rest/3) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+      //zweiter Hänger
+      //unterer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (i * 6.75)+((Rest/3)*2)));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      //oberer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + (i * 6.75)+((Rest/3))*2);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      Durchhang := (0.00055 * sqr(Ersthaengerabstand + (i * 6.75) + ((Rest/3)*2) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -401,9 +452,21 @@ begin
     end;
 
     //Endstücke
-    if EndstueckA in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1);
-    if EndstueckB in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1);
-    //Sonderbehandlung für Ausfädelungs-Endstücke (weil es dort offenbar keinen festen Ersthängerabstand gibt):
+    if EndstueckA in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,false);
+    if EndstueckB in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,false);
+    if EndstueckA in [Abschluss] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,true);
+    if EndstueckB in [Abschluss] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,true);
+    if IsolatorBaumodus = 1 then
+    begin
+      if EndstueckA in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,true);
+      if EndstueckB in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,true);
+    end
+    else
+    begin
+      if EndstueckA in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,false);
+      if EndstueckB in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,false);
+    end;
+{    //Sonderbehandlung für Ausfädelungs-Endstücke (weil es dort offenbar keinen festen Ersthängerabstand gibt):
     if EndstueckA in [Ausfaedel,Abschluss] then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
@@ -453,7 +516,7 @@ begin
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
       end;
-    end;
+    end;  }
 
     //Fahrdraht eintragen
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -465,7 +528,7 @@ begin
   end;
 end;
 
-procedure Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung:single);
+procedure Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung:single;IsolatorEinbau:boolean);
 var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu,Endstueckendepunkt: TD3DVector;
     Durchhang:single;
@@ -473,7 +536,7 @@ begin
     //Erster Hänger
     //unterer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, Richtung * Ersthaengerabstand);    //erster Hänger in 4,5 m Abstand vom Ausleger
+    D3DXVec3Scale(v, vNorm, Richtung * Ersthaengerabstand);
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, v);
 
     //oberer Kettenwerkpunkt
@@ -482,7 +545,7 @@ begin
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktT.PunktTransformiert.Punkt, v);
 
     //Punkt absenken
-    Durchhang := (0.00055 * sqr(4.5 - (Abstand/2)) + 1) / (0.00055 * sqr(Abstand/2) + 1);
+    Durchhang := (0.00055 * sqr(Ersthaengerabstand - (Abstand/2)) + 1) / (0.00055 * sqr(Abstand/2) + 1);
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
     D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -508,8 +571,8 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //ggfs. Isolatoren für Streckentrennung einbauen. Streckentrennungen an Nicht-Ausfädelungsendstücken sind eigentlich nicht systemgemäß, aber zusitechnisch notwendig wenn die Trennung im Quertragwerk liegt.
-    if IsolatorBaumodus = 1 then
+    //ggfs. Isolatoren einbauen.
+    if IsolatorEinbau then
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
       LageIsolator(pktT.PunktTransformiert.Punkt, EndstueckEndepunkt, 2, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
