@@ -333,18 +333,22 @@ begin
       if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
     end;
 
-    if (zSeilA or zSeilB) then
+    //falls ein Z-Seil gebraucht wird, dann ist es nach dem folgenden Hänger einzubauen:
+    if (zSeilA) then
     begin
-      //falls ein Z-Seil gebraucht wird, dann ist es nach dem folgenden Hänger einzubauen:
       case i of
         1: showmessage('Z-Seil kann von der DLL aufgrund zu geringer Längsspannweite nicht korrekt eingebaut werden. Bei tatsächlichem Bedarf bitte beim Autor der DLL melden.');
         2: zSeilHaenger := 1;
-        3: zSeilHaenger := 1;
-        4: zSeilHaenger := 2;
-        5: zSeilHaenger := 3;
-        6: zSeilHaenger := 3;
+      else zSeilHaenger := 2;
       end;
-      if zSeilB and odd(i) then zSeilHaenger := zSeilHaenger + 1; //bei Z-Seil an B ist es bei ungerader Hängerzahl ein Feld weiter einzubauen
+    end;
+    if (zSeilB) then
+    begin
+      case i of
+        1: showmessage('Z-Seil kann von der DLL aufgrund zu geringer Längsspannweite nicht korrekt eingebaut werden. Bei tatsächlichem Bedarf bitte beim Autor der DLL melden.');
+        2: zSeilHaenger := 1;
+      else zSeilHaenger := i-2;
+      end;
     end;
 
     //Normalhänger
