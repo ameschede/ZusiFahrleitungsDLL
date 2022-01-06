@@ -86,3 +86,7 @@ Re 160
 - Kettenwerk direkt von < SH 13 auf Spannwerk ermöglicht
 - Isolatoren für geerdete Ausleger auch ohne Y-Seil möglich
 - Korrektes Tragseil auch bei sehr kurzen Längsspannweiten
+
+1.0.1.9 (6.1.2022)
+Re 160
+- Möglichen Fehler bei der Positionierung von Z-Seilen beseitigt
