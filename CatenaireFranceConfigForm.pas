@@ -15,6 +15,11 @@ type
     LabeledEditIsolator: TLabeledEdit;
     RadioGroupZusatzisolatoren: TRadioGroup;
     RadioGroupKettenwerkstyp: TRadioGroup;
+    LabelIsolatorposition: TLabel;
+    LabelAusleger: TLabel;
+    LabelAnkermast: TLabel;
+    TrackBarFestpunktisolator: TTrackBar;
+    RadioGroupKettenwerksabschluss: TRadioGroup;
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }

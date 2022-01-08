@@ -35,8 +35,8 @@ implementation
 
 var
     DateiIsolator:string;
-    StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeAnkerseil:single;
-    Kettenwerkstyp,IsolatorBaumodus:integer;
+    StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeAnkerseil,IsolatorpositionTS:single;
+    Kettenwerkstyp,IsolatorBaumodus,Festpunktisolatorposition:integer;
     DrahtFarbe:TD3DColorValue;
     V350,V300,V200,V160,BaufunktionAufgerufen:boolean;
 
@@ -49,8 +49,10 @@ begin
             if reg.OpenKeyReadOnly('Software\Zusi3\lib\catenary\CatenaireFrance') then
             begin
               if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
+              if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
               if reg.ValueExists('Kettenwerkstyp') then Kettenwerkstyp := reg.ReadInteger('Kettenwerkstyp');
+              if reg.ValueExists('IsolatorPositionTS') then IsolatorpositionTS := reg.ReadFloat('IsolatorpositionTS');
             end;
             case Kettenwerkstyp of
             0: V350 := true;
@@ -99,6 +101,8 @@ begin
               reg.WriteString('DateiIsolator', DateiIsolator);
               reg.WriteInteger('IsolatorBaumodus',IsolatorBaumodus);
               reg.WriteInteger('Kettenwerkstyp',Kettenwerkstyp);
+              reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
+              reg.WriteFloat('IsolatorpositionTS',IsolatorpositionTS);
             end;
           end;
         end;
@@ -123,6 +127,8 @@ begin
   StaerkeAnkerseil := 0.0045;
   Kettenwerkstyp := 0; //V350 als Default
   IsolatorBaumodus := 0;
+  Festpunktisolatorposition:=10;
+  IsolatorPositionTS:=2.46;
   RegistryLesen;
 end;
 
@@ -208,22 +214,13 @@ begin
     BaufunktionAufgerufen := true;
     if EndstueckA in [Normal,Ausfaedel] then Ersthaengerabstand := 4.5;
     if EndstueckB in [Normal,Ausfaedel] then Letzthaengerabstand := 4.5;
-    if EndstueckA in [Abschluss] then Ersthaengerabstand := 22.8;
-    if EndstueckB in [Abschluss] then Letzthaengerabstand := 22.8;
 
     //Feststellen welcher Ankertyp am Fahrdraht zu erwarten ist
     if EndstueckA = Ausfaedel then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
-      else
-      begin
-      if EndstueckA = Abschluss then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht)
-        else pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
-      end;
+      else pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
     if EndstueckB = Ausfaedel then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
-      else
-      begin
-      if EndstueckB = Abschluss then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht)
-        else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
-      end;
+      else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
+
     //Fahrdraht berechnen als Vektor von FA nach FB
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
@@ -247,17 +244,11 @@ begin
 
     //Feststellen welcher Ankertyp am Tragseil zu erwarten ist
     if EndstueckA = Ausfaedel then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
-      else
-      begin
-      if EndstueckA = Abschluss then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil)
-        else pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
-      end;
+      else pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+
     if EndstueckB = Ausfaedel then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
-      else
-      begin
-      if EndstueckB = Abschluss then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil)
-        else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
-      end;
+      else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
+
 
     //Tragseil Endpunkte
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
@@ -454,8 +445,6 @@ begin
     //Endstücke
     if EndstueckA in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,false);
     if EndstueckB in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,false);
-    if EndstueckA in [Abschluss] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,true);
-    if EndstueckB in [Abschluss] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,true);
     if IsolatorBaumodus = 1 then
     begin
       if EndstueckA in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,true);
@@ -466,57 +455,6 @@ begin
       if EndstueckA in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,false);
       if EndstueckB in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,false);
     end;
-{    //Sonderbehandlung für Ausfädelungs-Endstücke (weil es dort offenbar keinen festen Ersthängerabstand gibt):
-    if EndstueckA in [Ausfaedel,Abschluss] then
-    begin
-      //Verbindung zwischen erstem Normalhänger und Ausleger A
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-      //ggfs. Isolatoren für Streckentrennung oder Spannwerk einbauen
-      if (EndstueckA in [Abschluss]) or ((IsolatorBaumodus = 1) and (EndstueckA = Ausfaedel)) then
-      begin
-        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-        LageIsolator(pktTA.PunktTransformiert.Punkt, ErstNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-
-        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-        LageIsolator(pktFA.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-      end;
-    end;
-    if EndstueckB in [Ausfaedel,Abschluss] then
-    begin
-      //Verbindung zwischen letztem Normalhänger und Ausleger B
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=LetztNormalhaengerpunkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTB.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-      //ggfs. Isolatoren für Streckentrennung oder Spannwerk einbauen
-      if (EndstueckB in [Abschluss]) or ((IsolatorBaumodus = 1) and (EndstueckB = Ausfaedel)) then
-      begin
-        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-        LageIsolator(pktTB.PunktTransformiert.Punkt, LetztNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-
-        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-        LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-      end;
-    end;  }
 
     //Fahrdraht eintragen
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -615,11 +553,10 @@ begin
 
     //Isolator auf dem Festpunktseil
     setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt, (2 * D3DXVec3Length(vDraht))/100, pktDA.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Winkel);
+    LageIsolator(pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt, (Festpunktisolatorposition * D3DXVec3Length(vDraht))/100, pktDA.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Winkel);
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktDA.PunktTransformiert.Punkt;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktDA.PunktTransformiert.Winkel;
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-
   end
 end;
 
@@ -680,7 +617,7 @@ begin
       if a = i-1 then
       begin
         setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-        LageIsolator(pktTB.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
+        LageIsolator(pktTB.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt, IsolatorpositionTS, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel); //Tragseil-Isolator je nach Einstellung in 2,46 oder 2 Meter vom Spannwerk
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
@@ -805,6 +742,8 @@ begin
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
   Formular.RadioGroupKettenwerkstyp.ItemIndex := Kettenwerkstyp;
   Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
+  Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
+  if IsolatorpositionTS > 2.45 then Formular.RadioGroupKettenwerksabschluss.ItemIndex := 0	else Formular.RadioGroupKettenwerksabschluss.ItemIndex := 1;
   Formular.ShowModal;
 
   if Formular.ModalResult=mrOK then
@@ -812,6 +751,8 @@ begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
     Kettenwerkstyp:=Formular.RadioGroupKettenwerkstyp.ItemIndex;
     IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
+    Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
+    if Formular.RadioGroupKettenwerksabschluss.ItemIndex = 0 then IsolatorpositionTS := 2.46 else IsolatorpositionTS := 2.00;
     RegistrySchreiben;
     RegistryLesen;
   end;
