@@ -626,8 +626,8 @@ end;
 
 procedure KettenwerkAbschluss(Ersthaengerabstand,Letzthaengerabstand:single;AnkommenderAnkertypF,AnkommenderAnkertypT:TAnkerTyp);
 var pktFA, pktFB, pktTA, pktTB, pktU, pktO:TAnkerpunkt;
-    Abstand, Durchhang, {LaengeNormalhaengerbereich,} Haengerabstand:single;
-    vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
+    Abstand, Durchhang, Haengerabstand:single;
+    vFahrdraht, vTragseil, v, vNeu, vNorm, Startpunkt:TD3DVector;
     i, a:integer;
 
 begin
@@ -644,133 +644,82 @@ begin
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
 
-    i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/6.75); //Anders als bei Normalkettenwerk soll hier der letzte Hänger von der Normalhänger-Schleife gebaut werden
-    //if odd(i) then i :=i+1; //ungerade Anzahl Normalhänger ist in Re 200 nicht zulässig. Deshalb im Zweifel einen Hänger mehr einbauen.
-    //LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
-    Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/i; //Anders als bei Normalkettenwerk soll hier der letzte Hänger von der Normalhänger-Schleife gebaut werden
-    //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
-
     //Tragseil Endpunkte
     pktTA:=PunktSuchen(true,  0, AnkommenderAnkertypT);
     pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
+    //Das Abschluss-Kettenwerk der französischen Fahrleitung zeichnet sich durch fehlende Hänger aus, so dass auch der Fahrdraht durchhängt.
+    i := 10;
+    Haengerabstand := Abstand/i;
 
-    //Normalhänger
+    Startpunkt := pktTA.PunktTransformiert.Punkt;
     for a:=1 to i do
     begin
-      //unterer Kettenwerkpunkt
-      D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (a * Haengerabstand)));
-      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
-
-      //oberer Kettenwerkpunkt
+      //Kettenwerkpunkt
       D3DXVec3Normalize(vNorm, vTragseil);
-      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + (a * Haengerabstand));
+      D3DXVec3Scale(v, vNorm, a * Haengerabstand);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+      pktU := pktO;
+      pktU.PunktTransformiert.Punkt.z := pktU.PunktTransformiert.Punkt.z-1; //Synthetisierung eines virtuellen Punkts 1 Meter unter dem Seil
 
       //Punkt absenken
-      Durchhang := (0.00055 * sqr(Ersthaengerabstand + (a * Haengerabstand) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      Durchhang := (0.00055 * sqr((a * Haengerabstand) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=Startpunkt;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-      if a = 1 then
-      begin
-      //oberen Punkt des ersten Hängers für spätere Verwendung speichern
-      ErstNormalhaengerpunkt := pktO.PunktTransformiert.Punkt;
-      end;
-      if a = (i) then
-      begin
-      //oberen Punkt des letzten Hängers für spätere Verwendung speichern
-      LetztNormalhaengerpunkt := pktO.PunktTransformiert.Punkt;
-      end;
-    end;
-
-
-    // Tragseil-Abschnitte zwischen den Hängern
-    for a:=1 to length(ErgebnisArray)-1 do
-    begin
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErgebnisArray[a-1].Punkt2;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[a].Punkt2;
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-      //v:=ErgebnisArray[a].Punkt2;
+      Startpunkt := pktO.PunktTransformiert.Punkt;
+
+      //Isolator im Tragseil am Spannwerk
+      if a = i-1 then
+      begin
+        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+        LageIsolator(pktTB.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+      end;
     end;
 
-    //Verbindung zwischen letztem Normalhänger und Spannwerk an B
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    Startpunkt := pktFA.PunktTransformiert.Punkt;
+    for a:=1 to i do
+    begin
+      //Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, a * Haengerabstand);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+      pktU := pktO;
+      pktU.PunktTransformiert.Punkt.z := pktU.PunktTransformiert.Punkt.z-1; //Synthetisierung eines virtuellen Punkts 1 Meter unter dem Seil
 
-    //Isolator am Spannwerk oben
-    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktTB.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+      //Punkt absenken
+      Durchhang := (0.00055 * sqr((a * Haengerabstand) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
-    //Isolator am Spannwerk unten
-    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-    LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=Startpunkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeFD;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+      Startpunkt := pktO.PunktTransformiert.Punkt;
 
-
-    //erster  Hänger
-    //unterer Kettenwerkpunkt
-    D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, Ersthaengerabstand);
-    D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
-
-    //oberer Kettenwerkpunkt
-    D3DXVec3Normalize(vNorm, vTragseil);
-    D3DXVec3Scale(v, vNorm, Ersthaengerabstand);
-    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
-
-    //Punkt absenken
-    Durchhang := (0.00055 * sqr(Ersthaengerabstand - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
-    D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, Durchhang);
-    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
-
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-    //Verbindung zwischen erstem Hänger und erstem Normalhänger
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-    //Verbindung zwischen erstem Hänger und Ausleger A
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
-
-    //Fahrdraht eintragen
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeFD;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
+      //Isolator im Fahrdraht am Spannwerk
+      if a = i-1 then
+      begin
+        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+        LageIsolator(pktFB.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
+        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+      end;
+    end;
   end;
 end;
 
@@ -808,7 +757,7 @@ begin
     BaurichtungWechseln;
     Festpunktabspannung;
   end;
-  {if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungAusfaedelungFahrdraht,Ankertyp_FahrleitungAusfaedelungTragseil);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
+  if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungAusfaedelungFahrdraht,Ankertyp_FahrleitungAusfaedelungTragseil);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
   if (BautypA=Abschluss) and (BautypB=Ausfaedel) then
   begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
     BaurichtungWechseln;
@@ -819,7 +768,7 @@ begin
   begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
     BaurichtungWechseln;
     KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);
-  end; }
+  end;
 
   //einige unsinnige Kombinationen abfangen
   if (BautypA in [Festp,FestpIso]) and (BautypB in [ausfaedel, Abschluss]) then BaufunktionAufgerufen := true;

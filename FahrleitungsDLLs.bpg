@@ -14,6 +14,9 @@ PROJECTS = Ezs1007.dll Re160.dll Re200.dll Re330_250.dll
 default: $(PROJECTS)
 #------------------------------------------------------------------------------
 
+CatenaireFrance.dll: CatenaireFrance.dpr
+  $(DCC)
+
 Ezs1007.dll: Ezs1007.dpr
   $(DCC)
 
