@@ -203,6 +203,7 @@ var pktFA, pktFB, pktTA, pktTB, pktU, pktO:TAnkerpunkt;
     Abstand, Durchhang, {LaengeNormalhaengerbereich,} Ersthaengerabstand, Letzthaengerabstand, Rest:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, ErstNormalhaengerpunkt, LetztNormalhaengerpunkt:TD3DVector;
     i, j, a:integer;
+    TeilungFreiBerechnet:boolean;
 
 begin
   DrahtFarbe.r:=0.99;
@@ -231,16 +232,29 @@ begin
         if (Abstand < 26.75) or (Abstand > 63.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen des Kettenwerks (27 bis 63 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
 
-    i:=Math.Floor((Abstand - Ersthaengerabstand - Letzthaengerabstand)/13.5);    //max. Hängerabstand bei französischen Fahrleitungen ist 6,75 m; im Zweifel abrunden.
-    Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
-    //showmessage('Spannweite: '+ floattostr(Abstand) + '; Rest in Feldmitte: '+floattostr(Rest)+'; Anzahl Hänger vor Längenausgleich: ' + inttostr(((i*2)+2)));
-    if (Rest < 4.5) or (Rest > 6.75) then
+    //Für bestimmte Spannweiten die Hängerteilung vorgeben
+    TeilungFreiBerechnet := true;
+    if (Abstand > 26.75) and (Abstand < 29.25) then begin i := 1; j:=0; TeilungFreiBerechnet := false; end; //Kettenwerk N9
+    if (Abstand > 31.25) and (Abstand < 36.00) then begin i := 1; j:=1; TeilungFreiBerechnet := false; end; //Kettenwerk N8
+    if (Abstand > 40.25) and (Abstand < 42.75) then begin i := 2; j:=0; TeilungFreiBerechnet := false; end; //Kettenwerk N6
+    if (Abstand > 44.75) and (Abstand < 49.50) then begin i := 2; j:=1; TeilungFreiBerechnet := false; end; //Kettenwerk N5
+    if (Abstand > 53.75) and (Abstand < 56.25) then begin i := 3; j:=0; TeilungFreiBerechnet := false; end; //Kettenwerk N3
+    if (Abstand > 58.25) and (Abstand < 63.24) then begin i := 3; j:=1; TeilungFreiBerechnet := false; end; //Kettenwerk N2
+
+    if TeilungFreiBerechnet then
     begin
-      i := i-1;
+      //showmessage('Hängerteilung ist nicht tabelliert und muss frei berechnet werden.');
+      i:=Math.Floor((Abstand - Ersthaengerabstand - Letzthaengerabstand)/13.5);    //max. Hängerabstand bei französischen Fahrleitungen ist 6,75 m; im Zweifel abrunden.
       Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
-      //showmessage('Hängeranzahl wurde angepasst. Rest in Feldmitte jetzt '+floattostr(Rest));
+      //showmessage('Spannweite: '+ floattostr(Abstand) + '; Rest in Feldmitte: '+floattostr(Rest)+'; Anzahl Hänger vor Längenausgleich: ' + inttostr(((i*2)+2)));
+      if (Rest < 4.5) or (Rest > 6.75) then
+      begin
+        i := i-1;
+        Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
+        //showmessage('Hängeranzahl wurde angepasst. Rest in Feldmitte jetzt '+floattostr(Rest));
+      end;
+      if (Rest > 6.75) and (Rest < 9) then showmessage('Fehler: Das berechnete Kettenwerk ist unplausibel. Bitte beim DLL-Autor melden und die Spannweite nennen: '+ floattostr(Abstand));
     end;
-    if (Rest > 6.75) and (Rest < 9) then showmessage('Fehler: Das berechnete Kettenwerk ist unplausibel. Bitte beim DLL-Autor melden und die Spannweite nennen: '+ floattostr(Abstand));
 
     //Feststellen welcher Ankertyp am Tragseil zu erwarten ist
     if EndstueckA = Ausfaedel then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
@@ -287,9 +301,12 @@ begin
     end;
 
     //Hänger in Feldmitte
-    if (Rest > 9) and (Rest < 13.5) then j:=2; //es wird 1 zusätzlicher Hänger (= 2 Felder) benötigt
-    if (Rest > 13.5) and (Rest < 20.25) then j:=3; //es werden 2 zusätzliche Hänger (= 3 Felder) benötigt
-    if (Rest > 20.25) then j:=4; //es werden 3 zusätzliche Hänger (= 4 Felder) benötigt
+    if TeilungFreiBerechnet then
+    begin
+      if (Rest > 9) and (Rest < 13.5) then j:=2; //es wird 1 zusätzlicher Hänger (= 2 Felder) benötigt
+      if (Rest > 13.5) and (Rest < 20.25) then j:=3; //es werden 2 zusätzliche Hänger (= 3 Felder) benötigt
+      if (Rest > 20.25) then j:=4; //es werden 3 zusätzliche Hänger (= 4 Felder) benötigt
+    end;
     for a := 1 to (j-1) do
     begin
       //unterer Kettenwerkpunkt
@@ -313,6 +330,11 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+      //Falls es wegen sehr kurzer Spannweite keine Normalhänger gibt ist die Normalhängerschleife nicht durchgelaufen
+      //In diesem Fall muss ein Erst- und Letztnormalhaengerpunkt synthetisiert werden
+      if (i = 0) and (a = 1) then ErstNormalhaengerpunkt:=pktO.PunktTransformiert.Punkt;
+      if (i = 0) and (a > 1) then LetztNormalhaengerpunkt:=pktO.PunktTransformiert.Punkt;
     end;
 
     //Normalhänger ab Ausleger B
@@ -352,46 +374,6 @@ begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
       ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErgebnisArray[a-1].Punkt2;
       ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[a].Punkt2;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-    end;
-
-    //Falls es wegen sehr kurzer Spannweite keine Normalhänger gibt (nicht systemgemäß, kommt aber in der Realität vor) ist die Normalhängerschleife nicht durchgelaufen
-    //In diesem Fall muss ein Erst- und Letztnormalhaengerpunkt synthetisiert werden
-    if i = 0 then
-    begin
-      //unterer Kettenwerkpunkt Erstnormalhaenger
-      D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm,Ersthaengerabstand);
-      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
-      //oberer Kettenwerkpunkt Erstnormalhaenger
-      D3DXVec3Normalize(vNorm, vTragseil);
-      D3DXVec3Scale(v, vNorm, Ersthaengerabstand);
-      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
-      //Punkt absenken
-      Durchhang := (0.00055 * sqr(Ersthaengerabstand - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
-      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-      D3DXVec3Scale(vNeu, v, Durchhang);
-      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
-      ErstNormalhaengerpunkt:=pktO.PunktTransformiert.Punkt;
-      //unterer Kettenwerkpunkt Letztnormalhaenger
-      D3DXVec3Normalize(vNorm, vFahrdraht);
-      D3DXVec3Scale(v, vNorm,(Abstand-Letzthaengerabstand));
-      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
-      //oberer Kettenwerkpunkt Letztnormalhaenger
-      D3DXVec3Normalize(vNorm, vTragseil);
-      D3DXVec3Scale(v, vNorm, (Abstand-Letzthaengerabstand));
-      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
-      //Punkt absenken
-      Durchhang := (0.00055 * sqr((Abstand-Letzthaengerabstand) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
-      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-      D3DXVec3Scale(vNeu, v, Durchhang);
-      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
-      LetztNormalhaengerpunkt:=pktO.PunktTransformiert.Punkt;
-
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=LetztNormalhaengerpunkt;
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
