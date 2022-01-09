@@ -234,13 +234,14 @@ begin
 
     //Für bestimmte Spannweiten die Hängerteilung vorgeben
     TeilungFreiBerechnet := true;
-    if (Abstand > 26.75) and (Abstand < 29.25) then begin i := 1; j:=0; TeilungFreiBerechnet := false; end; //Kettenwerk N9
-    if (Abstand > 31.25) and (Abstand < 36.00) then begin i := 1; j:=1; TeilungFreiBerechnet := false; end; //Kettenwerk N8
-    if (Abstand > 40.25) and (Abstand < 42.75) then begin i := 2; j:=0; TeilungFreiBerechnet := false; end; //Kettenwerk N6
-    if (Abstand > 44.75) and (Abstand < 49.50) then begin i := 2; j:=1; TeilungFreiBerechnet := false; end; //Kettenwerk N5
-    if (Abstand > 53.75) and (Abstand < 56.25) then begin i := 3; j:=0; TeilungFreiBerechnet := false; end; //Kettenwerk N3
-    if (Abstand > 58.25) and (Abstand < 63.24) then begin i := 3; j:=1; TeilungFreiBerechnet := false; end; //Kettenwerk N2
+    if (Abstand > 26.75) and (Abstand < 29.25) then begin i:=1; j:=0; TeilungFreiBerechnet:=false; end; //Kettenwerk N9
+    if (Abstand > 31.25) and (Abstand < 36.00) then begin i:=1; j:=2; TeilungFreiBerechnet:=false; end; //Kettenwerk N8
+    if (Abstand > 40.25) and (Abstand < 42.75) then begin i:=2; j:=0; TeilungFreiBerechnet:=false; end; //Kettenwerk N6
+    if (Abstand > 44.75) and (Abstand < 49.50) then begin i:=2; j:=2; TeilungFreiBerechnet:=false; end; //Kettenwerk N5
+    if (Abstand > 53.75) and (Abstand < 56.25) then begin i:=3; j:=0; TeilungFreiBerechnet:=false; end; //Kettenwerk N3
+    if (Abstand > 58.25) and (Abstand < 63.24) then begin i:=3; j:=2; TeilungFreiBerechnet:=false; end; //Kettenwerk N2
 
+    Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
     if TeilungFreiBerechnet then
     begin
       //showmessage('Hängerteilung ist nicht tabelliert und muss frei berechnet werden.');
