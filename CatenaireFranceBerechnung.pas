@@ -233,12 +233,12 @@ begin
 
     i:=Math.Floor((Abstand - Ersthaengerabstand - Letzthaengerabstand)/13.5);    //max. Hängerabstand bei französischen Fahrleitungen ist 6,75 m; im Zweifel abrunden.
     Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
-    //showmessage('Spannweite: '+ floattostr(Abstand) + '; Rest in Feldmitte: '+floattostr(Rest)+'; Anzahl Hänger vor Längenausgleich:' + inttostr(((i*2)+2)));
-    if Rest < 4.5 then
+    showmessage('Spannweite: '+ floattostr(Abstand) + '; Rest in Feldmitte: '+floattostr(Rest)+'; Anzahl Hänger vor Längenausgleich:' + inttostr(((i*2)+2)));
+    if (Rest < 4.5) or (Rest > 6.75) then
     begin
       i := i-1;
       Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
-      //showmessage('Hängeranzahl wurde angepasst. Rest in Feldmitte jetzt '+floattostr(Rest));
+      showmessage('Hängeranzahl wurde angepasst. Rest in Feldmitte jetzt '+floattostr(Rest));
     end;
     if (Rest > 6.75) and (Rest < 9) then showmessage('Fehler: Das berechnete Kettenwerk ist unplausibel. Bitte beim DLL-Autor melden und die Spannweite nennen: '+ floattostr(Abstand));
 
@@ -312,7 +312,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
-    if Rest > 13.5 then //es werden 2 zusätzliche Hänger benötigt
+    if (Rest > 13.5) and (Rest < 20.25) then //es werden 2 zusätzliche Hänger benötigt
     begin
       //erster Hänger
       //unterer Kettenwerkpunkt
@@ -350,6 +350,78 @@ begin
 
       //Punkt absenken
       Durchhang := (0.00055 * sqr(Ersthaengerabstand + (i * 6.75) + ((Rest/3)*2) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    end;
+
+    if (Rest > 20.25) then //es werden 3 zusätzliche Hänger benötigt
+    begin
+      //erster Hänger
+      //unterer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (i * 6.75)+(Rest/4)));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      //oberer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + (i * 6.75)+(Rest/4));
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      Durchhang := (0.00055 * sqr(Ersthaengerabstand + (i * 6.75) + (Rest/4) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+      //zweiter Hänger
+      //unterer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (i * 6.75)+((Rest/4)*2)));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      //oberer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + (i * 6.75)+((Rest/4))*2);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      Durchhang := (0.00055 * sqr(Ersthaengerabstand + (i * 6.75) + ((Rest/4)*2) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
+      D3DXVec3Scale(vNeu, v, Durchhang);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
+
+      setlength(ErgebnisArray, length(ErgebnisArray)+1);
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
+      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
+      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+
+      //dritter Hänger
+      //unterer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vFahrdraht);
+      D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (i * 6.75)+((Rest/4)*3)));
+      D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
+
+      //oberer Kettenwerkpunkt
+      D3DXVec3Normalize(vNorm, vTragseil);
+      D3DXVec3Scale(v, vNorm, Ersthaengerabstand + (i * 6.75)+((Rest/4))*3);
+      D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
+
+      //Punkt absenken
+      Durchhang := (0.00055 * sqr(Ersthaengerabstand + (i * 6.75) + ((Rest/4)*3) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
