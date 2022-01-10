@@ -14,6 +14,9 @@ Erzeugt Kettenwerk für die Fahrleitungsbauformen Re 160, Re 100 oder Re 75 der D
 ## DLL "Ezs 1007"
 Kann eine tragseillose/tragseilarme Fahrleitung nach Ezs 1007 erzeugen. Für Festpunktabspannungen bitte einstweilen die Re-160-DLL verwenden. Zukünftig wäre denkbar, noch einen "Re-60-Modus" für die moderne Form der Einfachfahrleitung zu implementieren, bei der die Länge des Tragseils mit der Längsspannweite variiert.
 
+## DLL "Catenaire France"
+Erzeugt Kettenwerk der französischen Fahrleitungsbauart V350 STI.
+
 ## Weitere Infos
 Programmiersprache ist Delphi 7. Nicht weil ich gerne mit Antiquitäten handele, sondern weil der Beispiel-Quelltext in dieser Sprache vorlag und ich nicht erst ein Portierungs-Projekt starten wollte, und Delphi 7 auch heute noch recht problemlos kostenlos zu bekommen ist. Außerdem sind die DLLs damit ohne Klimmzüge zu den Eigenarten des in Delphi 7 geschriebenen Zusi 3 kompatibel.
 
