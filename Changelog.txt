@@ -2,12 +2,14 @@
 Re 160 Erweiterte Funktionen
 - Erste veröffentlichte Version
 
+
 1.0.0.5 (11.9.2017)
 Re 160 Erweiterte Funktionen
 - Die Baurichtung (A oder B) ist jetzt egal
 - Tragseile werden mit Durchhang berechnet
 - Verbesserter Algorithmus zur Lagebestimmung von Isolatoren
 - Experimentell: Drahtstärke konfigurierbar, Bau von Fahrdrähten ohne Y-Beiseil
+
 
 1.0.0.7 (20.11.2018)
 Re 160 Erweiterte Funktionen
@@ -25,6 +27,7 @@ Ezs 1007
 1.0.0.9 (6.4.2020)
 Ezs 1007
 - Fahrdrähte mit verkürzten Tragseilen (an Quertragwerken) sind möglich
+
 
 1.0.1.0 (30.7.2020)
 Re 200
@@ -87,6 +90,12 @@ Re 160
 - Isolatoren für geerdete Ausleger auch ohne Y-Seil möglich
 - Korrektes Tragseil auch bei sehr kurzen Längsspannweiten
 
+
 1.0.1.9 (6.1.2022)
 Re 160
 - Möglichen Fehler bei der Positionierung von Z-Seilen beseitigt
+
+
+1.0.2.0 (10.1.2022)
+Catenaire France
+- Erste Veröffentlichung

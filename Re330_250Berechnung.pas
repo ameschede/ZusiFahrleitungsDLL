@@ -284,6 +284,7 @@ begin
       i := i+1;
     end;}
 
+    //TODO: Die am 6.1.22 in der Re160.dll behobene Falschpositionierung des Z-Seils scheint unter den Bedingungen von HOL-Kettenwerk nicht aufzutreten. Ggfs. den Algorithmus aus der Re160 hierher übernehmen.
     //falls ein Z-Seil gebraucht wird, dann ist es nach dem folgenden Hänger einzubauen:
     case i of
       2: zSeilHaenger := 1;
