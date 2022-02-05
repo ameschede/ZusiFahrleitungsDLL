@@ -99,3 +99,7 @@ Re 160
 1.0.2.0 (10.1.2022)
 Catenaire France
 - Erste Veröffentlichung
+
+1.0.2.1 (5.2.2022)
+Re 160
+- Minimale Spannweite von Normalausleger auf Abspannung auf 23,3 m gesetzt
