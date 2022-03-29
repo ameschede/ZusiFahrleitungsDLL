@@ -1,10 +1,12 @@
-unit Ezs1007ConfigForm;
+﻿unit Ezs1007ConfigForm;
+
+{$MODE Delphi}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, StdCtrls, Buttons, ExtCtrls, Registry;
+  SysUtils, Variants, Interfaces, Classes, Graphics, Controls, Forms,
+  Dialogs, Buttons, ExtCtrls, Registry;
 
 type
   TFormEzs1007Config = class(TForm)
@@ -27,7 +29,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TFormEzs1007Config.Dateiauswahl(Edit:TLabeledEdit);
 var Arbeitsverzeichnis,VerzeichnisStickPrivat,VerzeichnisStickOffiziell,VerzeichnisSteamPrivat,VerzeichnisSteamOffiziell:string;
@@ -48,7 +50,7 @@ begin
     except
       reg.Free;
     end;
-    //soweit m�glich einen relativen Pfad herstellen
+    //soweit möglich einen relativen Pfad herstellen
     Arbeitsverzeichnis := stringReplace(OpenDialogDatei.FileName,VerzeichnisStickPrivat,'',[rfIgnoreCase]);
     Arbeitsverzeichnis := stringReplace(Arbeitsverzeichnis,VerzeichnisStickOffiziell,'',[rfIgnoreCase]);
     Arbeitsverzeichnis := stringReplace(Arbeitsverzeichnis,VerzeichnisSteamPrivat,'',[rfIgnoreCase]);
@@ -56,8 +58,6 @@ begin
     Edit.Text:=Arbeitsverzeichnis;
   end;
 end;
-
-
 
 
 procedure TFormEzs1007Config.SpeedButtonIsolatorClick(Sender: TObject);

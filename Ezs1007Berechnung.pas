@@ -1,13 +1,16 @@
-unit Ezs1007Berechnung;
+ï»¿unit Ezs1007Berechnung;
+
+{$MODE Delphi}
 
 interface
 
 uses
   Direct3D9, d3dx9, 
   
-  sysutils, Controls, registry, windows, forms, Math,
+  sysutils, Controls, registry, windows, interfaces, forms, Classes,
   
   ZusiD3DTypenDll, FahrleitungsTypen, OLADLLgemeinsameFkt, Ezs1007ConfigForm;
+
 
 function Init:Longword; stdcall;
 function BauartTyp(i:Longint):PChar; stdcall;
@@ -17,6 +20,8 @@ function Bezeichnung:PChar; stdcall;
 function Gruppe:PChar; stdcall;
 procedure Config(AppHandle:HWND); stdcall;
 
+implementation
+
 exports Init,
         BauartTyp,
         BauartVorschlagen,
@@ -25,10 +30,6 @@ exports Init,
         Gruppe,
         Config;
 
-
-implementation
-
-uses Classes;
 
 var DateiIsolator:string;
     Drahtstaerke:single;
@@ -48,7 +49,7 @@ begin
               begin
                 Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
                 case Drahtkennzahl of
-                0: Drahtstaerke := 0.015;  // Zusi Legacy-Drahtstärke
+                0: Drahtstaerke := 0.015;  // Zusi Legacy-DrahtstÃ¤rke
                 1: Drahtstaerke := 0.006;  // Draht Ri 100
                 end;
               end;
@@ -90,9 +91,9 @@ end;
 
 
 function Init:Longword; stdcall;
-// Rückgabe: Anzahl der Bauarttypen
+// RÃ¼ckgabe: Anzahl der Bauarttypen
 begin
-  Result:=3;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=3;  //muss passen zu den mÃ¶glichen RÃ¼ckgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
@@ -102,18 +103,18 @@ begin
 end;
 
 function BauartTyp(i:Longint):PChar; stdcall;
-// Wird vom Editor so oft aufgerufen, wie wir als Result in der init-function übergeben haben. Enumeriert die Bauart-Typen, die diese DLL kennt 
+// Wird vom Editor so oft aufgerufen, wie wir als Result in der init-function Ã¼bergeben haben. Enumeriert die Bauart-Typen, die diese DLL kennt 
 begin
   case i of
   0: Result:='Ezs 1007 am Ausleger';
-  1: Result:='Abschluß mit Isolator';
+  1: Result:='AbschluÃŸ mit Isolator';
   2: Result:='Ezs 1007 am QTW';
   else Result := 'Ezs 1007 am Ausleger'
   end;
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
-// Wir versuchen, aus der vom Editor übergebenen Ankerkonfiguration einen Bauarttypen vorzuschlagen
+// Wir versuchen, aus der vom Editor Ã¼bergebenen Ankerkonfiguration einen Bauarttypen vorzuschlagen
   function Vorschlagen(Punkte:array of TAnkerpunkt):Longint	;
   var iOben2, iUnten2:integer;
       b:integer;
@@ -171,7 +172,7 @@ begin
     //Tragseil am Ausleger A
     //unterer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, pTragseillaengeA);    //Tragseil von x Meter Länge am Ausleger A
+    D3DXVec3Scale(v, vNorm, pTragseillaengeA);    //Tragseil von x Meter LÃ¤nge am Ausleger A
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
@@ -179,14 +180,14 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 {
-    //Stützrohrhänger Ausleger A
+    //StÃ¼tzrohrhÃ¤nger Ausleger A
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //Stützrohrhänger Ausleger B
+    //StÃ¼tzrohrhÃ¤nger Ausleger B
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFB.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTB.PunktTransformiert.Punkt;
@@ -199,7 +200,7 @@ begin
     //Tragseil am Ausleger B
     //unterer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, -(pTragseillaengeB));    //Tragseil von x Meter Länge am Ausleger B
+    D3DXVec3Scale(v, vNorm, -(pTragseillaengeB));    //Tragseil von x Meter LÃ¤nge am Ausleger B
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt, v);
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
@@ -218,7 +219,7 @@ begin
 
   if pAbschluss = true then
   begin
-    //Isolator an der Ausfädelung
+    //Isolator an der AusfÃ¤delung
     setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
     LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
     ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
@@ -231,14 +232,14 @@ end;
 
 
 function Berechnen(Typ1, Typ2:Longint):TErgebnis; stdcall;
-// Der Benutzer hat auf 'Ausführen' geklickt.
-// Rückgabe: Anzahl der Linien
+// Der Benutzer hat auf 'AusfÃ¼hren' geklickt.
+// RÃ¼ckgabe: Anzahl der Linien
 begin
-  //zunächst nochmal Grundzustand herstellen
+  //zunÃ¤chst nochmal Grundzustand herstellen
   setlength(ErgebnisArray, 0);
   setlength(ErgebnisArrayDateien, 0);
 
-  //wenn wir mehrere Sorten Fahrdrähte verlegen können, wird hier entschieden was wir machen
+  //wenn wir mehrere Sorten FahrdrÃ¤hte verlegen kÃ¶nnen, wird hier entschieden was wir machen
   //Das Radspannwerk muss immer an A liegen. Ggfs. wird es deshalb passend hingedreht.
   if (Typ1=0) and (Typ2=1) then Ezs1007Fahrdraht(5,5,true);
   if (Typ1=1) and (Typ2=0) then
@@ -274,7 +275,7 @@ begin
 end;
 
 function Gruppe:PChar; stdcall;
-// Teilt dem Editor die Objektgruppe mit, die er bei den verknüpften Dateien vermerken soll
+// Teilt dem Editor die Objektgruppe mit, die er bei den verknÃ¼pften Dateien vermerken soll
 begin
   Result:=Gruppefahrleitung;
 end;
@@ -282,11 +283,11 @@ end;
 procedure Config(AppHandle:HWND); stdcall;
 var Formular:TFormEzs1007Config;
 begin
+  Application.Initialize;
   Application.Handle:=AppHandle;
   Formular:=TFormEzs1007Config.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
   Formular.RadioGroupDrahtstaerke.ItemIndex := Drahtkennzahl;
-
   Formular.ShowModal;
 
   if Formular.ModalResult=mrOK then

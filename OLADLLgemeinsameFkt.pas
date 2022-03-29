@@ -1,4 +1,6 @@
-unit OLADLLgemeinsameFkt; //von mehreren Fahrleitungs-DLL einheitlich gebrauchte Funktionen
+ï»¿unit OLADLLgemeinsameFkt; //von mehreren Fahrleitungs-DLL einheitlich gebrauchte Funktionen
+
+{$MODE Delphi}
 
 interface
 
@@ -29,6 +31,8 @@ function Mastabstand(Kruemmung:single; MastAbstand:single):single; stdcall;
 procedure Maststandort(StrMitte, StreckenMitteNachfolger:TD3DVector; Winkel, Ueberhoehung, Helligkeitswert:single; Rechts:Boolean; var MastKoordinate, WinkelVektor:TD3DVector; var Dateiname:PChar); stdcall;
 function AnkerImportDatei(i:Longword; var AnkerIndex:Longword; var Dateiname:PChar):Boolean; stdcall;
 
+implementation
+
 exports
   Fahrleitungstyp,
   dllVersion,
@@ -43,10 +47,10 @@ exports
   Maststandort,
   AnkerImportDatei;
 
-implementation
+
 
 function Fahrleitungstyp:TFahrleitungstyp; stdcall;
-//Wird nur für Automatik-Modus gebraucht; gibt an welche Sorte Fahrleitung wir verlegen
+//Wird nur fÃ¼r Automatik-Modus gebraucht; gibt an welche Sorte Fahrleitung wir verlegen
 begin
   Result:=Fahrl_15kV16Hz;
 end;
@@ -94,7 +98,7 @@ end;
 
 
 procedure Systemversatz(s:single); stdcall;
-//Wird nur für Automatik-Modus gebraucht
+//Wird nur fÃ¼r Automatik-Modus gebraucht
 begin
 //nicht implementiert
 end;
@@ -111,7 +115,7 @@ end;
 
 
 procedure NeuerPunkt(A:Boolean; Punkt:TAnkerpunkt); stdcall;
-// Wenn der Benutzer ein Fahrleitungsbauteil angeklickt hat, ruft der Editor für
+// Wenn der Benutzer ein Fahrleitungsbauteil angeklickt hat, ruft der Editor fÃ¼r
 // jeden Anker des Bauteils diese Funktion auf. Damit werden der DLL die
 // Positionen der Ankerpunkte bekanntgemacht
 begin
@@ -204,45 +208,45 @@ end;
 
 
 function ErgebnisDraht(i:Longword):TLinie; stdcall;
-// wird vom Editor je nach Länge des Result-Arrays der function Berechnen
-// aufgerufen, um sich nach und nach die berechneten Drähte abzuholen
+// wird vom Editor je nach LÃ¤nge des Result-Arrays der function Berechnen
+// aufgerufen, um sich nach und nach die berechneten DrÃ¤hte abzuholen
 begin
   if (i>=0) and (i<=length(ErgebnisArray)-1) then Result:=ErgebnisArray[i];
 end;
 
 
 function ErgebnisDateien(i:Longword):TVerknuepfung; stdcall;
-// wird vom Editor je nach Länge des Result-Arrays der function Berechnen
-// aufgerufen, um sich nach und nach die berechneten verknüpften Dateien abzuholen
+// wird vom Editor je nach LÃ¤nge des Result-Arrays der function Berechnen
+// aufgerufen, um sich nach und nach die berechneten verknÃ¼pften Dateien abzuholen
 begin
   if (i>=0) and (i<=length(ErgebnisArrayDateien)-1) then Result:=ErgebnisArrayDateien[i];
 end;
 
 
 function Drahthoehe:single; stdcall;
-// wir machen derzeit keine Drahthöhenberechnung für den Automatikmodus und
-// geben stumpf immer 5,50 m zurück.
+// wir machen derzeit keine DrahthÃ¶henberechnung fÃ¼r den Automatikmodus und
+// geben stumpf immer 5,50 m zurÃ¼ck.
 begin
   Result:=5.5;
 end;
 
 
 function Mastabstand(Kruemmung:single; MastAbstand:single):single; stdcall;
-// wird nur für Automatikmodus gebraucht. Nicht implementiert, deshalb gibt sie immer stumpf 80 m zurück.
+// wird nur fÃ¼r Automatikmodus gebraucht. Nicht implementiert, deshalb gibt sie immer stumpf 80 m zurÃ¼ck.
 begin
   Result:=80;
 end;
 
 
 procedure Maststandort(StrMitte, StreckenMitteNachfolger:TD3DVector; Winkel, Ueberhoehung, Helligkeitswert:single; Rechts:Boolean; var MastKoordinate, WinkelVektor:TD3DVector; var Dateiname:PChar); stdcall;
-// wird nur für Automatikmodus gebraucht. Nicht implementiert
+// wird nur fÃ¼r Automatikmodus gebraucht. Nicht implementiert
 begin
 
 end;
 
 
 function AnkerImportDatei(i:Longword; var AnkerIndex:Longword; var Dateiname:PChar):Boolean; stdcall;
-// Wird nur für Automatikmodus gebraucht; Nicht implementiert
+// Wird nur fÃ¼r Automatikmodus gebraucht; Nicht implementiert
 begin
   Result:=false;
 end;

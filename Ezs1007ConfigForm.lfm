@@ -1,0 +1,86 @@
+object FormEzs1007Config: TFormEzs1007Config
+  Left = 327
+  Top = 188
+  AutoScroll = False
+  BorderIcons = [biSystemMenu, biMaximize]
+  Caption = 'Fahrleitungseinstellungen'
+  ClientHeight = 159
+  ClientWidth = 509
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Scaled = False
+  PixelsPerInch = 96
+  object SpeedButtonIsolator: TSpeedButton
+    Left = 296
+    Top = 8
+    Width = 25
+    Height = 25
+    Glyph.Data = {
+      F6000000424DF600000000000000760000002800000010000000100000000100
+      0400000000008000000000000000000000001000000000000000000000000000
+      80000080000000808000800000008000800080800000C0C0C000808080000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00D0000000000D
+      DDDD003333333330DDDD0B03333333330DDD0BB03333333330DD0BBB03333333
+      330D0BBBB033333333300BBBBB00000000000BBBBBBBBB0DDDDD0BBBBBBBBB0D
+      DDDD0BBB000000DDDD000000DDDDDDDD0000DDDDDDDDDDDDD00DDDDDDDD00DDD
+      0D0DDDDDDDDDD000DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+    }
+    OnClick = SpeedButtonIsolatorClick
+  end
+  object OK: TBitBtn
+    Left = 392
+    Top = 130
+    Width = 113
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object BitBtnAbbrechen: TBitBtn
+    Left = 392
+    Top = 98
+    Width = 113
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Abbrechen'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object LabeledEditIsolator: TLabeledEdit
+    Left = 8
+    Top = 16
+    Width = 281
+    Height = 21
+    EditLabel.Width = 34
+    EditLabel.Height = 13
+    EditLabel.Caption = 'Isolator'
+    TabOrder = 2
+  end
+  object RadioGroupDrahtstaerke: TRadioGroup
+    Left = 8
+    Top = 48
+    Width = 177
+    Height = 65
+    Caption = 'Fahrdrahtstärke'
+    ItemIndex = 0
+    Items.Strings = (
+      'Fahrdrahtstärke bis Zusi 3.1'
+      'Fahrdraht Ri 100'
+    )
+    TabOrder = 3
+  end
+  object OpenDialogDatei: TOpenDialog
+    DefaultExt = 'lod.ls3'
+    FileName = '*.lod.ls3'
+    Filter = '3D-LOD-Objekt (*.lod.ls3)|*.lod.ls3'
+    Left = 336
+    Top = 8
+  end
+end
