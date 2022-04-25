@@ -79,7 +79,7 @@ end;
 
 procedure TFormFahrleitungConfig.FormCreate(Sender: TObject);
 begin
-  ScaleDPI(Self,96); //96er DisgnTime-DPI
+  if Screen.PixelsPerInch <> 192 then ScaleDPI(Self,192);
 end;
 
 end.

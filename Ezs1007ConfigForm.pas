@@ -71,7 +71,7 @@ end;
 
 procedure TFormEzs1007Config.FormCreate(Sender: TObject);
 begin
-  ScaleDPI(Self,96); //96er DesignTime-DPI
+     if Screen.PixelsPerInch <> 192 then ScaleDPI(Self,192);
 end;
 
 end.
