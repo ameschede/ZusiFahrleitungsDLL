@@ -6,9 +6,12 @@ interface
 
 uses
   SysUtils, Variants, Interfaces, Classes, Graphics, Controls, Forms,
-  Dialogs, Buttons, ExtCtrls, Registry;
+  Dialogs, Buttons, ExtCtrls, Registry, OLADLLgemeinsameFkt;
 
 type
+
+  { TFormEzs1007Config }
+
   TFormEzs1007Config = class(TForm)
     OK: TBitBtn;
     BitBtnAbbrechen: TBitBtn;
@@ -16,6 +19,7 @@ type
     SpeedButtonIsolator: TSpeedButton;
     LabeledEditIsolator: TLabeledEdit;
     RadioGroupDrahtstaerke: TRadioGroup;
+    procedure FormCreate(Sender: TObject);
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }
@@ -63,6 +67,11 @@ end;
 procedure TFormEzs1007Config.SpeedButtonIsolatorClick(Sender: TObject);
 begin
    Dateiauswahl(LabeledEditIsolator);
+end;
+
+procedure TFormEzs1007Config.FormCreate(Sender: TObject);
+begin
+  ScaleDPI(Self,96); //96er DesignTime-DPI
 end;
 
 end.

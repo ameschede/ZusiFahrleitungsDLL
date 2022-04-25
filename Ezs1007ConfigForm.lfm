@@ -4,13 +4,14 @@ object FormEzs1007Config: TFormEzs1007Config
   Top = 169
   Width = 414
   BorderIcons = [biSystemMenu, biMaximize]
-  Caption = 'Fahrleitungseinstellungen'
+  Caption = 'Ezs 1007 Einstellungen'
   ClientHeight = 167
   ClientWidth = 414
   Color = clBtnFace
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
   LCLVersion = '2.2.0.4'
   Scaled = False
   object SpeedButtonIsolator: TSpeedButton

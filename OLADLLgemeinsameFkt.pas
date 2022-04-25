@@ -7,7 +7,8 @@ interface
 uses
   Direct3D9, d3dx9,
   sysutils, windows, math,
-  ZusiD3DTypenDll,FahrleitungsTypen;
+  ZusiD3DTypenDll,FahrleitungsTypen,
+  Forms, Graphics, Controls;
 
 var
   ErgebnisArray:array of TLinie;
@@ -30,6 +31,8 @@ function Drahthoehe:single; stdcall;
 function Mastabstand(Kruemmung:single; MastAbstand:single):single; stdcall;
 procedure Maststandort(StrMitte, StreckenMitteNachfolger:TD3DVector; Winkel, Ueberhoehung, Helligkeitswert:single; Rechts:Boolean; var MastKoordinate, WinkelVektor:TD3DVector; var Dateiname:PChar); stdcall;
 function AnkerImportDatei(i:Longword; var AnkerIndex:Longword; var Dateiname:PChar):Boolean; stdcall;
+procedure HighDPI(FromDPI: Integer);
+procedure ScaleDPI(Control: TControl; FromDPI: Integer);
 
 implementation
 
@@ -251,6 +254,40 @@ begin
   Result:=false;
 end;
 
+procedure HighDPI(FromDPI: Integer);
+var
+  i: Integer;
+begin
+  for i:=0 to Screen.FormCount-1 do
+    ScaleDPI(Screen.Forms[i],FromDPI);
+end;
+
+procedure ScaleDPI(Control: TControl; FromDPI: Integer);
+var
+  n: Integer;
+  WinControl: TWinControl;
+begin
+  if Screen.PixelsPerInch = FromDPI then exit;
+
+  with Control do begin
+    Left:=ScaleX(Left,FromDPI);
+    Top:=ScaleY(Top,FromDPI);
+    Width:=ScaleX(Width,FromDPI);
+    Height:=ScaleY(Height,FromDPI);
+    Font.Height := ScaleY(Font.GetTextHeight('Hg'),FromDPI);
+  end;
+
+  if Control is TWinControl then begin
+    WinControl:=TWinControl(Control);
+    if WinControl.ControlCount > 0 then begin
+      for n:=0 to WinControl.ControlCount-1 do begin
+        if WinControl.Controls[n] is TControl then begin
+          ScaleDPI(WinControl.Controls[n],FromDPI);
+        end;
+      end;
+    end;
+  end;
+end;
 
 end.
  
