@@ -1,12 +1,17 @@
-unit CatenaireFranceConfigForm;
+﻿unit CatenaireFranceConfigForm;
+
+{$MODE Delphi}
 
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, StdCtrls, Buttons, ExtCtrls, Registry, ComCtrls;
+  Dialogs, Grids, StdCtrls, Buttons, ExtCtrls, Registry, ComCtrls, OLADLLgemeinsameFkt;
 
 type
+
+  { TFormFahrleitungConfig }
+
   TFormFahrleitungConfig = class(TForm)
     OK: TBitBtn;
     BitBtnAbbrechen: TBitBtn;
@@ -20,6 +25,7 @@ type
     LabelAnkermast: TLabel;
     TrackBarFestpunktisolator: TTrackBar;
     RadioGroupKettenwerksabschluss: TRadioGroup;
+    procedure FormCreate(Sender: TObject);
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
     { Private-Deklarationen }
@@ -33,7 +39,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TFormFahrleitungConfig.Dateiauswahl(Edit:TLabeledEdit);
 var Arbeitsverzeichnis,VerzeichnisStickPrivat,VerzeichnisStickOffiziell,VerzeichnisSteamPrivat,VerzeichnisSteamOffiziell:string;
@@ -54,7 +60,7 @@ begin
     except
       reg.Free;
     end;
-    //soweit m�glich einen relativen Pfad herstellen
+    //soweit möglich einen relativen Pfad herstellen
     Arbeitsverzeichnis := stringReplace(OpenDialogDatei.FileName,VerzeichnisStickPrivat,'',[rfIgnoreCase]);
     Arbeitsverzeichnis := stringReplace(Arbeitsverzeichnis,VerzeichnisStickOffiziell,'',[rfIgnoreCase]);
     Arbeitsverzeichnis := stringReplace(Arbeitsverzeichnis,VerzeichnisSteamPrivat,'',[rfIgnoreCase]);
@@ -69,6 +75,11 @@ end;
 procedure TFormFahrleitungConfig.SpeedButtonIsolatorClick(Sender: TObject);
 begin
    Dateiauswahl(LabeledEditIsolator);
+end;
+
+procedure TFormFahrleitungConfig.FormCreate(Sender: TObject);
+begin
+  ScaleDPI(Self,96); //96er DisgnTime-DPI
 end;
 
 end.

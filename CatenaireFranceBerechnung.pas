@@ -1,11 +1,13 @@
-unit CatenaireFranceBerechnung;
+ï»¿unit CatenaireFranceBerechnung;
+
+{$MODE Delphi}
 
 interface
 
 uses
-  Direct3D9, d3dx9,
+  Direct3D9, D3DX9,
 
-  sysutils, Controls, registry, windows, forms, Math, Dialogs,
+  sysutils, Controls, registry, windows, forms, Math, Dialogs, interfaces,
   
   ZusiD3DTypenDll, FahrleitungsTypen, OLADLLgemeinsameFkt, CatenaireFranceConfigForm;
 
@@ -22,6 +24,8 @@ function Bezeichnung:PChar; stdcall;
 function Gruppe:PChar; stdcall;
 procedure Config(AppHandle:HWND); stdcall;
 
+implementation
+
 exports Init,
         BauartTyp,
         BauartVorschlagen,
@@ -29,9 +33,6 @@ exports Init,
         Bezeichnung,
         Gruppe,
         Config;
-
-
-implementation
 
 var
     DateiIsolator:string;
@@ -115,9 +116,9 @@ end;
 
 
 function Init:Longword; stdcall;
-// Rückgabe: Anzahl der Bauarttypen
+// RÃ¼ckgabe: Anzahl der Bauarttypen
 begin
-  Result:=5;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=5;  //muss passen zu den mÃ¶glichen RÃ¼ckgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
@@ -133,20 +134,20 @@ begin
 end;
 
 function BauartTyp(i:Longint):PChar; stdcall;
-// Wird vom Editor so oft aufgerufen, wie wir als Result in der init-function übergeben haben. Enumeriert die Bauart-Typen, die diese DLL kennt 
+// Wird vom Editor so oft aufgerufen, wie wir als Result in der init-function Ã¼bergeben haben. Enumeriert die Bauart-Typen, die diese DLL kennt 
 begin
   case i of
   0: Result:='Normalkettenwerk';
   1: Result:='Festpunktabspannung';
   2: Result:='Festpunktabspannung mit Isolator';
-  3: Result:='Ausfädelung';
+  3: Result:='AusfÃ¤delung';
   4: Result:='Abschluss mit Isolatoren';
   else Result := 'Normalkettenwerk'
   end;
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
-// Wir versuchen, aus der vom Editor übergebenen Ankerkonfiguration einen Bauarttypen vorzuschlagen
+// Wir versuchen, aus der vom Editor Ã¼bergebenen Ankerkonfiguration einen Bauarttypen vorzuschlagen
   function Vorschlagen(Punkte:array of TAnkerpunkt):Longint	;
   var iOben0, iUnten0, iOben1, iUnten1, iOben2, iUnten2:integer;
       b:integer;
@@ -168,7 +169,7 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
     end;
     if (iUnten0=1) and (iOben0=1) then Result:=4;
 
-    //liegt ein Ausfädelungs-Ausleger vor?
+    //liegt ein AusfÃ¤delungs-Ausleger vor?
     for b:=0 to length(Punkte)-1 do
     begin
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungAusfaedelungFahrdraht then inc(iUnten1);
@@ -226,13 +227,13 @@ begin
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
 
-    //Spannweite auf Plausibilität prüfen
+    //Spannweite auf PlausibilitÃ¤t prÃ¼fen
     if (EndstueckA in [Normal]) and (EndstueckB in [Normal]) then
       begin
-        if (Abstand < 26.75) or (Abstand > 63.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen des Kettenwerks (27 bis 63 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+        if (Abstand < 26.75) or (Abstand > 63.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m LÃ¤ngsspannweite liegt auÃŸerhalb der zulÃ¤ssigen Grenzen des Kettenwerks (27 bis 63 m).'); //Aufgrund mÃ¶glicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
 
-    //Für bestimmte Spannweiten die Hängerteilung vorgeben
+    //FÃ¼r bestimmte Spannweiten die HÃ¤ngerteilung vorgeben
     TeilungFreiBerechnet := true;
     if (Abstand > 26.75) and (Abstand < 29.25) then begin i:=1; j:=0; TeilungFreiBerechnet:=false; end; //Kettenwerk N9
     if (Abstand > 31.25) and (Abstand < 36.00) then begin i:=1; j:=2; TeilungFreiBerechnet:=false; end; //Kettenwerk N8
@@ -244,15 +245,15 @@ begin
     Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
     if TeilungFreiBerechnet then
     begin
-      //showmessage('Hängerteilung ist nicht tabelliert und muss frei berechnet werden.');
-      i:=Math.Floor((Abstand - Ersthaengerabstand - Letzthaengerabstand)/13.5);    //max. Hängerabstand bei französischen Fahrleitungen ist 6,75 m; im Zweifel abrunden.
+      //showmessage('HÃ¤ngerteilung ist nicht tabelliert und muss frei berechnet werden.');
+      i:=Math.Floor((Abstand - Ersthaengerabstand - Letzthaengerabstand)/13.5);    //max. HÃ¤ngerabstand bei franzÃ¶sischen Fahrleitungen ist 6,75 m; im Zweifel abrunden.
       Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
-      //showmessage('Spannweite: '+ floattostr(Abstand) + '; Rest in Feldmitte: '+floattostr(Rest)+'; Anzahl Hänger vor Längenausgleich: ' + inttostr(((i*2)+2)));
+      //showmessage('Spannweite: '+ floattostr(Abstand) + '; Rest in Feldmitte: '+floattostr(Rest)+'; Anzahl HÃ¤nger vor LÃ¤ngenausgleich: ' + inttostr(((i*2)+2)));
       if (Rest < 4.5) or (Rest > 6.75) then
       begin
         i := i-1;
         Rest := Abstand - Ersthaengerabstand - Letzthaengerabstand -(i*13.5);
-        //showmessage('Hängeranzahl wurde angepasst. Rest in Feldmitte jetzt '+floattostr(Rest));
+        //showmessage('HÃ¤ngeranzahl wurde angepasst. Rest in Feldmitte jetzt '+floattostr(Rest));
       end;
       if (Rest > 6.75) and (Rest < 9) then showmessage('Fehler: Das berechnete Kettenwerk ist unplausibel. Bitte beim DLL-Autor melden und die Spannweite nennen: '+ floattostr(Abstand));
     end;
@@ -268,9 +269,9 @@ begin
     //Tragseil Endpunkte
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
-    //Strategie: Von beiden Auslegern aus werden i Hänger mit Abstand 6,75 m vorwärts gebaut. Die Lücke in der Mitte wird ggfs. mit einem weiteren Hänger unterteilt, sofern sie länger als 9 m ist
+    //Strategie: Von beiden Auslegern aus werden i HÃ¤nger mit Abstand 6,75 m vorwÃ¤rts gebaut. Die LÃ¼cke in der Mitte wird ggfs. mit einem weiteren HÃ¤nger unterteilt, sofern sie lÃ¤nger als 9 m ist
 
-    //Normalhänger ab Ausleger A
+    //NormalhÃ¤nger ab Ausleger A
     for a:=1 to i do
     begin
       //unterer Kettenwerkpunkt
@@ -296,17 +297,17 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
       if a = 1 then
       begin
-      //oberen Punkt des ersten Hängers für spätere Verwendung speichern
+      //oberen Punkt des ersten HÃ¤ngers fÃ¼r spÃ¤tere Verwendung speichern
       ErstNormalhaengerpunkt := pktO.PunktTransformiert.Punkt;
       end;
     end;
 
-    //Hänger in Feldmitte
+    //HÃ¤nger in Feldmitte
     if TeilungFreiBerechnet then
     begin
-      if (Rest > 9) and (Rest < 13.5) then j:=2; //es wird 1 zusätzlicher Hänger (= 2 Felder) benötigt
-      if (Rest > 13.5) and (Rest < 20.25) then j:=3; //es werden 2 zusätzliche Hänger (= 3 Felder) benötigt
-      if (Rest > 20.25) then j:=4; //es werden 3 zusätzliche Hänger (= 4 Felder) benötigt
+      if (Rest > 9) and (Rest < 13.5) then j:=2; //es wird 1 zusÃ¤tzlicher HÃ¤nger (= 2 Felder) benÃ¶tigt
+      if (Rest > 13.5) and (Rest < 20.25) then j:=3; //es werden 2 zusÃ¤tzliche HÃ¤nger (= 3 Felder) benÃ¶tigt
+      if (Rest > 20.25) then j:=4; //es werden 3 zusÃ¤tzliche HÃ¤nger (= 4 Felder) benÃ¶tigt
     end;
     for a := 1 to (j-1) do
     begin
@@ -332,13 +333,13 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-      //Falls es wegen sehr kurzer Spannweite keine Normalhänger gibt ist die Normalhängerschleife nicht durchgelaufen
+      //Falls es wegen sehr kurzer Spannweite keine NormalhÃ¤nger gibt ist die NormalhÃ¤ngerschleife nicht durchgelaufen
       //In diesem Fall muss ein Erst- und Letztnormalhaengerpunkt synthetisiert werden
       if (i = 0) and (a = 1) then ErstNormalhaengerpunkt:=pktO.PunktTransformiert.Punkt;
       if (i = 0) and (a > 1) then LetztNormalhaengerpunkt:=pktO.PunktTransformiert.Punkt;
     end;
 
-    //Normalhänger ab Ausleger B
+    //NormalhÃ¤nger ab Ausleger B
     for a:=i downto 1 do
     begin
     //unterer Kettenwerkpunkt
@@ -364,12 +365,12 @@ begin
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
       if a = 1 then
       begin
-      //oberen Punkt des ersten Hängers für spätere Verwendung speichern
+      //oberen Punkt des ersten HÃ¤ngers fÃ¼r spÃ¤tere Verwendung speichern
       LetztNormalhaengerpunkt := pktO.PunktTransformiert.Punkt;
       end;
     end;
 
-    // Tragseil-Abschnitte zwischen den Hängern
+    // Tragseil-Abschnitte zwischen den HÃ¤ngern
     for a:=1 to length(ErgebnisArray)-1 do
     begin
       setlength(ErgebnisArray, length(ErgebnisArray)+1);
@@ -379,7 +380,7 @@ begin
       ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
     end;
 
-    //Endstücke
+    //EndstÃ¼cke
     if EndstueckA in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,false);
     if EndstueckB in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,false);
     if IsolatorBaumodus = 1 then
@@ -408,7 +409,7 @@ var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu,Endstueckendepunkt: TD3DVector;
     Durchhang:single;
 begin
-    //Erster Hänger
+    //Erster HÃ¤nger
     //unterer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vFahrdraht);
     D3DXVec3Scale(v, vNorm, Richtung * Ersthaengerabstand);
@@ -425,21 +426,21 @@ begin
     D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     EndstueckEndepunkt := pktO.PunktTransformiert.Punkt;
-    //Ersthänger
+    //ErsthÃ¤nger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //Tragseil zwischen Ersthänger und Ausleger
+    //Tragseil zwischen ErsthÃ¤nger und Ausleger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
-    //Tragseil zwischen Ersthänger und erstem Normalhänger
+    //Tragseil zwischen ErsthÃ¤nger und erstem NormalhÃ¤nger
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
@@ -485,7 +486,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktDA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktDB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=0.0045; //Bronzeseil 50/7, abweichend von der Standard-Drahtstärke der DLL
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=0.0045; //Bronzeseil 50/7, abweichend von der Standard-DrahtstÃ¤rke der DLL
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator auf dem Festpunktseil
@@ -523,7 +524,7 @@ begin
     pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
-    //Das Abschluss-Kettenwerk der französischen Fahrleitung zeichnet sich durch fehlende Hänger aus, so dass auch der Fahrdraht durchhängt.
+    //Das Abschluss-Kettenwerk der franzÃ¶sischen Fahrleitung zeichnet sich durch fehlende HÃ¤nger aus, so dass auch der Fahrdraht durchhÃ¤ngt.
     i := 10;
     Haengerabstand := Abstand/i;
 
@@ -598,17 +599,17 @@ begin
 end;
 
 function Berechnen(Typ1, Typ2:Longint):TErgebnis; stdcall;
-// Der Benutzer hat auf 'Ausführen' geklickt.
-// Rückgabe: Anzahl der Linien
+// Der Benutzer hat auf 'AusfÃ¼hren' geklickt.
+// RÃ¼ckgabe: Anzahl der Linien
 var BautypA, BautypB : TEndstueck;
 
 begin
-  //zunächst nochmal Grundzustand herstellen
+  //zunÃ¤chst nochmal Grundzustand herstellen
   setlength(ErgebnisArray, 0);
   setlength(ErgebnisArrayDateien, 0);
   BaufunktionAufgerufen := false;
 
-  //Übersetzung zwischen den von Zusi übergebenen Longints und unseren Bautypen
+  //Ãœbersetzung zwischen den von Zusi Ã¼bergebenen Longints und unseren Bautypen
   case Typ1 of
     0: BautypA := Normal;
     1: BautypA := Festp;
@@ -624,22 +625,22 @@ begin
     4: BautypB := Abschluss;
   end;
 
-  //hier wird entschieden was wir machen. Zuerst die Sonderfälle:
+  //hier wird entschieden was wir machen. Zuerst die SonderfÃ¤lle:
   if (BautypA=Festp) and (BautypB=FestpIso) then Festpunktabspannung;
   if (BautypA=FestpIso) and (BautypB=Festp) then
   begin //Arrays durchtauschen, da die Bau-Procedure nicht seitenneutral ist
     BaurichtungWechseln;
     Festpunktabspannung;
   end;
-  if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungAusfaedelungFahrdraht,Ankertyp_FahrleitungAusfaedelungTragseil);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
+  if (BautypA=Ausfaedel) and (BautypB=Abschluss) then KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungAusfaedelungFahrdraht,Ankertyp_FahrleitungAusfaedelungTragseil);      //AusfÃ¤delung an A, Isolatoren an B; LetzthÃ¤ngerabstand 25,0 m wegen hÃ¤ngerfreiem Seil, IsolatorlÃ¤nge und Abstand Isolator zu Spannwerk
   if (BautypA=Abschluss) and (BautypB=Ausfaedel) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
+  begin //Arrays durchtauschen, da die Bau-Procedure bei AbschlÃ¼ssen nicht seitenneutral ist
     BaurichtungWechseln;
     KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungAusfaedelungFahrdraht,Ankertyp_FahrleitungAusfaedelungTragseil);
   end;
-  if (BautypA in [Normal]) and (BautypB=Abschluss) then KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);      //Ausfädelung an A, Isolatoren an B; Letzthängerabstand 25,0 m wegen hängerfreiem Seil, Isolatorlänge und Abstand Isolator zu Spannwerk
+  if (BautypA in [Normal]) and (BautypB=Abschluss) then KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);      //AusfÃ¤delung an A, Isolatoren an B; LetzthÃ¤ngerabstand 25,0 m wegen hÃ¤ngerfreiem Seil, IsolatorlÃ¤nge und Abstand Isolator zu Spannwerk
   if (BautypA=Abschluss) and (BautypB in [Normal]) then
-  begin //Arrays durchtauschen, da die Bau-Procedure bei Abschlüssen nicht seitenneutral ist
+  begin //Arrays durchtauschen, da die Bau-Procedure bei AbschlÃ¼ssen nicht seitenneutral ist
     BaurichtungWechseln;
     KettenwerkAbschluss(4.5,25.0,Ankertyp_FahrleitungFahrdraht,Ankertyp_FahrleitungTragseil);
   end;
@@ -650,10 +651,10 @@ begin
   if (BautypA in [Abschluss]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
   if (BautypA in [Abschluss]) and (BautypB in [Abschluss]) then BaufunktionAufgerufen := true;
 
-  //Der catch-all für alle sonstigen Kombinationen (hoffentlich nur sinnvolle);
+  //Der catch-all fÃ¼r alle sonstigen Kombinationen (hoffentlich nur sinnvolle);
   if not BaufunktionAufgerufen then Normalkettenwerk(BautypA,BautypB);
 
-  if not BaufunktionAufgerufen then ShowMessage('Die gewählte Bauart-Kombination ist nicht implementiert. Bei tatsächlichem Bedarf bitte beim Autor der DLL melden.');
+  if not BaufunktionAufgerufen then ShowMessage('Die gewÃ¤hlte Bauart-Kombination ist nicht implementiert. Bei tatsÃ¤chlichem Bedarf bitte beim Autor der DLL melden.');
 
   Result.iDraht:=length(ErgebnisArray);
   Result.iDatei:=length(ErgebnisArrayDateien);
@@ -666,7 +667,7 @@ begin
 end;
 
 function Gruppe:PChar; stdcall;
-// Teilt dem Editor die Objektgruppe mit, die er bei den verknüpften Dateien vermerken soll
+// Teilt dem Editor die Objektgruppe mit, die er bei den verknÃ¼pften Dateien vermerken soll
 begin
   Result:='Catenaire France';
 end;
@@ -674,6 +675,7 @@ end;
 procedure Config(AppHandle:HWND); stdcall;
 var Formular:TFormFahrleitungConfig;
 begin
+  Application.Initialize;
   Application.Handle:=AppHandle;
   Formular:=TFormFahrleitungConfig.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
