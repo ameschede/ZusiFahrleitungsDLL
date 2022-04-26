@@ -4,7 +4,8 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Top = 195
   Width = 812
   BorderIcons = [biSystemMenu, biMaximize]
-  Caption = 'Fahrleitungseinstellungen'
+  BorderStyle = bsDialog
+  Caption = 'Catenaire France Einstellungen'
   ClientHeight = 594
   ClientWidth = 812
   Color = clBtnFace
@@ -12,6 +13,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Font.Color = clWindowText
   Font.Height = -22
   Font.Name = 'MS Sans Serif'
+  FormStyle = fsStayOnTop
   OnCreate = FormCreate
   LCLVersion = '2.2.0.4'
   object SpeedButtonIsolator: TSpeedButton

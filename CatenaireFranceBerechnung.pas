@@ -39,7 +39,7 @@ var
     StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeAnkerseil,IsolatorpositionTS:single;
     Kettenwerkstyp,IsolatorBaumodus,Festpunktisolatorposition:integer;
     DrahtFarbe:TD3DColorValue;
-    V350,V300,V200,V160,BaufunktionAufgerufen:boolean;
+    V350,V300,V200,V160,BaufunktionAufgerufen,DialogOffen:boolean;
 
 procedure RegistryLesen;
 var reg: TRegistry;
@@ -675,29 +675,34 @@ end;
 procedure Config(AppHandle:HWND); stdcall;
 var Formular:TFormFahrleitungConfig;
 begin
-  Application.Initialize;
-  Application.Handle:=AppHandle;
-  Formular:=TFormFahrleitungConfig.Create(Application);
-  Formular.LabeledEditIsolator.Text:=DateiIsolator;
-  Formular.RadioGroupKettenwerkstyp.ItemIndex := Kettenwerkstyp;
-  Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
-  Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
-  if IsolatorpositionTS > 2.45 then Formular.RadioGroupKettenwerksabschluss.ItemIndex := 0	else Formular.RadioGroupKettenwerksabschluss.ItemIndex := 1;
-  Formular.ShowModal;
-
-  if Formular.ModalResult=mrOK then
+  if not DialogOffen then
   begin
-    DateiIsolator:=(Formular.LabeledEditIsolator.Text);
-    Kettenwerkstyp:=Formular.RadioGroupKettenwerkstyp.ItemIndex;
-    IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
-    Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
-    if Formular.RadioGroupKettenwerksabschluss.ItemIndex = 0 then IsolatorpositionTS := 2.46 else IsolatorpositionTS := 2.00;
-    RegistrySchreiben;
-    RegistryLesen;
-  end;
+       DialogOffen:=true;
+       Application.Initialize;
+       //Application.Handle:=AppHandle;
+       Formular:=TFormFahrleitungConfig.Create(Application);
+       Formular.LabeledEditIsolator.Text:=DateiIsolator;
+       Formular.RadioGroupKettenwerkstyp.ItemIndex := Kettenwerkstyp;
+       Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
+       Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
+       if IsolatorpositionTS > 2.45 then Formular.RadioGroupKettenwerksabschluss.ItemIndex := 0	else Formular.RadioGroupKettenwerksabschluss.ItemIndex := 1;
+       Formular.ShowModal;
 
-  Application.Handle:=0;
-  Formular.Free;
+       if Formular.ModalResult=mrOK then
+       begin
+       DateiIsolator:=(Formular.LabeledEditIsolator.Text);
+       Kettenwerkstyp:=Formular.RadioGroupKettenwerkstyp.ItemIndex;
+       IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
+       Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
+       if Formular.RadioGroupKettenwerksabschluss.ItemIndex = 0 then IsolatorpositionTS := 2.46 else IsolatorpositionTS := 2.00;
+       RegistrySchreiben;
+       RegistryLesen;
+       end;
+
+       //Application.Handle:=0;
+       Formular.Free;
+       DialogOffen:=false;
+  end;
 end;
 
 end.

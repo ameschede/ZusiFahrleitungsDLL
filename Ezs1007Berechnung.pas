@@ -33,7 +33,8 @@ exports Init,
 
 var DateiIsolator:string;
     Drahtstaerke:single;
-    Drahtkennzahl :integer;
+    Drahtkennzahl:integer;
+    DialogOffen:boolean;
 
 
 procedure RegistryLesen;
@@ -283,8 +284,11 @@ end;
 procedure Config(AppHandle:HWND); stdcall;
 var Formular:TFormEzs1007Config;
 begin
+  if not DialogOffen then
+  begin
+  DialogOffen:=true;
   Application.Initialize;
-  Application.Handle:=AppHandle;
+  //Application.Handle:=AppHandle;
   Formular:=TFormEzs1007Config.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
   Formular.RadioGroupDrahtstaerke.ItemIndex := Drahtkennzahl;
@@ -298,8 +302,10 @@ begin
     RegistryLesen;
   end;
 
-  Application.Handle:=0;
+  //Application.Handle:=0;
   Formular.Free;
+  DialogOffen:=false;
+  end;
 end;
 
 end.
