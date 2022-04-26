@@ -1,0 +1,183 @@
+object FormFahrleitungConfig: TFormFahrleitungConfig
+  Left = 442
+  Height = 556
+  Top = 199
+  Width = 1140
+  BorderIcons = [biSystemMenu, biMaximize]
+  BorderStyle = bsDialog
+  Caption = 'Re 330/250 Einstellungen'
+  ClientHeight = 556
+  ClientWidth = 1140
+  Color = clBtnFace
+  DesignTimePPI = 192
+  Font.Color = clWindowText
+  Font.Height = -22
+  Font.Name = 'MS Sans Serif'
+  FormStyle = fsStayOnTop
+  OnCreate = FormCreate
+  LCLVersion = '2.2.0.4'
+  object SpeedButtonIsolator: TSpeedButton
+    Left = 592
+    Height = 50
+    Top = 24
+    Width = 50
+    Glyph.Data = {
+      F6000000424DF600000000000000760000002800000010000000100000000100
+      0400000000008000000000000000000000001000000000000000000000000000
+      80000080000000808000800000008000800080800000C0C0C000808080000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00D0000000000D
+      DDDD003333333330DDDD0B03333333330DDD0BB03333333330DD0BBB03333333
+      330D0BBBB033333333300BBBBB00000000000BBBBBBBBB0DDDDD0BBBBBBBBB0D
+      DDDD0BBB000000DDDD000000DDDDDDDD0000DDDDDDDDDDDDD00DDDDDDDD00DDD
+      0D0DDDDDDDDDD000DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+    }
+    OnClick = SpeedButtonIsolatorClick
+  end
+  object LabelIsolatorposition: TLabel
+    Left = 16
+    Height = 26
+    Top = 416
+    Width = 410
+    Caption = 'Position des Isolators auf dem Festpunktseil'
+  end
+  object LabelAusleger: TLabel
+    Left = 464
+    Height = 26
+    Top = 464
+    Width = 118
+    Caption = 'Am Ausleger'
+  end
+  object LabelAnkermast: TLabel
+    Left = 16
+    Height = 26
+    Top = 464
+    Width = 136
+    Caption = 'Am Ankermast'
+  end
+  object OK: TBitBtn
+    Left = 906
+    Height = 50
+    Top = 498
+    Width = 226
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object BitBtnAbbrechen: TBitBtn
+    Left = 906
+    Height = 50
+    Top = 434
+    Width = 226
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Abbrechen'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object LabeledEditIsolator: TLabeledEdit
+    Left = 16
+    Height = 34
+    Top = 32
+    Width = 562
+    EditLabel.Height = 26
+    EditLabel.Width = 562
+    EditLabel.Caption = 'Isolator'
+    TabOrder = 2
+  end
+  object TrackBarFestpunktisolator: TTrackBar
+    Left = 160
+    Height = 66
+    Top = 448
+    Width = 300
+    Frequency = 5
+    Max = 100
+    Position = 10
+    TabOrder = 3
+  end
+  object CheckBoxYKompatibilitaet: TCheckBox
+    Left = 512
+    Height = 35
+    Top = 320
+    Width = 536
+    Caption = 'Y-Seil 18 m an Ausleger B kompatibel zu Fremd-DLLs'
+    TabOrder = 4
+  end
+  object RadioGroupBaumodus: TRadioGroup
+    Left = 16
+    Height = 114
+    Top = 96
+    Width = 146
+    AutoFill = True
+    Caption = 'Baumodus'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 83
+    ClientWidth = 142
+    ItemIndex = 0
+    Items.Strings = (
+      'Re 330'
+      'Re 250'
+    )
+    TabOrder = 5
+  end
+  object RadioGroupZusatzisolatoren: TRadioGroup
+    Left = 16
+    Height = 114
+    Top = 272
+    Width = 450
+    AutoFill = True
+    Caption = 'Zusätzliche Isolatoren einbauen'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 83
+    ClientWidth = 446
+    ItemIndex = 0
+    Items.Strings = (
+      'Aus'
+      'Streckentrennung'
+    )
+    TabOrder = 6
+  end
+  object RadioGroupBauartVorschlag: TRadioGroup
+    Left = 176
+    Height = 146
+    Top = 96
+    Width = 450
+    AutoFill = True
+    Caption = 'Vorgeschlagene Bauart bei Normalauslegern'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 115
+    ClientWidth = 446
+    Items.Strings = (
+      '18 m Y-Seil'
+      '14 m Y-Seil'
+      'Ohne Y-Seil'
+    )
+    TabOrder = 7
+  end
+  object OpenDialogDatei: TOpenDialog
+    DefaultExt = '.lod.ls3'
+    FileName = '*.lod.ls3'
+    Filter = '3D-LOD-Objekt (*.lod.ls3)|*.lod.ls3'
+    Left = 672
+    Top = 16
+  end
+end
