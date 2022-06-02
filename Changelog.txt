@@ -100,6 +100,12 @@ Re 160
 Catenaire France
 - Erste Veröffentlichung
 
+
 1.0.2.2 (9.2.2022)
 Re 160
 - Kettenwerk der Abspannung auch bei kurzen Spannweiten korrekt
+
+
+2.0.0.0
+Alle DLL
+- Portierung auf 64 Bit

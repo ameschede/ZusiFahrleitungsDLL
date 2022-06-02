@@ -7,7 +7,7 @@ interface
 uses
   Direct3D9, D3DX9,
 
-  sysutils, Controls, registry, windows, forms, Math, Dialogs, interfaces,
+  sysutils, Controls, registry, windows, forms, Math, Dialogs, interfaces, LConvEncoding,
   
   ZusiD3DTypenDll, FahrleitungsTypen, OLADLLgemeinsameFkt, Re200ConfigForm;
 
@@ -122,7 +122,7 @@ begin
 end;
 
 function BauartTyp(i:Longint):PChar; stdcall;
-// Wird vom Editor so oft aufgerufen, wie wir als Result in der init-function übergeben haben. Enumeriert die Bauart-Typen, die diese DLL kennt 
+// Wird vom Editor so oft aufgerufen, wie wir als Result in der init-function übergeben haben. Enumeriert die Bauart-Typen, die diese DLL kennt
 begin
   case i of
   0: Result:='(K) 18m Y-Seil';
@@ -143,6 +143,9 @@ begin
   15: Result:='(SH 03) Festpunkt mit Stützpunkt unter Bauwerk'
   else Result := '(K) 18m Y-Seil'
   end;
+
+  //Zusi 3.5 erwartet Codepage 1252 auf der DLL-Schnittstelle
+  Result:=PChar(UTF8toCP1252(Result));
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;

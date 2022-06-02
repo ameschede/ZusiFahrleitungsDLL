@@ -19,6 +19,8 @@
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="2"/>
       <Language Value="0407"/>
+      <CharSet Value="04B0"/>
+      <StringTable CompanyName="Alwin Meschede"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Default" Default="True"/>

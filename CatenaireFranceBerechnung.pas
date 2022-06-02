@@ -7,7 +7,7 @@ interface
 uses
   Direct3D9, D3DX9,
 
-  sysutils, Controls, registry, windows, forms, Math, Dialogs, interfaces,
+  sysutils, Controls, registry, windows, forms, Math, Dialogs, interfaces, LConvEncoding,
   
   ZusiD3DTypenDll, FahrleitungsTypen, OLADLLgemeinsameFkt, CatenaireFranceConfigForm;
 
@@ -144,6 +144,9 @@ begin
   4: Result:='Abschluss mit Isolatoren';
   else Result := 'Normalkettenwerk'
   end;
+
+  //Zusi 3.5 erwartet Codepage 1252 auf der DLL-Schnittstelle
+  Result:=PChar(UTF8toCP1252(Result));
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;

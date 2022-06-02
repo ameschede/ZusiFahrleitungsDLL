@@ -7,7 +7,7 @@ interface
 uses
   Direct3D9, d3dx9, 
   
-  sysutils, Controls, registry, windows, interfaces, forms, Classes,
+  sysutils, Controls, registry, windows, interfaces, forms, Classes, LConvEncoding,
   
   ZusiD3DTypenDll, FahrleitungsTypen, OLADLLgemeinsameFkt, Ezs1007ConfigForm;
 
@@ -112,6 +112,9 @@ begin
   2: Result:='Ezs 1007 am QTW';
   else Result := 'Ezs 1007 am Ausleger'
   end;
+
+  //Zusi 3.5 erwartet Codepage 1252 auf der DLL-Schnittstelle
+  Result:=PChar(UTF8toCP1252(Result));
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
@@ -278,7 +281,7 @@ end;
 function Gruppe:PChar; stdcall;
 // Teilt dem Editor die Objektgruppe mit, die er bei den verknüpften Dateien vermerken soll
 begin
-  Result:=Gruppefahrleitung;
+  Result:='Kettenwerk Ezs 1007';
 end;
 
 procedure Config(AppHandle:HWND); stdcall;

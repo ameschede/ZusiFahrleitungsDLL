@@ -7,7 +7,7 @@ interface
 uses
   Direct3D9, D3DX9,
 
-  sysutils, Controls, registry, windows, forms, Math, Dialogs, interfaces,
+  sysutils, Controls, registry, windows, forms, Math, Dialogs, interfaces, LConvEncoding,
   
   ZusiD3DTypenDll, FahrleitungsTypen, OLADLLgemeinsameFkt, Re330_250ConfigForm;
 
@@ -146,6 +146,9 @@ begin
   //abweichende Texte im Modus Re 250:
   if Re250 and (i = 1) then Result:= '40-55m, 14m Y-Seil';
   if Re250 and (i = 8) then Result:= '29-50m, ohne Y-Seil';
+
+  //Zusi 3.5 erwartet Codepage 1252 auf der DLL-Schnittstelle
+  Result:=PChar(UTF8toCP1252(Result));
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
