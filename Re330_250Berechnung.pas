@@ -27,13 +27,26 @@ procedure Config(AppHandle:HWND); stdcall;
 
 implementation
 
-exports Init,
-        BauartTyp,
-        BauartVorschlagen,
-        Berechnen,
-        Bezeichnung,
-        Gruppe,
-        Config;
+exports
+       AnkerImportDatei,
+       Autor,
+       BauartTyp,
+       BauartVorschlagen,
+       Berechnen,
+       Bezeichnung,
+       Config,
+       dllVersion,
+       Drahthoehe,
+       ErgebnisDateien,
+       ErgebnisDraht,
+       Fahrleitungstyp,
+       Gruppe,
+       Init,
+       Mastabstand,
+       Maststandort,
+       NeuerPunkt,
+       Reset,
+       Systemversatz;
 
 var
     DateiIsolator:string;

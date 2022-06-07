@@ -22,13 +22,26 @@ procedure Config(AppHandle:HWND); stdcall;
 
 implementation
 
-exports Init,
-        BauartTyp,
-        BauartVorschlagen,
-        Berechnen,
-        Bezeichnung,
-        Gruppe,
-        Config;
+exports
+       AnkerImportDatei,
+       Autor,
+       BauartTyp,
+       BauartVorschlagen,
+       Berechnen,
+       Bezeichnung,
+       Config,
+       dllVersion,
+       Drahthoehe,
+       ErgebnisDateien,
+       ErgebnisDraht,
+       Fahrleitungstyp,
+       Gruppe,
+       Init,
+       Mastabstand,
+       Maststandort,
+       NeuerPunkt,
+       Reset,
+       Systemversatz;
 
 
 var DateiIsolator:string;
@@ -103,7 +116,7 @@ begin
   RegistryLesen;
 end;
 
-function BauartTyp(i:Longint):PChar; stdcall;
+function BauartTyp(i:Longint):PAnsiChar; stdcall;
 // Wird vom Editor so oft aufgerufen, wie wir als Result in der init-function übergeben haben. Enumeriert die Bauart-Typen, die diese DLL kennt 
 begin
   case i of
@@ -112,9 +125,6 @@ begin
   2: Result:='Ezs 1007 am QTW';
   else Result := 'Ezs 1007 am Ausleger'
   end;
-
-  //Zusi 3.5 erwartet Codepage 1252 auf der DLL-Schnittstelle
-  Result:=PChar(UTF8toCP1252(Result));
 end;
 
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;

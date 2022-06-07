@@ -5,8 +5,8 @@
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, StdCtrls, Buttons, ExtCtrls, Registry, ComCtrls, OLADLLgemeinsameFkt;
+  SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls, Registry, ComCtrls, OLADLLgemeinsameFkt;
 
 type
 

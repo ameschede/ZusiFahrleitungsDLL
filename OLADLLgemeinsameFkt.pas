@@ -36,22 +36,6 @@ procedure ScaleDPI(Control: TControl; FromDPI: Integer);
 
 implementation
 
-exports
-  Fahrleitungstyp,
-  dllVersion,
-  Autor,
-  Systemversatz,
-  Reset,
-  NeuerPunkt,
-  ErgebnisDraht,
-  ErgebnisDateien,
-  Drahthoehe,
-  Mastabstand,
-  Maststandort,
-  AnkerImportDatei;
-
-
-
 function Fahrleitungstyp:TFahrleitungstyp; stdcall;
 //Wird nur für Automatik-Modus gebraucht; gibt an welche Sorte Fahrleitung wir verlegen
 begin
@@ -137,8 +121,7 @@ end;
 
 function PunktSuchen(A:Boolean; i:integer; ATyp:TAnkerTyp):TAnkerpunkt;
 // sucht den i. Punkt vom Typ ATyp
-var b:integer;
-    gefunden:Boolean;
+var b,iGefunden:integer;
     LeerAnker:TAnkerpunkt;
 begin
   //Result-Variable zumindest so weit initialisieren, dass sie ggfs. von AnkerIstLeer erkannt werden kann
@@ -147,14 +130,14 @@ begin
   LeerAnker.PunktTransformiert.Punkt.z :=0;
   Result := LeerAnker;
   b:=0;
-  gefunden:=false;
+  iGefunden:=0;
   if A then
   begin
-    while (b<=length(PunkteA)-1) and (not gefunden) do
+    while (b<=length(PunkteA)-1) and not(iGefunden > i) do
     begin
       if PunkteA[b].Ankertyp=ATyp then
       begin
-        gefunden:=true;
+        inc(iGefunden);
         Result:=PunkteA[b];
       end;
       inc(b);
@@ -162,11 +145,11 @@ begin
   end
   else
   begin
-    while (b<=length(PunkteB)-1) and (not gefunden) do
+    while (b<=length(PunkteB)-1) and not(iGefunden > i) do
     begin
       if PunkteB[b].Ankertyp=ATyp then
       begin
-        gefunden:=true;
+        inc(iGefunden);
         Result:=PunkteB[b];
       end;
       inc(b);

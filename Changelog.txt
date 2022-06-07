@@ -109,3 +109,8 @@ Re 160
 2.0.0.0
 Alle DLL
 - Portierung auf 64 Bit
+
+
+2.0.0.1 ()
+Catenaire France
+- DLL setzt die Fahrleitungsspannung der Streckenelemente auf 25 kV

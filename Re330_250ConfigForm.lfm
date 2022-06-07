@@ -15,7 +15,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object SpeedButtonIsolator: TSpeedButton
     Left = 592
     Height = 50
@@ -39,6 +39,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Top = 416
     Width = 410
     Caption = 'Position des Isolators auf dem Festpunktseil'
+    ParentColor = False
   end
   object LabelAusleger: TLabel
     Left = 464
@@ -46,6 +47,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Top = 464
     Width = 118
     Caption = 'Am Ausleger'
+    ParentColor = False
   end
   object LabelAnkermast: TLabel
     Left = 16
@@ -53,6 +55,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Top = 464
     Width = 136
     Caption = 'Am Ankermast'
+    ParentColor = False
   end
   object OK: TBitBtn
     Left = 906
@@ -84,6 +87,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     EditLabel.Height = 26
     EditLabel.Width = 562
     EditLabel.Caption = 'Isolator'
+    EditLabel.ParentColor = False
     TabOrder = 2
   end
   object TrackBarFestpunktisolator: TTrackBar

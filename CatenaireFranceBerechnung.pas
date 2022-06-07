@@ -23,16 +23,30 @@ procedure Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:T
 function Bezeichnung:PChar; stdcall;
 function Gruppe:PChar; stdcall;
 procedure Config(AppHandle:HWND); stdcall;
+function Fahrleitungstyp:TFahrleitungstyp; stdcall;
 
 implementation
 
-exports Init,
-        BauartTyp,
-        BauartVorschlagen,
-        Berechnen,
-        Bezeichnung,
-        Gruppe,
-        Config;
+exports
+       AnkerImportDatei,
+       Autor,
+       BauartTyp,
+       BauartVorschlagen,
+       Berechnen,
+       Bezeichnung,
+       Config,
+       dllVersion,
+       Drahthoehe,
+       ErgebnisDateien,
+       ErgebnisDraht,
+       Fahrleitungstyp,
+       Gruppe,
+       Init,
+       Mastabstand,
+       Maststandort,
+       NeuerPunkt,
+       Reset,
+       Systemversatz;
 
 var
     DateiIsolator:string;
@@ -706,6 +720,12 @@ begin
        Formular.Free;
        DialogOffen:=false;
   end;
+end;
+
+function Fahrleitungstyp:TFahrleitungstyp; stdcall;
+//Wird nur für Automatik-Modus gebraucht; gibt an welche Sorte Fahrleitung wir verlegen
+begin
+  Result:=Fahrl_25kV50Hz;
 end;
 
 end.
