@@ -265,11 +265,19 @@ begin
     pktYB:=PunktSuchen(false, 0, Ankertyp_FahrleitungHaengerseil);
 
     //Bei Stützpunkten mit niedriger Systemhöhe den Anbaupunkt am Spitzenrohr feststellen
-    if (EndstueckA in [SH13_5m,SH13_10m]) or (EndstueckB in [SH13_5m,SH13_10m]) then
+    if (EndstueckA in [SH13_5m,SH13_10m]) then
     begin
       pktSRA:=PunktSuchen(true, 0, Ankertyp_Tragseildrehklemme);
+      if (AnkerIstLeer(pktSRA) and (EndstueckA in [SH13_5m,SH13_10m])) then
+      begin
+        ShowMessage('Ein notwendiger Ankerpunkt des Typs Tragseildrehklemme ist nicht vorhanden.');
+        exit; //Abbruch, weil ansonsten entartete Fahrdrähte entstehen
+      end;
+    end;
+    if (EndstueckB in [SH13_5m,SH13_10m]) then
+    begin
       pktSRB:=PunktSuchen(false, 0, Ankertyp_Tragseildrehklemme);
-      if (AnkerIstLeer(pktSRA) and (EndstueckA in [SH13_5m,SH13_10m])) or (AnkerIstLeer(pktSRB) and (EndstueckB in [SH13_5m,SH13_10m])) then
+      if (AnkerIstLeer(pktSRB) and (EndstueckB in [SH13_5m,SH13_10m])) then
       begin
         ShowMessage('Ein notwendiger Ankerpunkt des Typs Tragseildrehklemme ist nicht vorhanden.');
         exit; //Abbruch, weil ansonsten entartete Fahrdrähte entstehen
@@ -277,11 +285,19 @@ begin
     end;
 
     //Bei Festpunkten am QTW den Anbaupunkt für die Zusatzhänger am Seitenhalter feststellen
-    if (EndstueckA in [y12mZqtw, NyZqtw]) or (EndstueckB in [y12mZqtw, NyZqtw]) then
+    if (EndstueckA in [y12mZqtw, NyZqtw]) then
     begin
       pktSRA:=PunktSuchen(true, 0, Ankertyp_Stuetzrohrhaenger);
+      if (AnkerIstLeer(pktSRA) and (EndstueckA in [y12mZqtw, NyZqtw])) then
+      begin
+        ShowMessage('Ein notwendiger Ankerpunkt des Typs Stützrohrhänger ist nicht vorhanden.');
+        exit; //Abbruch, weil ansonsten entartete Fahrdrähte entstehen
+      end;
+    end;
+    if (EndstueckB in [y12mZqtw, NyZqtw]) then
+    begin
       pktSRB:=PunktSuchen(false, 0, Ankertyp_Stuetzrohrhaenger);
-      if (AnkerIstLeer(pktSRA) and (EndstueckA in [y12mZqtw, NyZqtw])) or (AnkerIstLeer(pktSRB) and (EndstueckB in [y12mZqtw, NyZqtw])) then
+      if (AnkerIstLeer(pktSRB) and (EndstueckB in [y12mZqtw, NyZqtw])) then
       begin
         ShowMessage('Ein notwendiger Ankerpunkt des Typs Stützrohrhänger ist nicht vorhanden.');
         exit; //Abbruch, weil ansonsten entartete Fahrdrähte entstehen

@@ -106,7 +106,7 @@ Re 160
 - Kettenwerk der Abspannung auch bei kurzen Spannweiten korrekt
 
 
-2.0.0.0
+2.0.0.0 (2.6.2022)
 Alle DLL
 - Portierung auf 64 Bit
 
@@ -114,3 +114,6 @@ Alle DLL
 2.0.0.1 ()
 Catenaire France
 - DLL setzt die Fahrleitungsspannung der Streckenelemente auf 25 kV
+
+Re 160
+- Fahrdrahtentartung zwischen QTW-Festpunkt und SH13-Stützpunkt behoben
