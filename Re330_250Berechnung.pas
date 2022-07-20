@@ -50,7 +50,7 @@ exports
 
 var
     DateiIsolator:string;
-    StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeStuetzrohrhaenger,StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor:single;
+    StaerkeFD,StaerkeTS,StaerkeHaenger,{StaerkeStuetzrohrhaenger,}StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor:single;
     Festpunktisolatorposition,IsolatorBaumodus,Bauartvorschlag:integer;
     DrahtFarbe:TD3DColorValue;
     BaufunktionAufgerufen,Re250,DialogOffen:boolean;
@@ -128,7 +128,7 @@ begin
   StaerkeFD := 0.0066;
   StaerkeTS := 0.007;  //Bei Re 250 anders
   StaerkeHaenger := 0.00225;
-  StaerkeStuetzrohrhaenger := 0.0031;
+  {StaerkeStuetzrohrhaenger := 0.0031;} //wird erst gebraucht falls es künftig Ausleger ohne integrierten Stützrohrhänger gibt
   StaerkeYseil := 0.00375;
   StaerkeBeiseil := 0.007;      //Bei Re 250 anders
   StaerkeAnkerseil := 0.007;    //Bei Re 250 anders
@@ -274,18 +274,18 @@ begin
     Abstand:=D3DXVec3Length(vFahrdraht);
 
     //Spannweite auf Plausibilität prüfen
-    if not Re250 and ((Abstand < 35.5) or (Abstand > 65.5)) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 330 (36 bis 65 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
-    if Re250 and ((Abstand < 28.5) or (Abstand > 65.5)) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 250 (29 bis 65 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
-    if not Re250 and (EndstueckA in [r700,r700Z]) and (Abstand > 44) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if not Re250 and (EndstueckB in [r700,r700Z]) and (Abstand > 44) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if Re250 and (EndstueckA in [r700,r700Z]) and (Abstand > 50) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if Re250 and (EndstueckB in [r700,r700Z]) and (Abstand > 50) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if Re250 and (EndstueckA in [y14m,y14mZ]) and ((Abstand < 40) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if Re250 and (EndstueckB in [y14m,y14mZ]) and ((Abstand < 40) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if not Re250 and (EndstueckA in [y14m,y14mZ]) and ((Abstand < 44) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if not Re250 and (EndstueckB in [y14m,y14mZ]) and ((Abstand < 44) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if (EndstueckA in [y18m,y18mZ]) and ((Abstand < 55) or (Abstand > 65)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
-    if (EndstueckB in [y18m,y18mZ]) and ((Abstand < 55) or (Abstand > 65)) then Showmessage('Die Längsspannweite von ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if not Re250 and ((Abstand < 35.5) or (Abstand > 65.5)) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 330 (36 bis 65 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+    if Re250 and ((Abstand < 28.5) or (Abstand > 65.5)) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 250 (29 bis 65 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+    if not Re250 and (EndstueckA in [r700,r700Z]) and (Abstand > 44) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if not Re250 and (EndstueckB in [r700,r700Z]) and (Abstand > 44) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if Re250 and (EndstueckA in [r700,r700Z]) and (Abstand > 50) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if Re250 and (EndstueckB in [r700,r700Z]) and (Abstand > 50) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if Re250 and (EndstueckA in [y14m,y14mZ]) and ((Abstand < 40) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if Re250 and (EndstueckB in [y14m,y14mZ]) and ((Abstand < 40) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if not Re250 and (EndstueckA in [y14m,y14mZ]) and ((Abstand < 44) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if not Re250 and (EndstueckB in [y14m,y14mZ]) and ((Abstand < 44) or (Abstand > 55)) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if (EndstueckA in [y18m,y18mZ]) and ((Abstand < 55) or (Abstand > 65)) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger A. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
+    if (EndstueckB in [y18m,y18mZ]) and ((Abstand < 55) or (Abstand > 65)) then Showmessage('Die Längsspannweite von ' + FormatFloat('0.00',Abstand) + ' m passt nicht zur gewählten Kettenwerksbauform am Ausleger B. Bitte ggfs. anhand Durchschnitt benachbarter Längsspannweiten entscheiden.');
 
     //Anzahl der Hänger je nach Spannweite festsetzen
     if (Abstand > 29) and Re250 then i := 2;
@@ -359,11 +359,8 @@ begin
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+      DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe);
+
       if a = 1 then
       begin
       //oberen Punkt des ersten Hängers für spätere Verwendung speichern
@@ -747,7 +744,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktDA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktDB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=0.0045; //Bronzeseil 50/7, abweichend von der Standard-Drahtstärke der DLL
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeAnkerseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator auf dem Festpunktseil

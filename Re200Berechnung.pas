@@ -300,26 +300,26 @@ begin
     //Spannweite auf Plausibilität prüfen
     if (EndstueckA in [y12m,y12mZ]) and (EndstueckB in [y12m,y12mZ]) then
       begin
-        if (Abstand < 34) or (Abstand > 50.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten im Tunnel (max. 50 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+        if (Abstand < 34) or (Abstand > 50.5) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten im Tunnel (max. 50 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
     if not ((EndstueckA in [SH03,SH03Z,y12m,y12mZ]) or (EndstueckB in [SH03,SH03Z,y12m,y12mZ])) then
       begin
-        if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 200 (34 bis 80 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+        if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 200 (34 bis 80 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
 
     //Hinweise auf korrekte Y-Seile in Querfeldern
     if QTWBaumodus = 1 then
     begin
-        if (Abstand > 50) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite im Bahnhof sind Y-Seile von 18 m Länge vorbildgerecht.')
-        else ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite im Bahnhof sind Y-Seile von 14 m Länge vorbildgerecht.');
+        if (Abstand > 50) then ShowMessage('Bei ' + FormatFloat('0.00',Abstand) + ' m Längsspannweite im Bahnhof sind Y-Seile von 18 m Länge vorbildgerecht.')
+        else ShowMessage('Bei ' + FormatFloat('0.00',Abstand) + ' m Längsspannweite im Bahnhof sind Y-Seile von 14 m Länge vorbildgerecht.');
     end;
     if QTWBaumodus = 2 then
     begin
-        if (Abstand > 66) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 24 m Länge vorbildgerecht.')
+        if (Abstand > 66) then ShowMessage('Bei ' + FormatFloat('0.00',Abstand) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 24 m Länge vorbildgerecht.')
         else
         begin
-          if (Abstand < 50) then ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 14 m Länge vorbildgerecht.')
-          else ShowMessage('Bei ' + floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 18 m Länge vorbildgerecht.')
+          if (Abstand < 50) then ShowMessage('Bei ' + FormatFloat('0.00',Abstand) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 14 m Länge vorbildgerecht.')
+          else ShowMessage('Bei ' + FormatFloat('0.00',Abstand) + ' m Längsspannweite auf freier Strecke sind Y-Seile von 18 m Länge vorbildgerecht.')
         end;
     end;
     
@@ -1204,7 +1204,7 @@ begin
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktDA.PunktTransformiert.Punkt;
     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktDB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=0.0045; //Bronzeseil 50/7, abweichend von der Standard-Drahtstärke der DLL
+    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeAnkerseil;
     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
 
     //Isolator auf dem Festpunktseil
@@ -1236,7 +1236,7 @@ begin
     Abstand:=D3DXVec3Length(vFahrdraht);
 
     //Spannweite auf Plausibilität prüfen
-    if (Abstand > 25.5) then ShowMessage(floattostr(Math.RoundTo(Abstand,-2)) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten unter Bauwerken (max. 25 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+    if (Abstand > 25.5) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen bei Stützpunkten unter Bauwerken (max. 25 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
 
     //Tragseil Endpunkte
     pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);

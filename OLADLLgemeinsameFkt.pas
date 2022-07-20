@@ -33,6 +33,7 @@ procedure Maststandort(StrMitte, StreckenMitteNachfolger:TD3DVector; Winkel, Ueb
 function AnkerImportDatei(i:Longword; var AnkerIndex:Longword; var Dateiname:PChar):Boolean; stdcall;
 procedure HighDPI(FromDPI: Integer);
 procedure ScaleDPI(Control: TControl; FromDPI: Integer);
+procedure DrahtEintragen(PunktA,PunktB:TD3DVector;Drahtstaerke:single;Farbwert:TD3DColorValue);
 
 implementation
 
@@ -270,6 +271,15 @@ begin
       end;
     end;
   end;
+end;
+
+procedure DrahtEintragen(PunktA,PunktB:TD3DVector;Drahtstaerke:single;Farbwert:TD3DColorValue);
+begin
+     setlength(ErgebnisArray, length(ErgebnisArray)+1);
+     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=PunktA;
+     ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=PunktB;
+     ErgebnisArray[length(ErgebnisArray)-1].Staerke:=Drahtstaerke;
+     ErgebnisArray[length(ErgebnisArray)-1].Farbe:=Farbwert;
 end;
 
 end.
