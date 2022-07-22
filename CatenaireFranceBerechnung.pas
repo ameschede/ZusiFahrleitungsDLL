@@ -282,6 +282,12 @@ begin
     if EndstueckB = Ausfaedel then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
       else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
 
+    //Prüfung ob notwendige Ankerpunkte vorhanden sind
+    if AnkerIstLeer(pktTA) or AnkerIstLeer(pktTB) or AnkerIstLeer(pktFA) or AnkerIstLeer(pktFB) then
+    begin
+         showmessage('Warnung: Ein notwendiger Fahrdraht-/Tragseil-Ankerpunkt wurde nicht erkannt. Der Fahrdraht kann nicht erzeugt werden.');
+         exit; //Abbruch, weil Fahrdraht entarten würde
+    end;
 
     //Tragseil Endpunkte
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
@@ -499,6 +505,13 @@ begin
     pktDB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAnbaupunktAnker);
     D3DXVec3Subtract(vDraht, pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt);
 
+    //Prüfung ob notwendige Ankerpunkte vorhanden sind
+    if AnkerIstLeer(pktDA) or AnkerIstLeer(pktDB) then
+    begin
+         showmessage('Warnung: Ein notwendiger Fahrdraht-/Tragseil-Ankerpunkt wurde nicht erkannt. Der Fahrdraht kann nicht erzeugt werden.');
+         exit; //Abbruch, weil Fahrdraht entarten würde
+    end;
+
     //Fahrdraht eintragen
     setlength(ErgebnisArray, length(ErgebnisArray)+1);
     ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktDA.PunktTransformiert.Punkt;
@@ -540,6 +553,13 @@ begin
     pktTA:=PunktSuchen(true,  0, AnkommenderAnkertypT);
     pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
+
+    //Prüfung ob notwendige Ankerpunkte vorhanden sind
+    if AnkerIstLeer(pktTA) or AnkerIstLeer(pktTB) or AnkerIstLeer(pktFA) or AnkerIstLeer(pktFB) then
+    begin
+         showmessage('Warnung: Ein notwendiger Fahrdraht-/Tragseil-Ankerpunkt wurde nicht erkannt. Der Fahrdraht kann nicht erzeugt werden.');
+         exit; //Abbruch, weil Fahrdraht entarten würde
+    end;
 
     //Das Abschluss-Kettenwerk der französischen Fahrleitung zeichnet sich durch fehlende Hänger aus, so dass auch der Fahrdraht durchhängt.
     i := 10;

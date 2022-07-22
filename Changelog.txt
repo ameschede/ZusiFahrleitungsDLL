@@ -112,6 +112,9 @@ Alle DLL
 
 
 2.0.0.1 ()
+Alle DLL
+- Schutz gegen entartete Drähte verbessert
+
 Catenaire France
 - DLL setzt die Fahrleitungsspannung der Streckenelemente auf 25 kV
 

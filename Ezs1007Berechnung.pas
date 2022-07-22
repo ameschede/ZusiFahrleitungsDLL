@@ -7,7 +7,7 @@ interface
 uses
   Direct3D9, d3dx9, 
   
-  sysutils, Controls, registry, windows, interfaces, forms, Classes, LConvEncoding,
+  sysutils, Controls, registry, windows, interfaces, forms, Classes, LConvEncoding, Dialogs,
   
   ZusiD3DTypenDll, FahrleitungsTypen, OLADLLgemeinsameFkt, Ezs1007ConfigForm;
 
@@ -182,6 +182,13 @@ begin
     if pAbschluss = false then
       pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil)
     else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
+
+    //Prüfung ob notwendige Ankerpunkte vorhanden sind
+    if AnkerIstLeer(pktTA) or AnkerIstLeer(pktTB) or AnkerIstLeer(pktFA) or AnkerIstLeer(pktFB) then
+    begin
+         showmessage('Warnung: Ein notwendiger Fahrdraht-/Tragseil-Ankerpunkt wurde nicht erkannt. Der Fahrdraht kann nicht erzeugt werden.');
+         exit; //Abbruch, weil Fahrdraht entarten würde
+    end;
 
     //Tragseil am Ausleger A
     //unterer Kettenwerkpunkt
