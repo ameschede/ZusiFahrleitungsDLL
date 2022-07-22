@@ -134,24 +134,24 @@ begin
   iGefunden:=0;
   if A then
   begin
-    while (b<=length(PunkteA)-1) and not(iGefunden > i) do
+    while (b<=length(PunkteA)-1) and (iGefunden < i) do
     begin
       if PunkteA[b].Ankertyp=ATyp then
       begin
         inc(iGefunden);
-        Result:=PunkteA[b];
+        if iGefunden = i then Result:= PunkteA[b];
       end;
       inc(b);
     end;
   end
   else
   begin
-    while (b<=length(PunkteB)-1) and not(iGefunden > i) do
+    while (b<=length(PunkteB)-1) and (iGefunden < i) do
     begin
       if PunkteB[b].Ankertyp=ATyp then
       begin
         inc(iGefunden);
-        Result:=PunkteB[b];
+        if iGefunden = i then Result:= PunkteB[b];
       end;
       inc(b);
     end;
