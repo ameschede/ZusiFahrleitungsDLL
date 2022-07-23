@@ -111,12 +111,15 @@ Alle DLL
 - Portierung auf 64 Bit
 
 
-2.0.0.1 ()
+2.0.0.1 (23.7.2022)
 Alle DLL
 - Schutz gegen entartete Drähte verbessert
 
 Catenaire France
 - DLL setzt die Fahrleitungsspannung der Streckenelemente auf 25 kV
+
+Kettenlinien
+- Erste Veröffentlichung
 
 Re 160
 - Fahrdrahtentartung zwischen QTW-Festpunkt und SH13-Stützpunkt behoben

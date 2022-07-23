@@ -1,0 +1,357 @@
+object FormFahrleitungConfig: TFormFahrleitungConfig
+  Left = 630
+  Height = 476
+  Top = 397
+  Width = 870
+  BorderIcons = [biSystemMenu, biMaximize]
+  BorderStyle = bsDialog
+  Caption = 'Kettenlinien Einstellungen'
+  ClientHeight = 476
+  ClientWidth = 870
+  Color = clBtnFace
+  DesignTimePPI = 192
+  Font.Color = clWindowText
+  Font.Height = -22
+  Font.Name = 'MS Sans Serif'
+  FormStyle = fsStayOnTop
+  OnCreate = FormCreate
+  LCLVersion = '2.2.2.0'
+  object SpeedButtonIsolator: TSpeedButton
+    Left = 592
+    Height = 50
+    Top = 16
+    Width = 50
+    Glyph.Data = {
+      F6000000424DF600000000000000760000002800000010000000100000000100
+      0400000000008000000000000000000000001000000000000000000000000000
+      80000080000000808000800000008000800080800000C0C0C000808080000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00D0000000000D
+      DDDD003333333330DDDD0B03333333330DDD0BB03333333330DD0BBB03333333
+      330D0BBBB033333333300BBBBB00000000000BBBBBBBBB0DDDDD0BBBBBBBBB0D
+      DDDD0BBB000000DDDD000000DDDDDDDD0000DDDDDDDDDDDDD00DDDDDDDD00DDD
+      0D0DDDDDDDDDD000DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+    }
+    Visible = False
+    OnClick = SpeedButtonIsolatorClick
+  end
+  object OK: TBitBtn
+    Left = 636
+    Height = 50
+    Top = 418
+    Width = 226
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object BitBtnAbbrechen: TBitBtn
+    Left = 636
+    Height = 50
+    Top = 354
+    Width = 226
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Abbrechen'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object LabeledEditIsolator: TLabeledEdit
+    Left = 16
+    Height = 34
+    Top = 32
+    Width = 562
+    EditLabel.Height = 26
+    EditLabel.Width = 562
+    EditLabel.Caption = 'Isolator'
+    EditLabel.ParentColor = False
+    TabOrder = 2
+    Visible = False
+  end
+  object RadioButtonStromleitung: TRadioButton
+    Left = 32
+    Height = 35
+    Top = 144
+    Width = 152
+    Caption = 'Stromleitung'
+    TabOrder = 3
+  end
+  object RadioButtonSpeiseleitung: TRadioButton
+    Left = 32
+    Height = 35
+    Top = 192
+    Width = 162
+    Caption = 'Speiseleitung'
+    TabOrder = 4
+  end
+  object RadioButtonTelegrafenleitung: TRadioButton
+    Left = 32
+    Height = 35
+    Top = 240
+    Width = 200
+    Caption = 'Telegrafenleitung'
+    TabOrder = 5
+  end
+  object RadioButtonStelldraht: TRadioButton
+    Left = 32
+    Height = 35
+    Top = 288
+    Width = 124
+    Caption = 'Stelldraht'
+    TabOrder = 6
+  end
+  object EditDurchmesserStromleitung: TEdit
+    Left = 248
+    Height = 34
+    Top = 144
+    Width = 128
+    TabOrder = 7
+    Text = 'EditDurchmesserStromleitung'
+  end
+  object LabelDurchmesser: TLabel
+    Left = 248
+    Height = 26
+    Top = 112
+    Width = 124
+    Caption = 'Durchmesser'
+    ParentColor = False
+  end
+  object EditDurchmesserSpeiseleitung: TEdit
+    Left = 248
+    Height = 34
+    Top = 193
+    Width = 128
+    TabOrder = 8
+    Text = 'EditDurchmesserSpeiseleitung'
+  end
+  object EditDurchmesserTelegrafenleitung: TEdit
+    Left = 248
+    Height = 34
+    Top = 241
+    Width = 128
+    TabOrder = 9
+    Text = 'EditDurchmesserTelegrafenleitung'
+  end
+  object EditDurchmesserStelldraht: TEdit
+    Left = 248
+    Height = 34
+    Top = 289
+    Width = 128
+    TabOrder = 10
+    Text = 'EditDurchmesserStelldraht'
+  end
+  object LabelAbschnitte: TLabel
+    Left = 408
+    Height = 26
+    Top = 112
+    Width = 100
+    Caption = 'Abschnitte'
+    ParentColor = False
+  end
+  object EditAbschnitteStromleitung: TEdit
+    Left = 408
+    Height = 34
+    Top = 144
+    Width = 100
+    TabOrder = 11
+    Text = 'EditAbschnitteStromleitung'
+  end
+  object EditAbschnitteSpeiseleitung: TEdit
+    Left = 408
+    Height = 34
+    Top = 193
+    Width = 100
+    TabOrder = 12
+    Text = 'EditAbschnitteSpeiseleitung'
+  end
+  object EditAbschnitteTelegrafenleitung: TEdit
+    Left = 408
+    Height = 34
+    Top = 241
+    Width = 100
+    TabOrder = 13
+    Text = 'EditAbschnitteTelegrafenleitung'
+  end
+  object EditAbschnitteStelldraht: TEdit
+    Left = 408
+    Height = 34
+    Top = 289
+    Width = 100
+    TabOrder = 14
+    Text = 'EditAbschnitteStelldraht'
+  end
+  object LabelDurchhang: TLabel
+    Left = 536
+    Height = 26
+    Top = 112
+    Width = 106
+    Caption = 'Durchhang'
+    ParentColor = False
+  end
+  object EditDurchhangStromleitung: TEdit
+    Left = 536
+    Height = 34
+    Top = 145
+    Width = 106
+    TabOrder = 15
+    Text = 'EditDurchhangStromleitung'
+  end
+  object EditDurchhangSpeiseleitung: TEdit
+    Left = 536
+    Height = 34
+    Top = 193
+    Width = 104
+    TabOrder = 16
+    Text = 'EditDurchhangSpeiseleitung'
+  end
+  object EditDurchhangTelegrafenleitung: TEdit
+    Left = 536
+    Height = 34
+    Top = 241
+    Width = 104
+    TabOrder = 17
+    Text = 'EditDurchhangTelegrafenleitung'
+  end
+  object EditDurchhangStelldraht: TEdit
+    Left = 536
+    Height = 34
+    Top = 289
+    Width = 104
+    TabOrder = 18
+    Text = 'EditDurchhangStelldraht'
+  end
+  object LabeledEditKonvexParameter: TLabeledEdit
+    Left = 32
+    Height = 34
+    Top = 376
+    Width = 296
+    EditLabel.Height = 26
+    EditLabel.Width = 296
+    EditLabel.Caption = 'Krümmung für konvexe Drähte'
+    EditLabel.ParentColor = False
+    TabOrder = 19
+    Text = 'LabeledEditKonvexParameter'
+  end
+  object LabelZufall: TLabel
+    Left = 672
+    Height = 26
+    Top = 112
+    Width = 74
+    Caption = 'Zufall %'
+    ParentColor = False
+  end
+  object EditZufallStromleitung: TEdit
+    Left = 672
+    Height = 34
+    Top = 145
+    Width = 72
+    TabOrder = 20
+    Text = 'EditZufallStromleitung'
+  end
+  object EditZufallSpeiseleitung: TEdit
+    Left = 672
+    Height = 34
+    Top = 193
+    Width = 72
+    TabOrder = 21
+    Text = 'EditZufallSpeiseleitung'
+  end
+  object EditZufallTelegrafenleitung: TEdit
+    Left = 672
+    Height = 34
+    Top = 241
+    Width = 72
+    TabOrder = 22
+    Text = 'EditZufallTelegrafenleitung'
+  end
+  object EditZufallStelldraht: TEdit
+    Left = 672
+    Height = 34
+    Top = 289
+    Width = 72
+    TabOrder = 23
+    Text = 'EditZufallStelldraht'
+  end
+  object ColorButtonStromleitung: TColorButton
+    Left = 768
+    Height = 34
+    Top = 145
+    Width = 74
+    BorderWidth = 2
+    ButtonColorSize = 16
+    ButtonColor = clBlack
+    OnClick = ColorButtonStromleitungClick
+  end
+  object ColorButtonSpeiseleitung: TColorButton
+    Left = 768
+    Height = 34
+    Top = 193
+    Width = 74
+    BorderWidth = 2
+    ButtonColorSize = 16
+    ButtonColor = clBlack
+    OnClick = ColorButtonSpeiseleitungClick
+  end
+  object ColorButtonTelegrafenleitung: TColorButton
+    Left = 768
+    Height = 34
+    Top = 241
+    Width = 74
+    BorderWidth = 2
+    ButtonColorSize = 16
+    ButtonColor = clBlack
+    OnClick = ColorButtonTelegrafenleitungClick
+  end
+  object ColorButtonStelldraht: TColorButton
+    Left = 768
+    Height = 34
+    Top = 289
+    Width = 74
+    BorderWidth = 2
+    ButtonColorSize = 16
+    ButtonColor = clBlack
+    OnClick = ColorButtonStelldrahtClick
+  end
+  object LabelFarbe: TLabel
+    Left = 776
+    Height = 26
+    Top = 112
+    Width = 54
+    Caption = 'Farbe'
+    ParentColor = False
+  end
+  object OpenDialogDatei: TOpenDialog
+    DefaultExt = '.lod.ls3'
+    FileName = '*.lod.ls3'
+    Filter = '3D-LOD-Objekt (*.lod.ls3)|*.lod.ls3'
+    Left = 672
+    Top = 16
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    Left = 784
+    Top = 16
+  end
+end
