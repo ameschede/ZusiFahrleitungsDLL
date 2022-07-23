@@ -171,17 +171,17 @@ begin
   if (length(PunkteA)>1) and (length(PunkteB)>1) then
   begin
     //Fahrdraht berechnen als Vektor von FA nach FB
-    pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
+    pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungFahrdraht);
     if pAbschluss = false then
-      pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht)
-    else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
+      pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungFahrdraht)
+    else pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
 
     //Tragseil Endpunkte
-    pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+    pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungTragseil);
     if pAbschluss = false then
-      pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil)
-    else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
+      pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungTragseil)
+    else pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
 
     //Prüfung ob notwendige Ankerpunkte vorhanden sind
     if AnkerIstLeer(pktTA) or AnkerIstLeer(pktTB) or AnkerIstLeer(pktFA) or AnkerIstLeer(pktFB) then

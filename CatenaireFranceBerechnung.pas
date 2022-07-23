@@ -235,10 +235,10 @@ begin
     if EndstueckB in [Normal,Ausfaedel] then Letzthaengerabstand := 4.5;
 
     //Feststellen welcher Ankertyp am Fahrdraht zu erwarten ist
-    if EndstueckA = Ausfaedel then pktFA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
-      else pktFA:=PunktSuchen(true,  0, Ankertyp_FahrleitungFahrdraht);
-    if EndstueckB = Ausfaedel then pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungFahrdraht)
-      else pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungFahrdraht);
+    if EndstueckA = Ausfaedel then pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungFahrdraht)
+      else pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungFahrdraht);
+    if EndstueckB = Ausfaedel then pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAusfaedelungFahrdraht)
+      else pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungFahrdraht);
 
     //Fahrdraht berechnen als Vektor von FA nach FB
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
@@ -276,11 +276,11 @@ begin
     end;
 
     //Feststellen welcher Ankertyp am Tragseil zu erwarten ist
-    if EndstueckA = Ausfaedel then pktTA:=PunktSuchen(true, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
-      else pktTA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
+    if EndstueckA = Ausfaedel then pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungTragseil)
+      else pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungTragseil);
 
-    if EndstueckB = Ausfaedel then pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAusfaedelungTragseil)
-      else pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungTragseil);
+    if EndstueckB = Ausfaedel then pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAusfaedelungTragseil)
+      else pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungTragseil);
 
     //Prüfung ob notwendige Ankerpunkte vorhanden sind
     if AnkerIstLeer(pktTA) or AnkerIstLeer(pktTB) or AnkerIstLeer(pktFA) or AnkerIstLeer(pktFB) then
@@ -501,8 +501,8 @@ begin
   begin
     BaufunktionAufgerufen := true;
     //Draht berechnen als Vektor von DA nach DB
-    pktDA:=PunktSuchen(true,  0, Ankertyp_FahrleitungTragseil);
-    pktDB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAnbaupunktAnker);
+    pktDA:=PunktSuchen(true, 1, Ankertyp_FahrleitungTragseil);
+    pktDB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAnbaupunktAnker);
     D3DXVec3Subtract(vDraht, pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt);
 
     //Prüfung ob notwendige Ankerpunkte vorhanden sind
@@ -544,14 +544,14 @@ begin
   begin
     BaufunktionAufgerufen := true;
     //Fahrdraht berechnen als Vektor von FA nach FB
-    pktFA:=PunktSuchen(true,  0, AnkommenderAnkertypF);
-    pktFB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
+    pktFA:=PunktSuchen(true, 1, AnkommenderAnkertypF);
+    pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
 
     //Tragseil Endpunkte
-    pktTA:=PunktSuchen(true,  0, AnkommenderAnkertypT);
-    pktTB:=PunktSuchen(false, 0, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
+    pktTA:=PunktSuchen(true, 1, AnkommenderAnkertypT);
+    pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
     //Prüfung ob notwendige Ankerpunkte vorhanden sind
