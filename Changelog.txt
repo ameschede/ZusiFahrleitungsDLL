@@ -123,3 +123,8 @@ Kettenlinien
 
 Re 160
 - Fahrdrahtentartung zwischen QTW-Festpunkt und SH13-Stützpunkt behoben
+
+
+2.0.0.2 ()
+Re 160
+- Systemhöhenwarnung korrigiert

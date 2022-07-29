@@ -362,12 +362,12 @@ begin
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
     //Systemhöhen-Prüfung
-    if not (EndstueckA in [Abschluss,SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,NyZqtw]) then
+    if not (EndstueckA in [Abschluss,SH13_5m,SH13_10m,SH03,SH03Z,Ausfaedel]) then
     begin
       D3DXVec3Subtract(v, pktTA.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
       if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger A liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
     end;
-    if not (EndstueckB in [Abschluss,SH13_5m,SH13_10m,y12m,y12mZ,SH03,SH03Z,y12mZqtw,NyZqtw]) then
+    if not (EndstueckB in [Abschluss,SH13_5m,SH13_10m,SH03,SH03Z,Ausfaedel]) then
     begin
       D3DXVec3Subtract(v, pktTB.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt);
       if (D3DXVec3Length(v) < 1.3) then ShowMessage('Systemhöhe am Ausleger B liegt außerhalb der zulässigen Grenzen (minimal 1,30 m).');
