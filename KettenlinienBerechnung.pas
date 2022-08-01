@@ -181,7 +181,7 @@ begin
   AbschnitteSpeiseleitung := 12;
   AbschnitteTelegrafenleitung := 12;
   AbschnitteStelldraht := 1;
-  DurchhangStromleitung := 0.001;
+  DurchhangStromleitung := 0.0001;
   DurchhangSpeiseleitung := 0.02;
   DurchhangTelegrafenleitung := 0.001;
   DurchhangStelldraht := 0.00;
@@ -252,7 +252,7 @@ begin
         D3DXVec3Scale(v, vNorm, a * Abschnittslaenge);
         D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
         pktU := pktO;
-        pktU.PunktTransformiert.Punkt.z := pktU.PunktTransformiert.Punkt.z-1; //Synthetisierung eines virtuellen Punkts 1 Meter unter dem Seil
+        pktU.PunktTransformiert.Punkt.z := pktU.PunktTransformiert.Punkt.z-10; //Synthetisierung eines virtuellen Punkts 10 Meter unter dem Seil
 
         //Punkt absenken
         Durchhang := (Zufall * Parabelparameter * sqr((a * Abschnittslaenge) - (Abstand/2)) + 1.0) / (Zufall * Parabelparameter * sqr(Abstand/2) + 1.0);
@@ -411,6 +411,8 @@ begin
             RegistrySchreiben;
             RegistryLesen;
        end;
+
+       if Formular.ModalResult=mrClose then Init;
 
        //Application.Handle:=0;
        Formular.Free;

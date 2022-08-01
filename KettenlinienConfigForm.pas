@@ -13,6 +13,7 @@ type
   { TFormFahrleitungConfig }
 
   TFormFahrleitungConfig = class(TForm)
+    ButtonStandard: TButton;
     ColorButtonStromleitung: TColorButton;
     ColorButtonSpeiseleitung: TColorButton;
     ColorButtonStelldraht: TColorButton;
@@ -49,6 +50,7 @@ type
     RadioButtonStromleitung: TRadioButton;
     SpeedButtonIsolator: TSpeedButton;
     LabeledEditIsolator: TLabeledEdit;
+    procedure ButtonStandardClick(Sender: TObject);
     procedure ColorButtonSpeiseleitungClick(Sender: TObject);
     procedure ColorButtonStelldrahtClick(Sender: TObject);
     procedure ColorButtonStromleitungClick(Sender: TObject);
@@ -133,6 +135,18 @@ begin
   begin
     ColorButtonSpeiseleitung.ButtonColor := ColorDialog1.Color;
   end;
+end;
+
+procedure TFormFahrleitungConfig.ButtonStandardClick(Sender: TObject);
+var reg: TRegistry;
+    begin
+    reg:=TRegistry.Create;
+    try
+       reg.RootKey:=HKEY_CURRENT_USER;
+       reg.DeleteKey('Software\Zusi3\lib\catenary\Kettenlinien')
+    finally
+       reg.Free;
+    end;
 end;
 
 procedure TFormFahrleitungConfig.ColorButtonStelldrahtClick(Sender: TObject);

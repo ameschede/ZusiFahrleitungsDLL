@@ -320,6 +320,16 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Caption = 'Farbe'
     ParentColor = False
   end
+  object ButtonStandard: TButton
+    Left = 424
+    Height = 50
+    Top = 414
+    Width = 156
+    Caption = 'Standardwerte'
+    ModalResult = 11
+    OnClick = ButtonStandardClick
+    TabOrder = 24
+  end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'
     FileName = '*.lod.ls3'

@@ -125,6 +125,10 @@ Re 160
 - Fahrdrahtentartung zwischen QTW-Festpunkt und SH13-Stützpunkt behoben
 
 
-2.0.0.2 ()
+2.0.0.2 (1.8.2022)
+Kettenlinien
+- Mehr Durchhang ermöglicht
+- Einstellungen können auf Standardwerte zurückgesetzt werden
+
 Re 160
 - Systemhöhenwarnung korrigiert
