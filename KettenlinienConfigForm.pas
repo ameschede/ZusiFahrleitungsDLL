@@ -35,6 +35,10 @@ type
     EditDurchmesserTelegrafenleitung: TEdit;
     EditDurchmesserSpeiseleitung: TEdit;
     EditDurchmesserStromleitung: TEdit;
+    LabelSchwankungAutomatik: TLabel;
+    LabeledEditSchwankungAutomatikX: TLabeledEdit;
+    LabeledEditObjektabstandAutomatik: TLabeledEdit;
+    LabeledEditSchwankungAutomatikY: TLabeledEdit;
     LabelFarbe: TLabel;
     LabelZufall: TLabel;
     LabelDurchhang: TLabel;
@@ -49,7 +53,7 @@ type
     RadioButtonSpeiseleitung: TRadioButton;
     RadioButtonStromleitung: TRadioButton;
     SpeedButtonIsolator: TSpeedButton;
-    LabeledEditIsolator: TLabeledEdit;
+    LabeledEditAutomatikDatei: TLabeledEdit;
     procedure ButtonStandardClick(Sender: TObject);
     procedure ColorButtonSpeiseleitungClick(Sender: TObject);
     procedure ColorButtonStelldrahtClick(Sender: TObject);
@@ -104,7 +108,7 @@ end;
 
 procedure TFormFahrleitungConfig.SpeedButtonIsolatorClick(Sender: TObject);
 begin
-   Dateiauswahl(LabeledEditIsolator);
+   Dateiauswahl(LabeledEditAutomatikDatei);
 end;
 
 procedure TFormFahrleitungConfig.FormCreate(Sender: TObject);

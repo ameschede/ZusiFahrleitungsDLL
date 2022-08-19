@@ -132,3 +132,8 @@ Kettenlinien
 
 Re 160
 - Systemhöhenwarnung korrigiert
+
+
+2.0.0.3 (19.8.2022)
+Kettenlinien
+- Modus 'Automatisch entlang Gleis' implementiert

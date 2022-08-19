@@ -22,6 +22,8 @@ function Berechnen(Typ1, Typ2:Longint):TErgebnis; stdcall;
 function Bezeichnung:PChar; stdcall;
 function Gruppe:PChar; stdcall;
 procedure Config(AppHandle:HWND); stdcall;
+function Mastabstand(Kruemmung:single; MastAbstand:single):single; stdcall;
+procedure Maststandort(StrMitte, StreckenMitteNachfolger:TD3DVector; Winkel, Ueberhoehung, Helligkeitswert:single; Rechts:Boolean; var MastKoordinate, WinkelVektor:TD3DVector; var Dateiname:PChar); stdcall;
 
 implementation
 
@@ -47,9 +49,9 @@ exports
        Systemversatz;
 
 var
-    DateiIsolator:string;
-    StaerkeDraht,DurchmesserStromleitung,DurchmesserSpeiseleitung,DurchmesserTelegrafenleitung,DurchmesserStelldraht,DurchhangStromleitung,DurchhangSpeiseleitung,DurchhangTelegrafenleitung,DurchhangStelldraht,Konkavparameter,Konvexparameter:single;
-    Kettenwerkstyp, Abschnitte,AbschnitteStromleitung,AbschnitteSpeiseleitung,AbschnitteTelegrafenleitung,AbschnitteStelldraht,Zufallsschwankung,ZufallStromleitung,ZufallSpeiseleitung,ZufallTelegrafenleitung,ZufallStelldraht:integer;
+    DateiAutomatik:string;
+    StaerkeDraht,DurchmesserStromleitung,DurchmesserSpeiseleitung,DurchmesserTelegrafenleitung,DurchmesserStelldraht,DurchhangStromleitung,DurchhangSpeiseleitung,DurchhangTelegrafenleitung,DurchhangStelldraht,Konkavparameter,Konvexparameter,ObjektabstandAutomatik:single;
+    Kettenwerkstyp, Abschnitte,AbschnitteStromleitung,AbschnitteSpeiseleitung,AbschnitteTelegrafenleitung,AbschnitteStelldraht,Zufallsschwankung,ZufallStromleitung,ZufallSpeiseleitung,ZufallTelegrafenleitung,ZufallStelldraht,SchwankungAutomatikX,SchwankungAutomatikY:integer;
     DrahtFarbe:TD3DColorValue;
     Ankertyp:TAnkertyp;
     BaufunktionAufgerufen,DialogOffen:boolean;
@@ -63,7 +65,10 @@ begin
     reg.RootKey:=HKEY_CURRENT_USER;
             if reg.OpenKeyReadOnly('Software\Zusi3\lib\catenary\Kettenlinien') then
             begin
-              //if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
+              if reg.ValueExists('DateiAutomatik') then DateiAutomatik:=reg.ReadString('DateiAutomatik');
+              if reg.ValueExists('ObjektabstandAutomatik') then ObjektabstandAutomatik := reg.ReadFloat('ObjektabstandAutomatik');
+              if reg.ValueExists('SchwankungAutomatikX') then SchwankungAutomatikX := reg.ReadInteger('SchwankungAutomatikX');
+              if reg.ValueExists('SchwankungAutomatikY') then SchwankungAutomatikY := reg.ReadInteger('SchwankungAutomatikY');
               if reg.ValueExists('DurchmesserStromleitung') then DurchmesserStromleitung := reg.ReadFloat('DurchmesserStromleitung');
               if reg.ValueExists('DurchmesserSpeiseleitung') then DurchmesserSpeiseleitung := reg.ReadFloat('DurchmesserSpeiseleitung');
               if reg.ValueExists('DurchmesserTelegrafenleitung') then DurchmesserTelegrafenleitung := reg.ReadFloat('DurchmesserTelegrafenleitung');
@@ -121,7 +126,10 @@ begin
           begin
             if reg.OpenKey('Kettenlinien', true) then
             begin
-              //reg.WriteString('DateiIsolator', DateiIsolator);
+              reg.WriteString('DateiAutomatik', DateiAutomatik);
+              reg.WriteFloat('ObjektabstandAutomatik',ObjektabstandAutomatik);
+              reg.WriteInteger('SchwankungAutomatikX',SchwankungAutomatikX);
+              reg.WriteInteger('SchwankungAutomatikY',SchwankungAutomatikY);
               reg.WriteInteger('Kettenwerkstyp',Kettenwerkstyp);
               reg.WriteInteger('Abschnitte',Abschnitte);
               reg.WriteFloat('StaerkeDraht',StaerkeDraht);
@@ -193,6 +201,10 @@ begin
   FarbeSpeiseleitung:=$00FCFCFC;
   FarbeTelegrafenleitung:=$00FCFCFC;
   FarbeStelldraht:=$00FCFCFC;
+  DateiAutomatik:='Terrain\Deutschland\Zaeune\Zaunpfaehle\Zaunpfahl_Holz.lod.ls3';
+  ObjektabstandAutomatik:=5;
+  SchwankungAutomatikX:=0;
+  SchwankungAutomatikY:=0;
   RegistryLesen;
 end;
 
@@ -318,7 +330,10 @@ begin
        Application.Initialize;
        //Application.Handle:=AppHandle;
        Formular:=TFormFahrleitungConfig.Create(Application);
-       Formular.LabeledEditIsolator.Text:=DateiIsolator;
+       Formular.LabeledEditAutomatikDatei.Text:=DateiAutomatik;
+       Formular.LabeledEditObjektabstandAutomatik.Text:=floattostr(ObjektabstandAutomatik);
+       Formular.LabeledEditSchwankungAutomatikX.Text:=inttostr(SchwankungAutomatikX);
+       Formular.LabeledEditSchwankungAutomatikY.Text:=inttostr(SchwankungAutomatikY);
        case Kettenwerkstyp of
             0: Formular.RadioButtonStromleitung.checked := true;
             1: Formular.RadioButtonSpeiseleitung.checked := true;
@@ -350,7 +365,10 @@ begin
 
        if Formular.ModalResult=mrOK then
        begin
-            DateiIsolator:=(Formular.LabeledEditIsolator.Text);
+            DateiAutomatik:=(Formular.LabeledEditAutomatikDatei.Text);
+            ObjektabstandAutomatik:=strtofloat(Formular.LabeledEditObjektabstandAutomatik.Text);
+            SchwankungAutomatikX:=strtoint(Formular.LabeledEditSchwankungAutomatikX.Text);
+            SchwankungAutomatikY:=strtoint(Formular.LabeledEditSchwankungAutomatikY.Text);
             DurchmesserStromleitung := strtofloat(Formular.EditDurchmesserStromleitung.Text);
             DurchmesserSpeiseleitung := strtofloat(Formular.EditDurchmesserSpeiseleitung.Text);
             DurchmesserTelegrafenleitung := strtofloat(Formular.EditDurchmesserTelegrafenleitung.Text);
@@ -418,6 +436,21 @@ begin
        Formular.Free;
        DialogOffen:=false;
   end;
+end;
+
+function Mastabstand(Kruemmung:single; MastAbstand:single):single; stdcall;
+begin
+  Result:=ObjektabstandAutomatik;
+end;
+
+
+procedure Maststandort(StrMitte, StreckenMitteNachfolger:TD3DVector; Winkel, Ueberhoehung, Helligkeitswert:single; Rechts:Boolean; var MastKoordinate, WinkelVektor:TD3DVector; var Dateiname:PChar); stdcall;
+begin
+  MastKoordinate:=StrMitte;
+  WinkelVektor.x:=1-RandomRange((100-SchwankungAutomatikX),(100+SchwankungAutomatikX))/100;
+  WinkelVektor.y:=1-RandomRange((100-SchwankungAutomatikY),(100+SchwankungAutomatikY))/100;
+  WinkelVektor.z:=0;
+  Dateiname:=PChar(UTF8toCP1252(DateiAutomatik));
 end;
 
 end.
