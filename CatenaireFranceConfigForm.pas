@@ -24,7 +24,6 @@ type
     LabelAusleger: TLabel;
     LabelAnkermast: TLabel;
     TrackBarFestpunktisolator: TTrackBar;
-    RadioGroupKettenwerksabschluss: TRadioGroup;
     procedure FormCreate(Sender: TObject);
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private

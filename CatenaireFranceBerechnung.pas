@@ -50,7 +50,7 @@ exports
 
 var
     DateiIsolator:string;
-    StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeAnkerseil,IsolatorpositionTS:single;
+    StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeAnkerseil:single;
     Kettenwerkstyp,IsolatorBaumodus,Festpunktisolatorposition:integer;
     DrahtFarbe:TD3DColorValue;
     V350,V300,V200,V160,BaufunktionAufgerufen,DialogOffen:boolean;
@@ -67,7 +67,6 @@ begin
               if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
               if reg.ValueExists('Kettenwerkstyp') then Kettenwerkstyp := reg.ReadInteger('Kettenwerkstyp');
-              if reg.ValueExists('IsolatorPositionTS') then IsolatorpositionTS := reg.ReadFloat('IsolatorpositionTS');
             end;
             case Kettenwerkstyp of
             0: V350 := true;
@@ -117,7 +116,6 @@ begin
               reg.WriteInteger('IsolatorBaumodus',IsolatorBaumodus);
               reg.WriteInteger('Kettenwerkstyp',Kettenwerkstyp);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
-              reg.WriteFloat('IsolatorpositionTS',IsolatorpositionTS);
             end;
           end;
         end;
@@ -143,7 +141,6 @@ begin
   Kettenwerkstyp := 0; //V350 als Default
   IsolatorBaumodus := 0;
   Festpunktisolatorposition:=10;
-  IsolatorPositionTS:=2.46;
   RegistryLesen;
 end;
 
@@ -531,7 +528,7 @@ end;
 
 procedure KettenwerkAbschluss(Ersthaengerabstand,Letzthaengerabstand:single;AnkommenderAnkertypF,AnkommenderAnkertypT:TAnkerTyp);
 var pktFA, pktFB, pktTA, pktTB, pktU, pktO:TAnkerpunkt;
-    Abstand, Durchhang, Haengerabstand:single;
+    AbstandFD, AbstandTS, Laengendifferenz, Durchhang, Haengerabstand:single;
     vFahrdraht, vTragseil, v, vNeu, vNorm, Startpunkt:TD3DVector;
     i, a:integer;
 
@@ -547,12 +544,15 @@ begin
     pktFA:=PunktSuchen(true, 1, AnkommenderAnkertypF);
     pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
-    Abstand:=D3DXVec3Length(vFahrdraht);
+    AbstandFD:=D3DXVec3Length(vFahrdraht);
 
     //Tragseil Endpunkte
     pktTA:=PunktSuchen(true, 1, AnkommenderAnkertypT);
     pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
+    AbstandTS:=D3DXVec3Length(vTragseil);
+
+    Laengendifferenz := AbstandTS - AbstandFD;
 
     //Prüfung ob notwendige Ankerpunkte vorhanden sind
     if AnkerIstLeer(pktTA) or AnkerIstLeer(pktTB) or AnkerIstLeer(pktFA) or AnkerIstLeer(pktFB) then
@@ -563,7 +563,7 @@ begin
 
     //Das Abschluss-Kettenwerk der französischen Fahrleitung zeichnet sich durch fehlende Hänger aus, so dass auch der Fahrdraht durchhängt.
     i := 10;
-    Haengerabstand := Abstand/i;
+    Haengerabstand := AbstandTS/i;
 
     Startpunkt := pktTA.PunktTransformiert.Punkt;
     for a:=1 to i do
@@ -576,7 +576,7 @@ begin
       pktU.PunktTransformiert.Punkt.z := pktU.PunktTransformiert.Punkt.z-1; //Synthetisierung eines virtuellen Punkts 1 Meter unter dem Seil
 
       //Punkt absenken
-      Durchhang := (0.00055 * sqr((a * Haengerabstand) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      Durchhang := (0.00055 * sqr((a * Haengerabstand) - (AbstandTS/2)) + 1.0) / (0.00055 * sqr(AbstandTS/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -592,13 +592,14 @@ begin
       if a = i-1 then
       begin
         setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-        LageIsolator(pktTB.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt, IsolatorpositionTS, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel); //Tragseil-Isolator je nach Einstellung in 2,46 oder 2 Meter vom Spannwerk
+        LageIsolator(pktTB.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt, (2 + Laengendifferenz), pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel); //Tragseil-Isolator je nach Einstellung in 2,46 oder 2 Meter vom Spannwerk
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
         ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
       end;
     end;
 
+    Haengerabstand := AbstandFD/i;
     Startpunkt := pktFA.PunktTransformiert.Punkt;
     for a:=1 to i do
     begin
@@ -610,7 +611,7 @@ begin
       pktU.PunktTransformiert.Punkt.z := pktU.PunktTransformiert.Punkt.z-1; //Synthetisierung eines virtuellen Punkts 1 Meter unter dem Seil
 
       //Punkt absenken
-      Durchhang := (0.00055 * sqr((a * Haengerabstand) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      Durchhang := (0.00055 * sqr((a * Haengerabstand) - (AbstandFD/2)) + 1.0) / (0.00055 * sqr(AbstandFD/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -722,7 +723,6 @@ begin
        Formular.RadioGroupKettenwerkstyp.ItemIndex := Kettenwerkstyp;
        Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
        Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
-       if IsolatorpositionTS > 2.45 then Formular.RadioGroupKettenwerksabschluss.ItemIndex := 0	else Formular.RadioGroupKettenwerksabschluss.ItemIndex := 1;
        Formular.ShowModal;
 
        if Formular.ModalResult=mrOK then
@@ -731,7 +731,6 @@ begin
        Kettenwerkstyp:=Formular.RadioGroupKettenwerkstyp.ItemIndex;
        IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
        Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
-       if Formular.RadioGroupKettenwerksabschluss.ItemIndex = 0 then IsolatorpositionTS := 2.46 else IsolatorpositionTS := 2.00;
        RegistrySchreiben;
        RegistryLesen;
        end;

@@ -147,28 +147,6 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Position = 10
     TabOrder = 5
   end
-  object RadioGroupKettenwerksabschluss: TRadioGroup
-    Left = 400
-    Height = 114
-    Top = 224
-    Width = 338
-    AutoFill = True
-    Caption = 'Art des Kettenwerks-Abschlusses'
-    ChildSizing.LeftRightSpacing = 6
-    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
-    ChildSizing.EnlargeVertical = crsHomogenousChildResize
-    ChildSizing.ShrinkHorizontal = crsScaleChilds
-    ChildSizing.ShrinkVertical = crsScaleChilds
-    ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 1
-    ClientHeight = 83
-    ClientWidth = 334
-    Items.Strings = (
-      'Spannwerk'
-      'Feste Abspannung'
-    )
-    TabOrder = 6
-  end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'
     FileName = '*.lod.ls3'

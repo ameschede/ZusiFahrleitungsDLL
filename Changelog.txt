@@ -137,3 +137,9 @@ Re 160
 2.0.0.3 (19.8.2022)
 Kettenlinien
 - Modus 'Automatisch entlang Gleis' implementiert
+
+
+2.0.0.4 (1.12.2022)
+Catenaire France
+- Bei unterschiedlicher Länge von Fahrdraht und Tragseil endet das Seil nicht mehr vor dem Ankerpunkt
+- Wegfall der Einstellungsoption zur Isolatorposition an Abspannungen (wird jetzt automatisch richtig gemacht)
