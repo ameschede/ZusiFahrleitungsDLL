@@ -217,7 +217,7 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
     for b:=0 to length(Punkte)-1 do
     begin
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungFahrdraht then inc(iUnten3);
-      if Punkte[b].Ankertyp=Ankertyp_Tragseildrehklemme then inc(iOben3);
+      if Punkte[b].Ankertyp=Ankertyp_FahrleitungAnbaupunktTragseildrehklemme then inc(iOben3);
     end;
     if (iUnten3=1) and (iOben3=1) then Result:=6;
 
@@ -267,7 +267,7 @@ begin
     //Bei Stützpunkten mit niedriger Systemhöhe den Anbaupunkt am Spitzenrohr feststellen
     if (EndstueckA in [SH13_5m,SH13_10m]) then
     begin
-      pktSRA:=PunktSuchen(true, 1, Ankertyp_Tragseildrehklemme);
+      pktSRA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAnbaupunktTragseildrehklemme);
       if (AnkerIstLeer(pktSRA) and (EndstueckA in [SH13_5m,SH13_10m])) then
       begin
         ShowMessage('Ein notwendiger Ankerpunkt des Typs Tragseildrehklemme ist nicht vorhanden.');
@@ -276,7 +276,7 @@ begin
     end;
     if (EndstueckB in [SH13_5m,SH13_10m]) then
     begin
-      pktSRB:=PunktSuchen(false, 1, Ankertyp_Tragseildrehklemme);
+      pktSRB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAnbaupunktTragseildrehklemme);
       if (AnkerIstLeer(pktSRB) and (EndstueckB in [SH13_5m,SH13_10m])) then
       begin
         ShowMessage('Ein notwendiger Ankerpunkt des Typs Tragseildrehklemme ist nicht vorhanden.');
@@ -287,7 +287,7 @@ begin
     //Bei Festpunkten am QTW den Anbaupunkt für die Zusatzhänger am Seitenhalter feststellen
     if (EndstueckA in [y12mZqtw, NyZqtw]) then
     begin
-      pktSRA:=PunktSuchen(true, 1, Ankertyp_Stuetzrohrhaenger);
+      pktSRA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAnbaupunktStuetzrohrhaenger);
       if (AnkerIstLeer(pktSRA) and (EndstueckA in [y12mZqtw, NyZqtw])) then
       begin
         ShowMessage('Ein notwendiger Ankerpunkt des Typs Stützrohrhänger ist nicht vorhanden.');
@@ -296,7 +296,7 @@ begin
     end;
     if (EndstueckB in [y12mZqtw, NyZqtw]) then
     begin
-      pktSRB:=PunktSuchen(false, 1, Ankertyp_Stuetzrohrhaenger);
+      pktSRB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAnbaupunktStuetzrohrhaenger);
       if (AnkerIstLeer(pktSRB) and (EndstueckB in [y12mZqtw, NyZqtw])) then
       begin
         ShowMessage('Ein notwendiger Ankerpunkt des Typs Stützrohrhänger ist nicht vorhanden.');
