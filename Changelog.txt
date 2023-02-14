@@ -143,3 +143,11 @@ Kettenlinien
 Catenaire France
 - Bei unterschiedlicher Länge von Fahrdraht und Tragseil endet das Seil nicht mehr vor dem Ankerpunkt
 - Wegfall der Einstellungsoption zur Isolatorposition an Abspannungen (wird jetzt automatisch richtig gemacht)
+
+3.5.0.0 (19.1.2023)
+Alle DLL
+- Version für Zusi 3.5
+
+3.5.0.1 ()
+Re 330/250
+- Fahrdrähte können direkt mit Tunnelhelligkeit eingebaut werden

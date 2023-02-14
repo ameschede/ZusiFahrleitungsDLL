@@ -1,7 +1,7 @@
 object FormFahrleitungConfig: TFormFahrleitungConfig
-  Left = 442
+  Left = 590
   Height = 556
-  Top = 199
+  Top = 226
   Width = 1140
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
@@ -135,7 +135,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Left = 16
     Height = 114
     Top = 272
-    Width = 450
+    Width = 328
     AutoFill = True
     Caption = 'Zusätzliche Isolatoren einbauen'
     ChildSizing.LeftRightSpacing = 6
@@ -146,7 +146,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
     ClientHeight = 83
-    ClientWidth = 446
+    ClientWidth = 324
     ItemIndex = 0
     Items.Strings = (
       'Aus'
@@ -176,6 +176,28 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'Ohne Y-Seil'
     )
     TabOrder = 7
+  end
+  object RadioGroupZwangshelligkeit: TRadioGroup
+    Left = 640
+    Height = 114
+    Top = 96
+    Width = 176
+    AutoFill = True
+    Caption = 'Helligkeit'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 83
+    ClientWidth = 172
+    Items.Strings = (
+      'Oberirdisch'
+      'Tunnel'
+    )
+    TabOrder = 8
   end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'

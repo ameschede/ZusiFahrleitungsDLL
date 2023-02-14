@@ -50,7 +50,7 @@ exports
 
 var
     DateiIsolator:string;
-    StaerkeFD,StaerkeTS,StaerkeHaenger,{StaerkeStuetzrohrhaenger,}StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor:single;
+    StaerkeFD,StaerkeTS,StaerkeHaenger,{StaerkeStuetzrohrhaenger,}StaerkeYseil,StaerkeBeiseil,StaerkeAnkerseil,StaerkeZseil,YKompFaktor,Helligkeit:single;
     Festpunktisolatorposition,IsolatorBaumodus,Bauartvorschlag:integer;
     DrahtFarbe:TD3DColorValue;
     BaufunktionAufgerufen,Re250,DialogOffen:boolean;
@@ -66,6 +66,7 @@ begin
               if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
               if reg.ValueExists('Festpunktisolatorposition') then Festpunktisolatorposition := reg.ReadInteger('Festpunktisolatorposition');
               if reg.ValueExists('YKompFaktor') then YKompFaktor := reg.ReadFloat('YKompFaktor');
+              if reg.ValueExists('Helligkeit') then Helligkeit := reg.ReadFloat('Helligkeit');
               if reg.ValueExists('ModusRe250') then Re250 := reg.ReadBool('ModusRe250');
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
               if reg.ValueExists('Bauartvorschlag') then Bauartvorschlag := reg.ReadInteger('Bauartvorschlag');
@@ -103,6 +104,7 @@ begin
               reg.WriteString('DateiIsolator', DateiIsolator);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
               reg.WriteFloat('YKompFaktor',YKompFaktor);
+              reg.WriteFloat('Helligkeit',Helligkeit);
               reg.WriteBool('ModusRe250',Re250);
               reg.WriteInteger('IsolatorBaumodus',IsolatorBaumodus);
               reg.WriteInteger('Bauartvorschlag',Bauartvorschlag);
@@ -137,6 +139,7 @@ begin
   YKompFaktor := 1;
   IsolatorBaumodus := 0;
   Bauartvorschlag := 0;
+  Helligkeit := 0;
   RegistryLesen;
 end;
 
@@ -302,6 +305,7 @@ begin
     end;}
 
     //TODO: Die am 6.1.22 in der Re160.dll behobene Falschpositionierung des Z-Seils scheint unter den Bedingungen von HOL-Kettenwerk nicht aufzutreten. Ggfs. den Algorithmus aus der Re160 hierher übernehmen.
+
     //falls ein Z-Seil gebraucht wird, dann ist es nach dem folgenden Hänger einzubauen:
     case i of
       2: zSeilHaenger := 1;
@@ -366,7 +370,7 @@ begin
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
-      DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe);
+      DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe,Helligkeit);
 
       if a = 1 then
       begin
@@ -402,14 +406,7 @@ begin
 
 
     // Tragseil-Abschnitte zwischen den Hängern
-    for a:=1 to length(ErgebnisArray)-1 do
-    begin
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErgebnisArray[a-1].Punkt2;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[a].Punkt2;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-    end;
+    for a:=1 to length(ErgebnisArray)-1 do DrahtEintragen(ErgebnisArray[a-1].Punkt2,ErgebnisArray[a].Punkt2,StaerkeTS,DrahtFarbe,Helligkeit);
 
 
     //Y-Seile und Endstücke
@@ -420,51 +417,31 @@ begin
     if EndstueckA in [r700,r700Z,Ausfaedel,Abschluss] then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErstNormalhaengerpunkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+      DrahtEintragen(ErstNormalhaengerpunkt,pktTA.PunktTransformiert.Punkt,StaerkeTS,DrahtFarbe,Helligkeit);
 
       //ggfs. Isolatoren für Streckentrennung oder Spannwerk einbauen
       if (EndstueckA in [Abschluss]) or ((IsolatorBaumodus = 1) and (EndstueckA = Ausfaedel)) then
       begin
-        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktTA.PunktTransformiert.Punkt, ErstNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+        DateiEintragen(pktO,DateiIsolator);
 
-        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktFA.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+        DateiEintragen(pktU,DateiIsolator);
       end;
     end;
     if EndstueckB in [r700,r700Z,Ausfaedel,Abschluss] then
     begin
       //Verbindung zwischen letztem Normalhänger und Ausleger B
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=LetztNormalhaengerpunkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTB.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+      DrahtEintragen(LetztNormalhaengerpunkt,pktTB.PunktTransformiert.Punkt,StaerkeTS,DrahtFarbe,Helligkeit);
 
       //ggfs. Isolatoren für Streckentrennung oder Spannwerk einbauen
       if (EndstueckB in [Abschluss]) or ((IsolatorBaumodus = 1) and (EndstueckB = Ausfaedel)) then
       begin
-        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktTB.PunktTransformiert.Punkt, LetztNormalhaengerpunkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+        DateiEintragen(pktO,DateiIsolator);
 
-        setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
         LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
-        ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+        DateiEintragen(pktU,DateiIsolator);
       end;
     end;
 
@@ -493,11 +470,7 @@ begin
       D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (zSeilHaenger * Haengerabstand) + (Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2) + (sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeZseil;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+      DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeZseil,DrahtFarbe,Helligkeit);
     end;
     if zSeilB then
     begin
@@ -524,19 +497,11 @@ begin
       D3DXVec3Scale(v, vNorm, (Ersthaengerabstand + (zSeilHaenger + 1) * Haengerabstand) - ((Haengerabstand - sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))/2 + sqrt(sqr(5*AbstandFT)-sqr(AbstandFT)))); //Länge des z-Seils muss das Fünffache des Abstands zwischen Fahrdraht und Tragseil sein
       D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
 
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeZseil;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+      DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeZseil,DrahtFarbe,Helligkeit);
     end;
 
     //Fahrdraht eintragen
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeFD;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktFA.PunktTransformiert.Punkt,pktFB.PunktTransformiert.Punkt,StaerkeFD,DrahtFarbe,Helligkeit);
 
   end;
 end;
@@ -563,11 +528,7 @@ begin
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe,Helligkeit);
 
     //Verbindung im Y-Seil zwischen Ersthänger und Nullpunkt am Ausleger
     //oberer Kettenwerkpunkt
@@ -576,22 +537,11 @@ begin
     if Richtung = -1 then D3DXVec3Scale(vNeu, v, 0.644 * YKompFaktor) else  D3DXVec3Scale(vNeu, v, 0.644); //64,4% Höhe zwischen Fahrdraht und Tragseil
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(YSeilErsthaengerpunkt,pktO.PunktTransformiert.Punkt,StaerkeYseil,DrahtFarbe,Helligkeit);
 
     //Anbindung Y-Seil an den Ausleger, unter Nutzung des für Array[3] berechneten Punkts
     //Array[4]
-    if not AnkerIstLeer(pktY) then
-    begin
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-    end;
+    if not AnkerIstLeer(pktY) then DrahtEintragen(pktY.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe,Helligkeit);
 
 
     //Tragseil zwischen Ende Y-Seil und Ausleger
@@ -612,26 +562,14 @@ begin
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilEndepunkt := pktO.PunktTransformiert.Punkt;
     //Array[5]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktT.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeTS,DrahtFarbe,Helligkeit);
 
     //Verbindung zwischen Ende Y-Seil und Ersthänger
     //Array[6]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(YSeilErsthaengerpunkt,pktO.PunktTransformiert.Punkt,StaerkeYseil,DrahtFarbe,Helligkeit);
 
     //Tragseil zwischen Ende Y-Seil und erstem Normalhänger
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilEndepunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(YSeilEndepunkt,ErstNormalhaengerpunkt,StaerkeTS,DrahtFarbe,Helligkeit);
 
 end;
 
@@ -658,11 +596,7 @@ begin
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe,Helligkeit);
 
     //Verbindung im Y-Seil zwischen Ersthänger und Nullpunkt am Ausleger
     //oberer Kettenwerkpunkt
@@ -671,23 +605,11 @@ begin
     D3DXVec3Scale(vNeu, v, 0.766); //76,6% Höhe zwischen Fahrdraht und Tragseil
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
     //Array[3]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(YSeilErsthaengerpunkt,pktO.PunktTransformiert.Punkt,StaerkeYseil,DrahtFarbe,Helligkeit);
 
     //Anbindung Y-Seil an den Ausleger, unter Nutzung des für Array[3] berechneten Punkts
     //Array[4]
-    if not AnkerIstLeer(pktY) then
-    begin
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktY.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-    end;
-
+    if not AnkerIstLeer(pktY) then DrahtEintragen(pktY.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe,Helligkeit);
 
     //Tragseil zwischen Ende Y-Seil und Ausleger
     //unterer Kettenwerkpunkt (nur virtuell, für Berechnungszwecke)
@@ -707,27 +629,14 @@ begin
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilEndepunkt := pktO.PunktTransformiert.Punkt;
     //Array[5]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktT.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktT.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeTS,DrahtFarbe,Helligkeit);
 
     //Verbindung zwischen Ende Y-Seil und Ersthänger
     //Array[6]
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilErsthaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeYseil;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(YSeilErsthaengerpunkt,pktO.PunktTransformiert.Punkt,StaerkeYseil,DrahtFarbe,Helligkeit);
 
     //Tragseil zwischen Ende Y-Seil und erstem Normalhänger
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=YSeilEndepunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
+    DrahtEintragen(YSeilEndepunkt,ErstNormalhaengerpunkt,StaerkeTS,DrahtFarbe,Helligkeit);
 end;
 
 
@@ -755,19 +664,11 @@ begin
     end;
 
     //Fahrdraht eintragen
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktDA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktDB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeAnkerseil;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktDA.PunktTransformiert.Punkt,pktDB.PunktTransformiert.Punkt,StaerkeAnkerseil,DrahtFarbe,Helligkeit);
 
     //Isolator auf dem Festpunktseil
-    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
     LageIsolator(pktDB.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Punkt, (Festpunktisolatorposition * D3DXVec3Length(vDraht))/100, pktDA.PunktTransformiert.Punkt, pktDA.PunktTransformiert.Winkel);
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktDA.PunktTransformiert.Punkt;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktDA.PunktTransformiert.Winkel;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-
+    DateiEintragen(pktDA,DateiIsolator);
   end
 end;
 
@@ -829,11 +730,8 @@ begin
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeHaenger;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+      DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe,Helligkeit);
+
       if a = 1 then
       begin
       //oberen Punkt des ersten Hängers für spätere Verwendung speichern
@@ -848,54 +746,24 @@ begin
 
 
     // Tragseil-Abschnitte zwischen den Hängern
-    for a:=1 to length(ErgebnisArray)-1 do
-    begin
-      setlength(ErgebnisArray, length(ErgebnisArray)+1);
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=ErgebnisArray[a-1].Punkt2;
-      ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErgebnisArray[a].Punkt2;
-      ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-      ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-      //v:=ErgebnisArray[a].Punkt2;
-    end;
+    for a:=1 to length(ErgebnisArray)-1 do DrahtEintragen(ErgebnisArray[a-1].Punkt2,ErgebnisArray[a].Punkt2,StaerkeTS,DrahtFarbe,Helligkeit);
 
     //Verbindung zwischen letztem Normalhänger und Spannwerk an B
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktTB.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeTS,DrahtFarbe,Helligkeit);
 
     //Isolator am Spannwerk oben
-    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
     LageIsolator(pktTB.PunktTransformiert.Punkt, pktO.PunktTransformiert.Punkt, 2, pktO.PunktTransformiert.Punkt, pktO.PunktTransformiert.Winkel);
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktO.PunktTransformiert.Punkt;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktO.PunktTransformiert.Winkel;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    DateiEintragen(pktO,DateiIsolator);
 
     //Isolator am Spannwerk unten
-    setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
     LageIsolator(pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, 2, pktU.PunktTransformiert.Punkt, pktU.PunktTransformiert.Winkel);
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktU.PunktTransformiert.Winkel;
-    ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
-
-
+    DateiEintragen(pktU,DateiIsolator);
 
     //Verbindung zwischen erstem Hänger und Ausleger A
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktTA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=ErstNormalhaengerpunkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeTS;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
+    DrahtEintragen( pktTA.PunktTransformiert.Punkt,ErstNormalhaengerpunkt,StaerkeTS,DrahtFarbe,Helligkeit);
 
     //Fahrdraht eintragen
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=StaerkeFD;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
-
+    DrahtEintragen(pktFA.PunktTransformiert.Punkt,pktFB.PunktTransformiert.Punkt,StaerkeFD,DrahtFarbe,Helligkeit);
   end;
 end;
 
@@ -988,6 +856,8 @@ begin
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
   if Re250 = false then Formular.RadioGroupBaumodus.ItemIndex := 0;
   if Re250 = true then Formular.RadioGroupBaumodus.ItemIndex := 1;
+  if Helligkeit = 0 then Formular.RadioGroupZwangshelligkeit.ItemIndex := 0;
+  if SameValue(Helligkeit,0.07,0.01) then Formular.RadioGroupZwangshelligkeit.ItemIndex := 1;
   Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
   if YKompFaktor <> 1 then Formular.CheckBoxYKompatibilitaet.Checked := true;
   Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
@@ -1000,6 +870,8 @@ begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
     if Formular.RadioGroupBaumodus.ItemIndex = 0 then Re250 := false;
     if Formular.RadioGroupBaumodus.ItemIndex = 1 then Re250 := true;
+    if Formular.RadioGroupZwangshelligkeit.ItemIndex = 0 then Helligkeit := 0;
+    if Formular.RadioGroupZwangshelligkeit.ItemIndex = 1 then Helligkeit := 0.07;
     IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
     Bauartvorschlag:=Formular.RadioGroupBauartvorschlag.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
