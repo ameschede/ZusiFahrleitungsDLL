@@ -148,6 +148,12 @@ Catenaire France
 Alle DLL
 - Version für Zusi 3.5
 
-3.5.0.1 ()
-Re 330/250
-- Fahrdrähte können direkt mit Tunnelhelligkeit eingebaut werden
+3.5.1.0 (30.6.2023)
+Alle DLL
+- Drähte können direkt mit Tunnelhelligkeit eingebaut werden
+
+Ezs 1007
+- Option für Fahrdrahtstärke wie bei Zusi 3.1 entfernt
+
+Kettenlinien
+- Kompatibilität zu sehr alten CPUs verbessert

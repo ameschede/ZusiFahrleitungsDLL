@@ -18,7 +18,7 @@ type
     OpenDialogDatei: TOpenDialog;
     SpeedButtonIsolator: TSpeedButton;
     LabeledEditIsolator: TLabeledEdit;
-    RadioGroupDrahtstaerke: TRadioGroup;
+    RadioGroupZwangshelligkeit: TRadioGroup;
     procedure FormCreate(Sender: TObject);
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private

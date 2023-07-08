@@ -50,7 +50,7 @@ exports
 
 var
     DateiAutomatik:string;
-    StaerkeDraht,DurchmesserStromleitung,DurchmesserSpeiseleitung,DurchmesserTelegrafenleitung,DurchmesserStelldraht,DurchhangStromleitung,DurchhangSpeiseleitung,DurchhangTelegrafenleitung,DurchhangStelldraht,Konkavparameter,Konvexparameter,ObjektabstandAutomatik:single;
+    StaerkeDraht,DurchmesserStromleitung,DurchmesserSpeiseleitung,DurchmesserTelegrafenleitung,DurchmesserStelldraht,DurchhangStromleitung,DurchhangSpeiseleitung,DurchhangTelegrafenleitung,DurchhangStelldraht,Konkavparameter,Konvexparameter,ObjektabstandAutomatik,Helligkeit:single;
     Kettenwerkstyp, Abschnitte,AbschnitteStromleitung,AbschnitteSpeiseleitung,AbschnitteTelegrafenleitung,AbschnitteStelldraht,Zufallsschwankung,ZufallStromleitung,ZufallSpeiseleitung,ZufallTelegrafenleitung,ZufallStelldraht,SchwankungAutomatikX,SchwankungAutomatikY:integer;
     DrahtFarbe:TD3DColorValue;
     Ankertyp:TAnkertyp;
@@ -96,6 +96,7 @@ begin
               if reg.ValueExists('KonkavParameter') then Konkavparameter := reg.ReadFloat('Konkavparameter');
               if reg.ValueExists('KonvexParameter') then Konvexparameter := reg.ReadFloat('Konvexparameter');
               if reg.ValueExists('Farbe') then Farbe := reg.ReadInteger('Farbe');
+              if reg.ValueExists('Helligkeit') then Helligkeit := reg.ReadFloat('Helligkeit');
             end;
             case Kettenwerkstyp of
             0: Ankertyp := Ankertyp_Stromleitung;
@@ -157,6 +158,7 @@ begin
               reg.WriteInteger('FarbeSpeiseleitung',FarbeSpeiseleitung);
               reg.WriteInteger('FarbeTelegrafenleitung',FarbeTelegrafenleitung);
               reg.WriteInteger('FarbeStelldraht',FarbeStelldraht);
+              reg.WriteFloat('Helligkeit',Helligkeit);
             end;
           end;
         end;
@@ -205,6 +207,7 @@ begin
   ObjektabstandAutomatik:=5;
   SchwankungAutomatikX:=0;
   SchwankungAutomatikY:=0;
+  Helligkeit:=0;
   RegistryLesen;
 end;
 
@@ -272,7 +275,7 @@ begin
         D3DXVec3Scale(vNeu, v, Durchhang);
         D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
 
-        DrahtEintragen(Startpunkt,pktO.PunktTransformiert.Punkt,StaerkeDraht,DrahtFarbe);
+        DrahtEintragen(Startpunkt,pktO.PunktTransformiert.Punkt,StaerkeDraht,DrahtFarbe,Helligkeit);
         Startpunkt := pktO.PunktTransformiert.Punkt;
       end;
     end;
@@ -361,6 +364,8 @@ begin
        Formular.ColorButtonSpeiseleitung.ButtonColor:=FarbeSpeiseleitung;
        Formular.ColorButtonTelegrafenleitung.ButtonColor:=FarbeTelegrafenleitung;
        Formular.ColorButtonStelldraht.ButtonColor:=FarbeStelldraht;
+       if Helligkeit = 0 then Formular.RadioGroupZwangshelligkeit.ItemIndex := 0;
+       if SameValue(Helligkeit,0.07,0.01) then Formular.RadioGroupZwangshelligkeit.ItemIndex := 1;
        Formular.ShowModal;
 
        if Formular.ModalResult=mrOK then
@@ -390,6 +395,8 @@ begin
             FarbeTelegrafenleitung := Formular.ColorButtonTelegrafenleitung.ButtonColor;
             FarbeStelldraht := Formular.ColorButtonStelldraht.ButtonColor;
             Konvexparameter := strtofloat(Formular.LabeledEditKonvexParameter.Text);
+            if Formular.RadioGroupZwangshelligkeit.ItemIndex = 0 then Helligkeit := 0;
+            if Formular.RadioGroupZwangshelligkeit.ItemIndex = 1 then Helligkeit := 0.07;
             if Formular.RadioButtonStromleitung.checked then
             begin
                  Kettenwerkstyp := 0;

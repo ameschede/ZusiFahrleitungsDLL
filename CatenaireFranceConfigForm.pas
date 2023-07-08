@@ -16,6 +16,7 @@ type
     OK: TBitBtn;
     BitBtnAbbrechen: TBitBtn;
     OpenDialogDatei: TOpenDialog;
+    RadioGroupZwangshelligkeit: TRadioGroup;
     SpeedButtonIsolator: TSpeedButton;
     LabeledEditIsolator: TLabeledEdit;
     RadioGroupZusatzisolatoren: TRadioGroup;

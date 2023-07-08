@@ -15,6 +15,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
+  Position = poScreenCenter
   LCLVersion = '2.2.2.0'
   object SpeedButtonIsolator: TSpeedButton
     Left = 592

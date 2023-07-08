@@ -15,6 +15,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
+  Position = poScreenCenter
   LCLVersion = '2.2.2.0'
   object SpeedButtonIsolator: TSpeedButton
     Left = 608
@@ -369,12 +370,34 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Caption = 'max. Schwankung im Automatikmodus'
     ParentColor = False
   end
+  object RadioGroupZwangshelligkeit: TRadioGroup
+    Left = 608
+    Height = 104
+    Top = 256
+    Width = 234
+    AutoFill = True
+    Caption = 'Helligkeit'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 73
+    ClientWidth = 230
+    Items.Strings = (
+      'Oberirdisch'
+      'Tunnel'
+    )
+    TabOrder = 28
+  end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'
     FileName = '*.lod.ls3'
     Filter = '3D-LOD-Objekt (*.lod.ls3)|*.lod.ls3'
-    Left = 656
-    Top = 272
+    Left = 416
+    Top = 464
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
@@ -400,7 +423,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    Left = 784
-    Top = 272
+    Left = 536
+    Top = 456
   end
 end

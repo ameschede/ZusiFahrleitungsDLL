@@ -52,6 +52,7 @@ type
     RadioButtonTelegrafenleitung: TRadioButton;
     RadioButtonSpeiseleitung: TRadioButton;
     RadioButtonStromleitung: TRadioButton;
+    RadioGroupZwangshelligkeit: TRadioGroup;
     SpeedButtonIsolator: TSpeedButton;
     LabeledEditAutomatikDatei: TLabeledEdit;
     procedure ButtonStandardClick(Sender: TObject);

@@ -14,6 +14,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
+  Position = poScreenCenter
   LCLVersion = '2.2.2.0'
   object SpeedButtonIsolator: TSpeedButton
     Left = 592
@@ -120,7 +121,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Left = 16
     Height = 130
     Top = 96
-    Width = 450
+    Width = 336
     AutoFill = True
     Caption = 'Baumodus'
     ChildSizing.LeftRightSpacing = 6
@@ -131,7 +132,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
     ClientHeight = 99
-    ClientWidth = 446
+    ClientWidth = 332
     ItemIndex = 0
     Items.Strings = (
       'Einzelstützpunkte'
@@ -141,10 +142,10 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     TabOrder = 5
   end
   object RadioGroupZusatzisolatoren: TRadioGroup
-    Left = 512
+    Left = 376
     Height = 168
     Top = 96
-    Width = 450
+    Width = 336
     AutoFill = True
     Caption = 'Zusätzliche Isolatoren einbauen'
     ChildSizing.LeftRightSpacing = 6
@@ -155,7 +156,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
     ClientHeight = 137
-    ClientWidth = 446
+    ClientWidth = 332
     ItemIndex = 0
     Items.Strings = (
       'Aus'
@@ -164,6 +165,28 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'Streckentrennung'
     )
     TabOrder = 6
+  end
+  object RadioGroupZwangshelligkeit: TRadioGroup
+    Left = 736
+    Height = 96
+    Top = 96
+    Width = 352
+    AutoFill = True
+    Caption = 'Helligkeit'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 65
+    ClientWidth = 348
+    Items.Strings = (
+      'Oberirdisch'
+      'Tunnel'
+    )
+    TabOrder = 7
   end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'

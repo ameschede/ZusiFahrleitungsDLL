@@ -7,7 +7,7 @@ interface
 uses
   Direct3D9, d3dx9, 
   
-  sysutils, Controls, registry, windows, interfaces, forms, Classes, LConvEncoding, Dialogs,
+  sysutils, Controls, registry, windows, interfaces, forms, Classes, LConvEncoding, Dialogs, Math,
   
   ZusiD3DTypenDll, FahrleitungsTypen, OLADLLgemeinsameFkt, Ezs1007ConfigForm;
 
@@ -45,8 +45,7 @@ exports
 
 
 var DateiIsolator:string;
-    Drahtstaerke:single;
-    Drahtkennzahl:integer;
+    Drahtstaerke,Helligkeit:single;
     DialogOffen:boolean;
 
 
@@ -59,14 +58,7 @@ begin
             if reg.OpenKeyReadOnly('Software\Zusi3\lib\catenary\Ezs1007') then
             begin
               if reg.ValueExists('DateiIsolator') then DateiIsolator:=reg.ReadString('DateiIsolator');
-              if reg.ValueExists('DrahtStaerke') then
-              begin
-                Drahtkennzahl:=reg.ReadInteger('DrahtStaerke');
-                case Drahtkennzahl of
-                0: Drahtstaerke := 0.015;  // Zusi Legacy-Drahtstärke
-                1: Drahtstaerke := 0.006;  // Draht Ri 100
-                end;
-              end;
+              if reg.ValueExists('Helligkeit') then Helligkeit := reg.ReadFloat('Helligkeit');
             end;
   finally
     reg.Free;
@@ -92,7 +84,7 @@ begin
             if reg.OpenKey('Ezs1007', true) then
             begin
               reg.WriteString('DateiIsolator', DateiIsolator);
-              reg.WriteInteger('Drahtstaerke',Drahtkennzahl);
+              reg.WriteFloat('Helligkeit',Helligkeit);
             end;
           end;
         end;
@@ -111,8 +103,8 @@ begin
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
-  Drahtkennzahl:=1;
-  Drahtstaerke:=0.006;
+  Drahtstaerke:=0.006; //Draht Ri 100. TODO: Differenzierte Drahtstärke für das Tragseil
+  Helligkeit := 0;
   RegistryLesen;
 end;
 
@@ -195,25 +187,13 @@ begin
     D3DXVec3Normalize(vNorm, vFahrdraht);
     D3DXVec3Scale(v, vNorm, pTragseillaengeA);    //Tragseil von x Meter Länge am Ausleger A
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt, v);
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktU.PunktTransformiert.Punkt,pktTA.PunktTransformiert.Punkt,DrahtStaerke,DrahtFarbe,Helligkeit);
 {
     //Stützrohrhänger Ausleger A
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktFA.PunktTransformiert.Punkt,pktTA.PunktTransformiert.Punkt,DrahtStaerke,DrahtFarbe,Helligkeit);
 
     //Stützrohrhänger Ausleger B
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktFB.PunktTransformiert.Punkt,pktTB.PunktTransformiert.Punkt,DrahtStaerke,DrahtFarbe,Helligkeit);
 }
 
   if pAbschluss = false then
@@ -223,20 +203,12 @@ begin
     D3DXVec3Normalize(vNorm, vFahrdraht);
     D3DXVec3Scale(v, vNorm, -(pTragseillaengeB));    //Tragseil von x Meter Länge am Ausleger B
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktFB.PunktTransformiert.Punkt, v);
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktU.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktTB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktU.PunktTransformiert.Punkt,pktTB.PunktTransformiert.Punkt,DrahtStaerke,DrahtFarbe,Helligkeit);
   end;
 
 
     //Fahrdraht eintragen
-    setlength(ErgebnisArray, length(ErgebnisArray)+1);
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt1:=pktFA.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Punkt2:=pktFB.PunktTransformiert.Punkt;
-    ErgebnisArray[length(ErgebnisArray)-1].Staerke:=DrahtStaerke;
-    ErgebnisArray[length(ErgebnisArray)-1].Farbe:=DrahtFarbe;
+    DrahtEintragen(pktFA.PunktTransformiert.Punkt,pktFB.PunktTransformiert.Punkt,DrahtStaerke,DrahtFarbe,Helligkeit);
 
   if pAbschluss = true then
   begin
@@ -311,13 +283,16 @@ begin
   //Application.Handle:=AppHandle;
   Formular:=TFormEzs1007Config.Create(Application);
   Formular.LabeledEditIsolator.Text:=DateiIsolator;
-  Formular.RadioGroupDrahtstaerke.ItemIndex := Drahtkennzahl;
+  if Helligkeit = 0 then Formular.RadioGroupZwangshelligkeit.ItemIndex := 0;
+  if SameValue(Helligkeit,0.07,0.01) then Formular.RadioGroupZwangshelligkeit.ItemIndex := 1;
+
   Formular.ShowModal;
 
   if Formular.ModalResult=mrOK then
   begin
     DateiIsolator:=(Formular.LabeledEditIsolator.Text);
-    Drahtkennzahl:=Formular.RadioGroupDrahtstaerke.ItemIndex;
+    if Formular.RadioGroupZwangshelligkeit.ItemIndex = 0 then Helligkeit := 0;
+    if Formular.RadioGroupZwangshelligkeit.ItemIndex = 1 then Helligkeit := 0.07;
     RegistrySchreiben;
     RegistryLesen;
   end;

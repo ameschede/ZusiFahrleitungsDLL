@@ -1,7 +1,7 @@
 object FormFahrleitungConfig: TFormFahrleitungConfig
-  Left = 304
+  Left = 599
   Height = 594
-  Top = 195
+  Top = 217
   Width = 812
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
@@ -15,6 +15,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
+  Position = poScreenCenter
   LCLVersion = '2.2.2.0'
   object SpeedButtonIsolator: TSpeedButton
     Left = 592
@@ -146,6 +147,28 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Max = 100
     Position = 10
     TabOrder = 5
+  end
+  object RadioGroupZwangshelligkeit: TRadioGroup
+    Left = 400
+    Height = 112
+    Top = 224
+    Width = 338
+    AutoFill = True
+    Caption = 'Helligkeit'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 81
+    ClientWidth = 334
+    Items.Strings = (
+      'Oberirdisch'
+      'Tunnel'
+    )
+    TabOrder = 6
   end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'
