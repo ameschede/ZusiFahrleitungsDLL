@@ -19,7 +19,7 @@ function Init:Longword; stdcall;
 function BauartTyp(i:Longint):PChar; stdcall;
 function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcall;
 function Berechnen(Typ1, Typ2:Longint):TErgebnis; stdcall;
-procedure Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung: single;IsolatorEinbau:boolean);
+procedure Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung:single;IsolatorEinbau:boolean);
 function Bezeichnung:PChar; stdcall;
 function Gruppe:PChar; stdcall;
 procedure Config(AppHandle:HWND); stdcall;
@@ -50,7 +50,7 @@ exports
 
 var
     DateiIsolator:string;
-    StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeAnkerseil,Helligkeit:single;
+    StaerkeFD,StaerkeTS,StaerkeHaenger,StaerkeAnkerseil,Helligkeit,Parabelfaktor:single;
     Kettenwerkstyp,IsolatorBaumodus,Festpunktisolatorposition:integer;
     DrahtFarbe:TD3DColorValue;
     V350,V300,V200,V160,BaufunktionAufgerufen,DialogOffen:boolean;
@@ -68,6 +68,7 @@ begin
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
               if reg.ValueExists('Kettenwerkstyp') then Kettenwerkstyp := reg.ReadInteger('Kettenwerkstyp');
               if reg.ValueExists('Helligkeit') then Helligkeit := reg.ReadFloat('Helligkeit');
+              if reg.ValueExists('Parabelfaktor') then Parabelfaktor := reg.ReadFloat('Parabelfaktor');
             end;
             case Kettenwerkstyp of
             0: V350 := true;
@@ -118,6 +119,7 @@ begin
               reg.WriteInteger('Kettenwerkstyp',Kettenwerkstyp);
               reg.WriteInteger('Festpunktisolatorposition',Festpunktisolatorposition);
               reg.WriteFloat('Helligkeit',Helligkeit);
+              reg.WriteFloat('Parabelfaktor',Parabelfaktor);
             end;
           end;
         end;
@@ -144,6 +146,7 @@ begin
   IsolatorBaumodus := 0;
   Festpunktisolatorposition:=10;
   Helligkeit := 0;
+  Parabelfaktor := 0.00055;
   RegistryLesen;
 end;
 
@@ -244,10 +247,21 @@ begin
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
 
+    if (Abstand < 22.7) then
+    begin
+         ShowMessage('Längsspannweite unter 22,7 m. Es kann kein gültiger Fahrdraht berechnet werden.');
+         exit; //Abbruch, weil Fahrdraht entarten würde
+    end;
+
+
     //Spannweite auf Plausibilität prüfen
-    if (EndstueckA in [Normal]) and (EndstueckB in [Normal]) then
+    if (EndstueckA in [Normal]) and (EndstueckB in [Normal]) and not V160 then
       begin
         if (Abstand < 26.75) or (Abstand > 63.5) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen des Kettenwerks (27 bis 63 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
+      end;
+    if (EndstueckA in [Normal]) and (EndstueckB in [Normal]) and V160 then // Bauart V160 hat erhöhte zulässige Längspannweite
+      begin
+        if (Abstand < 26.75) or (Abstand > 70.5) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen des Kettenwerks (27 bis 70 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
 
     //Für bestimmte Spannweiten die Hängerteilung vorgeben
@@ -308,7 +322,7 @@ begin
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
 
       //Punkt absenken
-      Durchhang := (0.00055 * sqr(Ersthaengerabstand + (a * 6.75) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      Durchhang := (Parabelfaktor * sqr(Ersthaengerabstand + (a * 6.75) - (Abstand/2)) + 1.0) / (Parabelfaktor * sqr(Abstand/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -342,7 +356,7 @@ begin
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt, v);
 
       //Punkt absenken
-      Durchhang := (0.00055 * sqr(Ersthaengerabstand + (i * 6.75) + ((Rest/j)*a) - (Abstand/2)) + 1.0) / (0.00055 * sqr(Abstand/2) + 1.0);
+      Durchhang := (Parabelfaktor * sqr(Ersthaengerabstand + (i * 6.75) + ((Rest/j)*a) - (Abstand/2)) + 1.0) / (Parabelfaktor * sqr(Abstand/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -369,7 +383,7 @@ begin
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktTB.PunktTransformiert.Punkt, v);
 
       //Punkt absenken
-      Durchhang := (0.00055 * sqr((Letzthaengerabstand+(a*6.75)) - (Abstand/2)) + 1) / (0.00055 * sqr(Abstand/2) + 1);
+      Durchhang := (Parabelfaktor * sqr((Letzthaengerabstand+(a*6.75)) - (Abstand/2)) + 1) / (Parabelfaktor * sqr(Abstand/2) + 1);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -385,15 +399,21 @@ begin
     //Endstücke
     if EndstueckA in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,false);
     if EndstueckB in [Normal] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,false);
-    if IsolatorBaumodus = 1 then
-    begin
-      if EndstueckA in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,true);
-      if EndstueckB in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,true);
-    end
-    else
+
+    if IsolatorBaumodus = 0 then
     begin
       if EndstueckA in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,false);
       if EndstueckB in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,false);
+    end;
+    if IsolatorBaumodus = 1 then   // Streckentrennung: Isolatoren 2,0 m vom Stützpunkt einbauen
+    begin
+      if EndstueckA in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,true);
+      if EndstueckB in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,true);
+    end;
+    if IsolatorBaumodus = 2 then   // Schutzstrecke: Isolatoren 2,3 m und 1,0 m vom Stützpunkt einbauen
+    begin
+      if EndstueckA in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Ersthaengerabstand,Abstand,1,true);
+      if EndstueckB in [Ausfaedel] then Berechne_Endstueck_OhneY(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Letzthaengerabstand,Abstand,-1,true);
     end;
 
     //Fahrdraht eintragen
@@ -418,7 +438,7 @@ begin
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktT.PunktTransformiert.Punkt, v);
 
     //Punkt absenken
-    Durchhang := (0.00055 * sqr(Ersthaengerabstand - (Abstand/2)) + 1) / (0.00055 * sqr(Abstand/2) + 1);
+    Durchhang := (Parabelfaktor * sqr(Ersthaengerabstand - (Abstand/2)) + 1) / (Parabelfaktor * sqr(Abstand/2) + 1);
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
     D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -433,19 +453,47 @@ begin
     DrahtEintragen(ErstNormalhaengerpunkt,pktO.PunktTransformiert.Punkt,StaerkeTS,DrahtFarbe,Helligkeit);
 
     //ggfs. Isolatoren einbauen.
-    if IsolatorEinbau then
+    if IsolatorEinbau and (IsolatorBaumodus = 1) then    // Streckentrennung: Isolatoren bei 2,0 m vom Stützpunkt einbauen
     begin
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-      LageIsolator(pktT.PunktTransformiert.Punkt, EndstueckEndepunkt, 2, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
+      LageIsolator(pktT.PunktTransformiert.Punkt, EndstueckEndepunkt, 2.0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
 
       setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
-      LageIsolator(pktF.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, 2, pktF.PunktTransformiert.Punkt, pktF.PunktTransformiert.Winkel);
+      LageIsolator(pktF.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, 2.0, pktF.PunktTransformiert.Punkt, pktF.PunktTransformiert.Winkel);
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktF.PunktTransformiert.Punkt;
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktF.PunktTransformiert.Winkel;
       ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+    end;
+    if IsolatorEinbau and (IsolatorBaumodus = 2) then     // Schutzstrecke: Isolatoren bei 1,0 m und 2,3 m vom Stützpunkt einbauen
+    begin
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, EndstueckEndepunkt, 2.3, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktF.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, 2.3, pktF.PunktTransformiert.Punkt, pktF.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktF.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktF.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktT.PunktTransformiert.Punkt, EndstueckEndepunkt, 1.0, pktT.PunktTransformiert.Punkt, pktT.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktT.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktT.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+      setlength(ErgebnisArrayDateien, length(ErgebnisArrayDateien)+1);
+      LageIsolator(pktF.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, 1.0, pktF.PunktTransformiert.Punkt, pktF.PunktTransformiert.Winkel);
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktxyz:=pktF.PunktTransformiert.Punkt;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Punktphixyz:=pktF.PunktTransformiert.Winkel;
+      ErgebnisArrayDateien[length(ErgebnisArrayDateien)-1].Datei:=PAnsichar(DateiIsolator);
+
+      showmessage('Bitte ggfs. überzählige Isolatoren von Hand löschen');
     end;
 
 end;
@@ -537,7 +585,7 @@ begin
       pktU.PunktTransformiert.Punkt.z := pktU.PunktTransformiert.Punkt.z-1; //Synthetisierung eines virtuellen Punkts 1 Meter unter dem Seil
 
       //Punkt absenken
-      Durchhang := (0.00055 * sqr((a * Haengerabstand) - (AbstandTS/2)) + 1.0) / (0.00055 * sqr(AbstandTS/2) + 1.0);
+      Durchhang := (Parabelfaktor * sqr((a * Haengerabstand) - (AbstandTS/2)) + 1.0) / (Parabelfaktor * sqr(AbstandTS/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -568,7 +616,7 @@ begin
       pktU.PunktTransformiert.Punkt.z := pktU.PunktTransformiert.Punkt.z-1; //Synthetisierung eines virtuellen Punkts 1 Meter unter dem Seil
 
       //Punkt absenken
-      Durchhang := (0.00055 * sqr((a * Haengerabstand) - (AbstandFD/2)) + 1.0) / (0.00055 * sqr(AbstandFD/2) + 1.0);
+      Durchhang := (Parabelfaktor * sqr((a * Haengerabstand) - (AbstandFD/2)) + 1.0) / (Parabelfaktor * sqr(AbstandFD/2) + 1.0);
       D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
       D3DXVec3Scale(vNeu, v, Durchhang);
       D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -678,6 +726,8 @@ begin
        Formular.TrackBarFestpunktisolator.Position := Festpunktisolatorposition;
        if Helligkeit = 0 then Formular.RadioGroupZwangshelligkeit.ItemIndex := 0;
        if SameValue(Helligkeit,0.07,0.01) then Formular.RadioGroupZwangshelligkeit.ItemIndex := 1;
+       if SameValue(Parabelfaktor,0.00055,0.0001) then Formular.RadioGroupDurchhang.ItemIndex := 0;
+       if SameValue(Parabelfaktor,0.0004,0.0001) then Formular.RadioGroupDurchhang.ItemIndex := 1;
 
        Formular.ShowModal;
 
@@ -689,6 +739,8 @@ begin
        Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
        if Formular.RadioGroupZwangshelligkeit.ItemIndex = 0 then Helligkeit := 0;
        if Formular.RadioGroupZwangshelligkeit.ItemIndex = 1 then Helligkeit := 0.07;
+       if Formular.RadioGroupDurchhang.ItemIndex = 0 then Parabelfaktor := 0.00055;
+       if Formular.RadioGroupDurchhang.ItemIndex = 1 then Parabelfaktor := 0.0004;
        RegistrySchreiben;
        RegistryLesen;
        end;

@@ -2,12 +2,12 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Left = 599
   Height = 594
   Top = 217
-  Width = 812
+  Width = 860
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
   Caption = 'Catenaire France Einstellungen'
   ClientHeight = 594
-  ClientWidth = 812
+  ClientWidth = 860
   Color = clBtnFace
   DesignTimePPI = 192
   Font.Color = clWindowText
@@ -37,7 +37,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   object LabelIsolatorposition: TLabel
     Left = 16
     Height = 26
-    Top = 368
+    Top = 424
     Width = 410
     Caption = 'Position des Isolators auf dem Festpunktseil'
     ParentColor = False
@@ -45,7 +45,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   object LabelAusleger: TLabel
     Left = 464
     Height = 26
-    Top = 416
+    Top = 472
     Width = 118
     Caption = 'Am Ausleger'
     ParentColor = False
@@ -53,13 +53,13 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   object LabelAnkermast: TLabel
     Left = 16
     Height = 26
-    Top = 416
+    Top = 472
     Width = 136
     Caption = 'Am Ankermast'
     ParentColor = False
   end
   object OK: TBitBtn
-    Left = 578
+    Left = 626
     Height = 50
     Top = 536
     Width = 226
@@ -70,7 +70,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     TabOrder = 0
   end
   object BitBtnAbbrechen: TBitBtn
-    Left = 578
+    Left = 626
     Height = 50
     Top = 472
     Width = 226
@@ -93,7 +93,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   end
   object RadioGroupZusatzisolatoren: TRadioGroup
     Left = 400
-    Height = 114
+    Height = 144
     Top = 96
     Width = 338
     AutoFill = True
@@ -105,12 +105,13 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 83
+    ClientHeight = 113
     ClientWidth = 334
     ItemIndex = 0
     Items.Strings = (
       'Aus'
       'Streckentrennung'
+      'Schutzstrecke'
     )
     TabOrder = 3
   end
@@ -141,7 +142,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   object TrackBarFestpunktisolator: TTrackBar
     Left = 160
     Height = 66
-    Top = 400
+    Top = 456
     Width = 300
     Frequency = 5
     Max = 100
@@ -151,7 +152,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   object RadioGroupZwangshelligkeit: TRadioGroup
     Left = 400
     Height = 112
-    Top = 224
+    Top = 280
     Width = 338
     AutoFill = True
     Caption = 'Helligkeit'
@@ -169,6 +170,28 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'Tunnel'
     )
     TabOrder = 6
+  end
+  object RadioGroupDurchhang: TRadioGroup
+    Left = 16
+    Height = 104
+    Top = 288
+    Width = 336
+    AutoFill = True
+    Caption = 'Durchhang'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 73
+    ClientWidth = 332
+    Items.Strings = (
+      'Normal'
+      'Schutzstrecke'
+    )
+    TabOrder = 7
   end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'

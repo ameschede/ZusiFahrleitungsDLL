@@ -148,6 +148,7 @@ Catenaire France
 Alle DLL
 - Version für Zusi 3.5
 
+
 3.5.1.0 (30.6.2023)
 Alle DLL
 - Drähte können direkt mit Tunnelhelligkeit eingebaut werden
@@ -157,3 +158,10 @@ Ezs 1007
 
 Kettenlinien
 - Kompatibilität zu sehr alten CPUs verbessert
+
+
+3.5.1.1 ()
+Catenaire France
+- Isolator-Baumodus für Schutzstrecken
+- Option für verringerten Kettenwerksdurchhang in Schutzstrecken
+- Spannweiten-Warnmeldung für Bauart V160 angepasst
