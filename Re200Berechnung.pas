@@ -13,7 +13,7 @@ uses
 
 type
 
-  TEndstueck = (y24m, y18m, y14m, y12m, y24mZ, y18mZ, y14mZ, y12mZ, ausfaedel, Festp, FestpIso, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z);
+  TEndstueck = (y24m, y18m, y14m, y12m, y24mZ, y18mZ, y14mZ, y12mZ, ausfaedel, Festp, FestpIso, Abschluss, SH13_5m, SH13_10m, SH03, SH03Z, Re200mod_5m5, Re200mod_10m);
 
 function Init:Longword; stdcall;
 function BauartTyp(i:Longint):PChar; stdcall;
@@ -24,7 +24,7 @@ procedure Berechne_YSeil_14m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVec
 procedure Berechne_YSeil_12m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
 procedure Berechne_YSeil_24m(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY:TAnkerpunkt; Abstand,Richtung: single);
 procedure Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT,pktY,pktSR:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung: single);
-procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Abstand,Richtung: single);
+procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung: single);
 function Bezeichnung:PChar; stdcall;
 function Gruppe:PChar; stdcall;
 procedure Config(AppHandle:HWND); stdcall;
@@ -117,7 +117,7 @@ end;
 function Init:Longword; stdcall;
 // Rückgabe: Anzahl der Bauarttypen
 begin
-  Result:=16;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
+  Result:=18;  //muss passen zu den möglichen Rückgabewerten der function BauartTyp
   Reset(true);
   Reset(false);
   DateiIsolator:='Catenary\Deutschland\Einzelteile_Re75-200\Isolator.lod.ls3';
@@ -156,8 +156,33 @@ begin
   12: Result:='(SH < 13) Radius über 700 m';
   13: Result:='(SH < 13) Radius unter 700 m';
   14: Result:='(SH 03) Stützpunkt unter Bauwerk';
-  15: Result:='(SH 03) Festpunkt mit Stützpunkt unter Bauwerk'
+  15: Result:='(SH 03) Festpunkt mit Stützpunkt unter Bauwerk';
+  16: Result:='';
+  17: Result:=''
   else Result := '(K) 18m Y-Seil'
+  end;
+
+  if QTWBaumodus = 3 then
+  case i of
+    0: Result:='r > 1200 m, 18m Y-Seil';
+    1: Result:='r 700 - 1200 m, 14m Y-Seil';
+    2: Result:='Festpunktabspannung';
+    3: Result:='Festpunktabspannung mit Isolator';
+    4: Result:='Festpunkt mit 18m Y-Seil';
+    5: Result:='Festpunkt mit 14m Y-Seil';
+    6: Result:='Ausfädelung';
+    7: Result:='Abschluss mit Isolatoren';
+    8: Result:='';
+    9: Result:='';
+    10: Result:='';
+    11: Result:='';
+    12: Result:='(SH < 13) Radius über 700 m';
+    13: Result:='(SH < 13) Radius unter 700 m';
+    14: Result:='(SH 03) Stützpunkt unter Bauwerk';
+    15: Result:='(SH 03) Festpunkt mit Stützpunkt unter Bauwerk';
+    16: Result:='Re 200 mod kurze Spannweite';
+    17: Result:='Re 200 mod enger Bogen'
+    else Result := ''
   end;
 
   //Zusi 3.5 erwartet Codepage 1252 auf der DLL-Schnittstelle
@@ -271,8 +296,10 @@ begin
     if EndstueckB = Ausfaedel then Letzthaengerabstand := 0;
     if EndstueckA in [SH03,SH13_5m] then Ersthaengerabstand := 5; //Bei Kettenwerk zwischen zwei SH03-Auslegern gilt eigentlich Sonderregel für die Hängerabstände (1/4 der Längsspannweite). Dann landet man allerdings in der Funktion Kettenwerk_SH03. Die Festlegungen hier sind somit nur für Übergangskettenwerke relevant.
     if EndstueckB in [SH03,SH13_5m] then Letzthaengerabstand := 5;
-    if EndstueckA = SH13_10m then Ersthaengerabstand := 10;
-    if EndstueckB = SH13_10m then Letzthaengerabstand := 10;
+    if EndstueckA in [SH13_10m,Re200mod_10m] then Ersthaengerabstand := 10;
+    if EndstueckB in [SH13_10m,Re200mod_10m] then Letzthaengerabstand := 10;
+    if EndstueckA in [Re200mod_5m5] then Ersthaengerabstand := 5.5;
+    if EndstueckB in [Re200mod_5m5] then Letzthaengerabstand := 5.5;
 
     if EndstueckA in [y24mZ,y18mZ,y14mZ,y12mZ,SH03Z] then zSeilA := true;
     if EndstueckB in [y24mZ,y18mZ,y14mZ,y12mZ,SH03Z] then zSeilB := true;
@@ -333,8 +360,10 @@ begin
      sonst maximal 11,50 m;
     }
 
-    i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/11.5) - 1;
-    if odd(i) then i :=i+1; //ungerade Anzahl Normalhänger ist in Re 200 nicht zulässig. Deshalb im Zweifel einen Hänger mehr einbauen.
+    if not QTWBaumodus = 3 then i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/11.5) - 1 // Re 200 klassisch
+    else i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/9) - 1; // Re 200 mod mit auf 9 m reduziertem max. Hängerabstand
+
+    if odd(i) then i :=i+1; //ungerade Anzahl Normalhänger ist in Re 200 und Re 200 mod nicht zulässig. Deshalb im Zweifel einen Hänger mehr einbauen.
 
     //LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
     Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/(i+1);
@@ -438,8 +467,12 @@ begin
     if EndstueckB in [SH13_5m] then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,5,Abstand,-1);
     if EndstueckA in [SH13_10m] then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,pktYA,pktSRA,10,Abstand,1);
     if EndstueckB in [SH13_10m] then Berechne_Endstueck_SH13(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,pktYB,pktSRB,10,Abstand,-1);
-    if EndstueckA in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,Abstand,1);
-    if EndstueckB in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,Abstand,-1);
+    if EndstueckA in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,5,Abstand,1);
+    if EndstueckB in [SH03,SH03Z] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,5,Abstand,-1);
+    if EndstueckA in [Re200mod_5m5] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,5.5,Abstand,1);
+    if EndstueckB in [Re200mod_5m5] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,5.5,Abstand,-1);
+    if EndstueckA in [Re200mod_10m] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt,pktFA,pktTA,10,Abstand,1);
+    if EndstueckB in [Re200mod_10m] then Berechne_Endstueck_SH03(vFahrdraht,vTragseil,LetztNormalhaengerpunkt,pktFB,pktTB,10,Abstand,-1);
     if EndstueckA = Ausfaedel then
     begin
       //Verbindung zwischen erstem Normalhänger und Ausleger A
@@ -918,7 +951,8 @@ begin
     DrahtEintragen(YSeilEndepunkt,ErstNormalhaengerpunkt,StaerkeTS,DrahtFarbe,Helligkeit);
 end;
 
-procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Abstand,Richtung:single); //nur für Übergangskettenwerk
+procedure Berechne_Endstueck_SH03(vFahrdraht,vTragseil,ErstNormalhaengerpunkt:TD3DVector; pktF,pktT:TAnkerpunkt; Ersthaengerabstand,Abstand,Richtung:single);
+// wird aufgerufen für die Kettenwerke SH03 und Re 200 mod ohne Y-Seil
 var pktU, pktO:TAnkerpunkt;
     v, vNorm, vNeu: TD3DVector;
     Durchhang:single;
@@ -926,16 +960,16 @@ begin
     //Erster Hänger
     //unterer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vFahrdraht);
-    D3DXVec3Scale(v, vNorm, Richtung * 5);    //erster Hänger in 5,0 m Abstand zum Stützpunkt
+    D3DXVec3Scale(v, vNorm, Richtung * Ersthaengerabstand);
     D3DXVec3Add(pktU.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, v);
 
     //oberer Kettenwerkpunkt
     D3DXVec3Normalize(vNorm, vTragseil);
-    D3DXVec3Scale(v, vNorm, Richtung * 5);
+    D3DXVec3Scale(v, vNorm, Richtung * Ersthaengerabstand);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktT.PunktTransformiert.Punkt, v);
 
     //Punkt absenken
-    Durchhang := (0.00076 * sqr(5 - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
+    Durchhang := (0.00076 * sqr(Ersthaengerabstand - (Abstand/2)) + 1) / (0.00076 * sqr(Abstand/2) + 1);
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
     D3DXVec3Scale(vNeu, v, Durchhang);
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
@@ -1316,7 +1350,9 @@ begin
     12: BautypA := SH13_5m;
     13: BautypA := SH13_10m;
     14: BautypA := SH03;
-    15: BautypA := SH03Z
+    15: BautypA := SH03Z;
+    16: BautypA := Re200mod_5m5;
+    17: BautypA := Re200mod_10m
   end;
     case Typ2 of
     0: BautypB := y18m;
@@ -1334,7 +1370,9 @@ begin
     12: BautypB := SH13_5m;
     13: BautypB := SH13_10m;
     14: BautypB := SH03;
-    15: BautypB := SH03Z
+    15: BautypB := SH03Z;
+    16: BautypB := Re200mod_5m5;
+    17: BautypB := Re200mod_10m
   end;
 
   //hier wird entschieden was wir machen. Zuerst die Sonderfälle:
@@ -1382,7 +1420,8 @@ end;
 function Gruppe:PChar; stdcall;
 // Teilt dem Editor die Objektgruppe mit, die er bei den verknüpften Dateien vermerken soll
 begin
-  Result:='Kettenwerk Re 200';
+  if not QTWBaumodus = 3 then Result:='Kettenwerk Re 200'
+  else Result:='Kettenwerk Re 200 mod'
 end;
 
 procedure Config(AppHandle:HWND); stdcall;

@@ -165,3 +165,6 @@ Catenaire France
 - Isolator-Baumodus für Schutzstrecken
 - Option für verringerten Kettenwerksdurchhang in Schutzstrecken
 - Spannweiten-Warnmeldung für Bauart V160 angepasst
+
+Re 200
+- Baumodus für Re 200 mod

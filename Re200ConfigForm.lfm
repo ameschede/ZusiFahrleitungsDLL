@@ -1,7 +1,7 @@
 object FormFahrleitungConfig: TFormFahrleitungConfig
-  Left = 442
+  Left = 723
   Height = 556
-  Top = 199
+  Top = 229
   Width = 1140
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Re 200 Einstellungen'
@@ -119,9 +119,9 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   end
   object RadioGroupBaumodus: TRadioGroup
     Left = 16
-    Height = 130
+    Height = 160
     Top = 96
-    Width = 336
+    Width = 392
     AutoFill = True
     Caption = 'Baumodus'
     ChildSizing.LeftRightSpacing = 6
@@ -131,21 +131,22 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 99
-    ClientWidth = 332
+    ClientHeight = 129
+    ClientWidth = 388
     ItemIndex = 0
     Items.Strings = (
-      'Einzelstützpunkte'
-      'Querfelder im Bahnhof'
-      'Querfelder auf freier Strecke'
+      'Re 200 Einzelstützpunkte'
+      'Re 200 Querfelder im Bahnhof'
+      'Re 200 Querfelder auf freier Strecke'
+      'Re 200 mod'
     )
     TabOrder = 5
   end
   object RadioGroupZusatzisolatoren: TRadioGroup
-    Left = 376
+    Left = 440
     Height = 168
     Top = 96
-    Width = 336
+    Width = 312
     AutoFill = True
     Caption = 'Zusätzliche Isolatoren einbauen'
     ChildSizing.LeftRightSpacing = 6
@@ -156,7 +157,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
     ClientHeight = 137
-    ClientWidth = 332
+    ClientWidth = 308
     ItemIndex = 0
     Items.Strings = (
       'Aus'
@@ -167,10 +168,10 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     TabOrder = 6
   end
   object RadioGroupZwangshelligkeit: TRadioGroup
-    Left = 736
+    Left = 784
     Height = 96
     Top = 96
-    Width = 352
+    Width = 304
     AutoFill = True
     Caption = 'Helligkeit'
     ChildSizing.LeftRightSpacing = 6
@@ -181,7 +182,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
     ClientHeight = 65
-    ClientWidth = 348
+    ClientWidth = 300
     Items.Strings = (
       'Oberirdisch'
       'Tunnel'
