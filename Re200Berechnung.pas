@@ -337,6 +337,14 @@ begin
         if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 200 (34 bis 80 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
 
+    //Spannweitengrenzwerte Re 200 mod
+    if QTWBaumodus = 3 then
+    begin
+      if ((EndstueckA in [y18m,y18mZ,y14m,y14mZ]) or (EndstueckB in [y18m,y18mZ,y14m,y14mZ])) and (Abstand < 53) then ShowMessage('Die gewählte Kettenwerksbauform ist unter 53 m Spannweite bei Re 200 mod nicht zulässig');
+      if ((EndstueckA in [Re200mod_10m]) or (EndstueckB in [Re200mod_10m])) and (Abstand > 53) then ShowMessage('Die gewählte Kettenwerksbauform ist über 53 m Spannweite bei Re 200 mod nicht zulässig');
+      if ((EndstueckA in [Re200mod_5m5]) or (EndstueckB in [Re200mod_5m5])) and (Abstand > 60.7) then ShowMessage('Die gewählte Kettenwerksbauform ist über 60,7 m Spannweite bei Re 200 mod nicht zulässig');
+    end;
+
     //Hinweise auf korrekte Y-Seile in Querfeldern
     if QTWBaumodus = 1 then
     begin
