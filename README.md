@@ -5,7 +5,7 @@ Fahrleitungs-DLLs für Zusi 3, basierend auf dem bei Zusi 3 mitgelieferten Beispi
 Erzeugt Kettenwerk für die Fahrleitungsbauformen Re 330 oder Re 250 der DB.
 
 ## DLL "Re 200"
-Erzeugt Kettenwerk für die Fahrleitungsbauform Re 200 der DB.
+Erzeugt Kettenwerk für die Fahrleitungsbauformen Re 200 und Re 200 mod der DB.
 
 ## DLL "Re 160"
 Erzeugt Kettenwerk für die Fahrleitungsbauformen Re 160, Re 100 oder Re 75 der DB.

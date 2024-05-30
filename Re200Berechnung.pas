@@ -1428,8 +1428,8 @@ end;
 function Gruppe:PChar; stdcall;
 // Teilt dem Editor die Objektgruppe mit, die er bei den verknüpften Dateien vermerken soll
 begin
-  if not QTWBaumodus = 3 then Result:='Kettenwerk Re 200'
-  else Result:='Kettenwerk Re 200 mod'
+  if QTWBaumodus = 3 then Result:='Kettenwerk Re 200 mod'
+  else Result:='Kettenwerk Re 200'
 end;
 
 procedure Config(AppHandle:HWND); stdcall;
