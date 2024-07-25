@@ -320,9 +320,9 @@ begin
     end;
 
     //Fahrdraht berechnen als Vektor von FA nach FB
-    if EndstueckA = Ausfaedel then pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungFahrdraht)
+    if (EndstueckA = Ausfaedel) and not ((QTWBaumodus = 1) or (QTWBaumodus = 2)) then pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungFahrdraht)
     else pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungFahrdraht);
-    if EndstueckB = Ausfaedel then pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAusfaedelungFahrdraht)
+    if (EndstueckB = Ausfaedel) and not ((QTWBaumodus = 1) or (QTWBaumodus = 2)) then pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAusfaedelungFahrdraht)
     else pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
@@ -378,9 +378,9 @@ begin
     //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
 
     //Tragseil Endpunkte
-    if EndstueckA = Ausfaedel then pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungTragseil)
+    if (EndstueckA = Ausfaedel) and not ((QTWBaumodus = 1) or (QTWBaumodus = 2)) then pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungTragseil)
     else pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungTragseil);
-    if EndstueckB = Ausfaedel then pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAusfaedelungTragseil)
+    if (EndstueckB = Ausfaedel) and not ((QTWBaumodus = 1) or (QTWBaumodus = 2)) then pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAusfaedelungTragseil)
     else pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
@@ -1222,7 +1222,8 @@ begin
   begin
     BaufunktionAufgerufen := true;
     //Fahrdraht berechnen als Vektor von FA nach FB
-    pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungFahrdraht);
+    if ((QTWBaumodus = 1) or (QTWBaumodus = 2)) then pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungFahrdraht)
+    else pktFA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungFahrdraht);
     pktFB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAbspannungMastpunktFahrdraht);
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
@@ -1234,7 +1235,8 @@ begin
     //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
 
     //Tragseil Endpunkte
-    pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungTragseil);
+    if ((QTWBaumodus = 1) or (QTWBaumodus = 2)) then pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungTragseil)
+    else pktTA:=PunktSuchen(true, 1, Ankertyp_FahrleitungAusfaedelungTragseil);
     pktTB:=PunktSuchen(false, 1, Ankertyp_FahrleitungAbspannungMastpunktTragseil);
     D3DXVec3Subtract(vTragseil, pktTB.PunktTransformiert.Punkt, pktTA.PunktTransformiert.Punkt);
 
