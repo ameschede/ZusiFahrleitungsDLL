@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="12"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="Re120.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <CursorPos X="44" Y="6"/>
+        <UsageCount Value="42"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="OLADLLgemeinsameFkt.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="240"/>
+        <CursorPos X="12" Y="39"/>
+        <UsageCount Value="42"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="Re120Berechnung.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="181"/>
+        <CursorPos X="68" Y="205"/>
+        <UsageCount Value="42"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="Re120ConfigForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FormFahrleitungConfig"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="28"/>
+        <CursorPos X="5" Y="11"/>
+        <UsageCount Value="42"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="FahrleitungsTypen.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="14" Y="28"/>
+        <UsageCount Value="42"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="ZusiD3DTypenDll.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="42"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="F:\programme\Lazarus\fpc\3.2.2\source\rtl\inc\systemh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="640"/>
+        <CursorPos X="8" Y="672"/>
+        <UsageCount Value="8"/>
+      </Unit>
+      <Unit>
+        <Filename Value="F:\programme\Lazarus\fpc\3.2.2\source\rtl\i386\cpuh.inc"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="8"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="29">
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="52" Column="122" TopLine="31"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="94" TopLine="86"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="124" TopLine="85"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="557" Column="5" TopLine="526"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="545" Column="33" TopLine="526"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="22" Column="124"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="539" Column="124" TopLine="520"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="547" Column="37" TopLine="520"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="552" Column="37" TopLine="520"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="561" Column="16" TopLine="532"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="576" Column="37" TopLine="554"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="545" Column="31" TopLine="532"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="22" Column="124"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="539" Column="124" TopLine="445"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="547" Column="42" TopLine="525"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="552" Column="41" TopLine="525"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="214" Column="60" TopLine="199"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="239" Column="128" TopLine="199"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="261" Column="64" TopLine="228"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="263" Column="83" TopLine="228"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="261" Column="176" TopLine="228"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="263" Column="69" TopLine="228"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="396" Column="53" TopLine="363"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="400" Column="54" TopLine="363"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="403" Column="58" TopLine="375"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="648" Column="64" TopLine="629"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="668" Column="64" TopLine="629"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="669" Column="83" TopLine="669"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="670" Column="69" TopLine="712"/>
+      </Position>
+      <Position>
+        <Filename Value="Re120Berechnung.pas"/>
+        <Caret Line="675" Column="71" TopLine="671"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+</CONFIG>

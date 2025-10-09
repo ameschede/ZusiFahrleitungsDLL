@@ -10,6 +10,9 @@ Erzeugt Kettenwerk für die Fahrleitungsbauformen Re 200 und Re 200 mod der DB.
 ## DLL "Re 160"
 Erzeugt Kettenwerk für die Fahrleitungsbauformen Re 160, Re 100 oder Re 75 der DB.
 
+## DLL "Re 120"
+Erzeugt Kettenwerk für die Fahrleitungsbauform Re 120 der DB.
+
 ## DLL "Ezs 1007"
 Kann eine tragseillose/tragseilarme Fahrleitung nach Ezs 1007 erzeugen. Für Festpunktabspannungen bitte einstweilen die Re-160-DLL verwenden. Zukünftig wäre denkbar, noch einen "Re-60-Modus" für die moderne Form der Einfachfahrleitung zu implementieren, bei der die Länge des Tragseils mit der Längsspannweite variiert.
 
@@ -17,6 +20,8 @@ Kann eine tragseillose/tragseilarme Fahrleitung nach Ezs 1007 erzeugen. Für Fest
 Erzeugt Kettenwerk der französischen Fahrleitungsbauart V350 STI.
 
 ## Weitere Infos
+Updates der DLLs werden in der Regel über den Weg offizieller Zusi-Programmupdates verteilt.
+
 Entwicklungsumgebung ist Lazarus.
 Um den Code zum kompilieren zu bringen, müssen die beiden Units FahrleitungsTypen.pas und ZusiD3DTypenDll.pas übernommen werden aus $Zusi-Programmverzeichnis$ \_Docu\demos\catenary\source
 

@@ -5,7 +5,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Width = 1140
   BorderIcons = [biSystemMenu, biMaximize]
   BorderStyle = bsDialog
-  Caption = 'Re 160 Einstellungen'
+  Caption = 'Re 120 Einstellungen'
   ClientHeight = 556
   ClientWidth = 1140
   Color = clBtnFace
@@ -101,14 +101,6 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
     Position = 10
     TabOrder = 3
   end
-  object CheckBoxYKompatibilitaet: TCheckBox
-    Left = 16
-    Height = 30
-    Top = 304
-    Width = 531
-    Caption = 'Y-Seil 12 m an Ausleger B kompatibel zu Fremd-DLLs'
-    TabOrder = 4
-  end
   object RadioGroupZusatzisolatoren: TRadioGroup
     Left = 16
     Height = 168
@@ -133,38 +125,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'Geerdete Ausleger + Streckentrennung'
     )
     ParentBackground = False
-    TabOrder = 5
-  end
-  object CheckBoxVorschlagKeinY: TCheckBox
-    Left = 16
-    Height = 30
-    Top = 352
-    Width = 275
-    Caption = 'Bauvorschlag ohne Y-Seil'
-    TabOrder = 6
-  end
-  object RadioGroupOhneY: TRadioGroup
-    Left = 624
-    Height = 114
-    Top = 112
-    Width = 370
-    AutoFill = True
-    Caption = 'Bauform Kettenwerk ohne Y-Seil'
-    ChildSizing.LeftRightSpacing = 6
-    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
-    ChildSizing.EnlargeVertical = crsHomogenousChildResize
-    ChildSizing.ShrinkHorizontal = crsScaleChilds
-    ChildSizing.ShrinkVertical = crsScaleChilds
-    ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 1
-    ClientHeight = 83
-    ClientWidth = 366
-    Items.Strings = (
-      'Re 75 / Re 100 (Standard)'
-      'Re 160 (selten, siehe Doku)'
-    )
-    ParentBackground = False
-    TabOrder = 7
+    TabOrder = 4
   end
   object RadioGroupZwangshelligkeit: TRadioGroup
     Left = 624
@@ -187,7 +148,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'Tunnel'
     )
     ParentBackground = False
-    TabOrder = 8
+    TabOrder = 5
   end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'

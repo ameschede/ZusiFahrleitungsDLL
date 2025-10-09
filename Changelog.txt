@@ -174,3 +174,13 @@ Re 200
 Re 200
 - Fehlerbehebung bei Umschaltung zwischen Re 200 und Re 200 mod
 - Bautyp Ausfädelung im Quertragwerk ist möglich
+
+
+3.5.4.0 (9.10.2025)
+Re 120
+- erste Version
+
+Re 160
+- Bau von Abspannung direkt auf Y-Seil wird nicht mehr verweigert, aber angewarnt
+- Bau von geerdetem Ausleger auf Streckentrennung ist möglich
+- Geerdete Ausfädelungs-Ausleger sind möglich

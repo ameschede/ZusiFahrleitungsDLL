@@ -11,7 +11,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="Re160"/>
+      <Title Value="Re120"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -44,7 +44,7 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="Re160.lpr"/>
+        <Filename Value="Re120.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -52,11 +52,11 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="Re160Berechnung.pas"/>
+        <Filename Value="Re120Berechnung.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="Re160ConfigForm.pas"/>
+        <Filename Value="Re120ConfigForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="FormFahrleitungConfig"/>
         <HasResources Value="True"/>
