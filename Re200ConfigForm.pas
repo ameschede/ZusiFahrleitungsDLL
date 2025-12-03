@@ -13,6 +13,7 @@ type
   { TFormFahrleitungConfig }
 
   TFormFahrleitungConfig = class(TForm)
+    CheckBoxFirmenbauart: TCheckBox;
     OK: TBitBtn;
     BitBtnAbbrechen: TBitBtn;
     OpenDialogDatei: TOpenDialog;
@@ -27,6 +28,7 @@ type
     RadioGroupBaumodus: TRadioGroup;
     LabelBauhinweisQuerfelder: TLabel;
     RadioGroupZusatzisolatoren: TRadioGroup;
+    procedure CheckBoxFirmenbauartChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure SpeedButtonIsolatorClick(Sender: TObject);
   private
@@ -82,6 +84,11 @@ end;
 procedure TFormFahrleitungConfig.FormCreate(Sender: TObject);
 begin
   if Screen.PixelsPerInch <> 192 then ScaleDPI(Self,192);
+end;
+
+procedure TFormFahrleitungConfig.CheckBoxFirmenbauartChange(Sender: TObject);
+begin
+
 end;
 
 end.

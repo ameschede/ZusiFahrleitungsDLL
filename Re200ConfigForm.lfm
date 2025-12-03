@@ -13,9 +13,9 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   Font.Height = -22
   Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
-  OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.2.2.0'
+  LCLVersion = '4.0.0.4'
+  OnCreate = FormCreate
   object SpeedButtonIsolator: TSpeedButton
     Left = 592
     Height = 50
@@ -111,9 +111,9 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
   end
   object CheckBoxYKompatibilitaet: TCheckBox
     Left = 520
-    Height = 35
+    Height = 30
     Top = 312
-    Width = 536
+    Width = 531
     Caption = 'Y-Seil 12 m an Ausleger B kompatibel zu Fremd-DLLs'
     TabOrder = 4
   end
@@ -140,6 +140,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'Re 200 Querfelder auf freier Strecke'
       'Re 200 mod'
     )
+    ParentBackground = False
     TabOrder = 5
   end
   object RadioGroupZusatzisolatoren: TRadioGroup
@@ -165,6 +166,7 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'Festpunkt im Querfeld'
       'Streckentrennung'
     )
+    ParentBackground = False
     TabOrder = 6
   end
   object RadioGroupZwangshelligkeit: TRadioGroup
@@ -187,7 +189,17 @@ object FormFahrleitungConfig: TFormFahrleitungConfig
       'Oberirdisch'
       'Tunnel'
     )
+    ParentBackground = False
     TabOrder = 7
+  end
+  object CheckBoxFirmenbauart: TCheckBox
+    Left = 520
+    Height = 30
+    Top = 352
+    Width = 359
+    Caption = 'Fahrdraht in Firmenbauart (AC-120)'
+    TabOrder = 8
+    OnChange = CheckBoxFirmenbauartChange
   end
   object OpenDialogDatei: TOpenDialog
     DefaultExt = '.lod.ls3'

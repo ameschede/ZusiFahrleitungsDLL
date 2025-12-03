@@ -184,3 +184,11 @@ Re 160
 - Bau von Abspannung direkt auf Y-Seil wird nicht mehr verweigert, aber angewarnt
 - Bau von geerdetem Ausleger auf Streckentrennung ist möglich
 - Geerdete Ausfädelungs-Ausleger sind möglich
+
+Re 200
+- Option für Fahrdraht AC-120 (für Re 200 mod in Firmenbauart)
+
+3.5.5.0 (3.12.2025)
+Re 120
+- maximaler Hängerabstand jetzt 13 m gemäß EzsN 220
+- Länge Y-Hänger analog Ezs 486

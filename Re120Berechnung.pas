@@ -166,7 +166,7 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungAbspannungMastpunktFahrdraht then inc(iUnten0);
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungAbspannungMastpunktTragseil then inc(iOben0);
     end;
-    if (iUnten0=1) and (iOben0=1) then Result:=6;
+    if (iUnten0=1) and (iOben0=1) then Result:=5;
 
     //liegt ein Ausfädelungs-Ausleger vor?
     for b:=0 to length(Punkte)-1 do
@@ -174,7 +174,7 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungAusfaedelungFahrdraht then inc(iUnten1);
       if Punkte[b].Ankertyp=Ankertyp_FahrleitungAusfaedelungTragseil then inc(iOben1);
     end;
-    if (iUnten1=1) and (iOben1=1) then Result:=5;
+    if (iUnten1=1) and (iOben1=1) then Result:=4;
 
     //liegt ein Standard-Ausleger vor?
     for b:=0 to length(Punkte)-1 do
@@ -196,12 +196,8 @@ function BauartVorschlagen(A:Boolean; BauartBVorgaenger:LongInt):Longint; stdcal
   end;
 
 begin
-    if A then Result:=Vorschlagen(PunkteA)
-         else
-         begin
-              Result:=Vorschlagen(PunkteB);
-              //if Result=0 then Result := 1; //wenn B Standard-Ausleger ist, Bauform ankommendes Y-Seil vorschlagen
-         end;
+    if A then Result:=Vorschlagen(PunkteA) else Result:=Vorschlagen(PunkteB);
+
 end;
 
 procedure Kettenwerk(EndstueckA,EndstueckB:TEndstueck);
@@ -258,7 +254,7 @@ begin
         if (Abstand < 34) or (Abstand > 80.5) then ShowMessage(FormatFloat('0.00',Abstand) + ' m Längsspannweite liegt außerhalb der zulässigen Grenzen der Bauart Re 160 (34 bis 80 m).'); //Aufgrund möglicher Ungenauigkeiten der Maststandorte in Zusi geben wir einen halben Meter Toleranz
       end;
 
-    i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/12.5) - 1;    //max. Hängerabstand in der Bauart Re 160 ist 12,5 m [TODO: Wert für Re 120 ist unbekannt]
+    i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/13.0) - 1;    //max. Hängerabstand in der Bauart Re 120 ist 13,0 m
 
     Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/(i+1);
     //ShowMessage( 'Anzahl Hänger '+inttostr(i) + '   Hängerabstand ' + floattostr(Haengerabstand) + '   Längsspannweite ' + floattostr(Abstand) + '   Normalhängerbereich ' + floattostr(LaengeNormalhaengerbereich));
@@ -553,21 +549,11 @@ begin
 
     //Punkt absenken
     D3DXVec3Subtract(v, pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.50); //Hänger auf 50% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 476) [TODO: für Re 120 nicht einschlägig?]
+    D3DXVec3Scale(vNeu, v, 0.82); //Hänger auf 82% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 486)
     D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktU.PunktTransformiert.Punkt, vNeu);
     YSeilErsthaengerpunkt := pktO.PunktTransformiert.Punkt;
     //Array[0]
     if Richtung = 1 then DrahtEintragen(pktU.PunktTransformiert.Punkt,pktO.PunktTransformiert.Punkt,StaerkeHaenger,DrahtFarbe,Helligkeit); //Y-Hänger nur bauen wenn Ausleger A
- {
-    //Verbindung im Y-Seil zwischen Ersthänger und Nullpunkt am Ausleger
-    //oberer Kettenwerkpunkt
-    //Punkt absenken
-    D3DXVec3Subtract(v, pktT.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt);
-    D3DXVec3Scale(vNeu, v, 0.47); //47% Höhe zwischen Fahrdraht und Tragseil (lt. Ezs 476)
-    D3DXVec3Add(pktO.PunktTransformiert.Punkt, pktF.PunktTransformiert.Punkt, vNeu);
-    //Array[3]
-    DrahtEintragen(YSeilErsthaengerpunkt,pktO.PunktTransformiert.Punkt,StaerkeYseil,DrahtFarbe,Helligkeit);
-  }
 
     //Tragseil zwischen Ende Y-Seil und Ausleger
     //unterer Kettenwerkpunkt (nur virtuell, für Berechnungszwecke)
@@ -665,7 +651,7 @@ begin
     D3DXVec3Subtract(vFahrdraht, pktFB.PunktTransformiert.Punkt, pktFA.PunktTransformiert.Punkt);
     Abstand:=D3DXVec3Length(vFahrdraht);
 
-    i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/12.5); //Anders als bei Normalkettenwerk soll hier der letzte Hänger von der Normalhänger-Schleife gebaut werden
+    i:=Math.Ceil((Abstand - Ersthaengerabstand - Letzthaengerabstand)/13.0); //Anders als bei Normalkettenwerk soll hier der letzte Hänger von der Normalhänger-Schleife gebaut werden
     //LaengeNormalhaengerbereich := (Abstand - Ersthaengerabstand - Letzthaengerabstand);
     Haengerabstand := (Abstand - Ersthaengerabstand - Letzthaengerabstand)/i; //Anders als bei Normalkettenwerk soll hier der letzte Hänger von der Normalhänger-Schleife gebaut werden
     //falls sich bei kurzer Spannweite ein unüblich kurzer Hängerabstand ergibt, keinen Hänger einbauen:

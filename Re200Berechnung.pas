@@ -73,6 +73,7 @@ begin
               if reg.ValueExists('YKompFaktor') then YKompFaktor := reg.ReadFloat('YKompFaktor');
               if reg.ValueExists('IsolatorBaumodus') then IsolatorBaumodus := reg.ReadInteger('IsolatorBaumodus');
               if reg.ValueExists('Helligkeit') then Helligkeit := reg.ReadFloat('Helligkeit');
+              if reg.ValueExists('FDStaerke') then StaerkeFD := reg.ReadFloat('FDStaerke');
             end;
   finally
     reg.Free;
@@ -103,6 +104,7 @@ begin
               reg.WriteInteger('QTWBaumodus',QTWBaumodus);
               reg.WriteInteger('IsolatorBaumodus',IsolatorBaumodus);
               reg.WriteFloat('Helligkeit',Helligkeit);
+              reg.WriteFloat('FDStaerke',StaerkeFD);
             end;
           end;
         end;
@@ -1450,6 +1452,7 @@ begin
   Formular.RadioGroupZusatzisolatoren.ItemIndex := IsolatorBaumodus;
   if Helligkeit = 0 then Formular.RadioGroupZwangshelligkeit.ItemIndex := 0;
   if SameValue(Helligkeit,0.07,0.01) then Formular.RadioGroupZwangshelligkeit.ItemIndex := 1;
+  if SameValue(StaerkeFD,0.0066,0.0001) then Formular.CheckBoxFirmenbauart.Checked := true;
   
   Formular.ShowModal;
 
@@ -1460,6 +1463,7 @@ begin
     IsolatorBaumodus:=Formular.RadioGroupZusatzisolatoren.ItemIndex;
     Festpunktisolatorposition := Formular.TrackBarFestpunktisolator.Position;
     if Formular.CheckBoxYKompatibilitaet.Checked = true then YKompFaktor := 1.325 else YKompFaktor := 1;
+    if Formular.CheckBoxFirmenbauart.Checked = true then StaerkeFD := 0.0066 else StaerkeFD := 0.006;
     if Formular.RadioGroupZwangshelligkeit.ItemIndex = 0 then Helligkeit := 0;
     if Formular.RadioGroupZwangshelligkeit.ItemIndex = 1 then Helligkeit := 0.07;
     RegistrySchreiben;
